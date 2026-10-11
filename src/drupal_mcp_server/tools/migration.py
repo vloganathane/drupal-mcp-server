@@ -6,6 +6,7 @@ import asyncio
 def register_tools(mcp, **deps):
     drush = deps.get("drush_client")
     ai = deps.get("ai_service")
+    jsonapi = deps.get("jsonapi_client")
 
     @mcp.tool()
     async def generate_migration_yaml(migration_type: str, source: dict, destination: dict) -> dict:
@@ -23,7 +24,7 @@ migration_dependencies: {{}}
 
     @mcp.tool()
     async def generate_module_migration(
-        module_name: str, source_version: str, target_version: str
+        module_name: str, source_version: str, target_version: str, base_path: str = "src/Plugin/migrate/source"
     ) -> dict:
         """Generate migration module for a custom module."""
         if not drush:
@@ -39,7 +40,7 @@ migration_dependencies: {{}}
                 }
 
             # Generate migration plugin boilerplate
-            migration_dir = "src/Plugin/migrate/source"
+            migration_dir = base_path
             import os
 
             os.makedirs(migration_dir, exist_ok=True)
@@ -90,11 +91,7 @@ class {module_name.capitalize()} extends SqlBase {{
                 "module_name": module_name,
                 "source_version": source_version,
                 "target_version": target_version,
-                "files_created": [
-                    f"{module_name}.info.yml",
-                    f"{module_name}.migration_plugins.yml",
-                    f"{plugin_path}",
-                ],
+                "files_created": [f"{module_name}.php"],
                 "status": "generated",
             }
         except Exception as e:

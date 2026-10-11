@@ -100,12 +100,13 @@ def register_tools(mcp, **deps):
             )
 
             if diff_result.get("returncode") == 0:
+                has_changes = bool(diff_result.get("stdout", "").strip())
                 return {
                     "config": config_name,
                     "env1": env1,
                     "env2": env2,
                     "diff": diff_result.get("stdout", "")[:5000],
-                    "has_changes": True,
+                    "has_changes": has_changes,
                 }
             else:
                 # Fallback: compare YAML files directly
