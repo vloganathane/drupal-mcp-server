@@ -121,68 +121,70 @@ Add to `~/.continue/config.json`:
 
 ## Available Tools by Module
 
-### Content Tools (6)
+### Content Tools (7)
 | Tool | Status | Description |
 |------|--------|-------------|
-| `drupal_content_create` | ✅ Implemented | Create content (nodes, users, taxonomy terms) |
-| `drupal_content_read` | ✅ Implemented | Read content by UUID or bundle |
-| `drupal_content_update` | ✅ Implemented | Update existing content |
-| `drupal_content_delete` | ✅ Implemented | Delete content |
-| `drupal_content_list` | ✅ Implemented | List content with filters/pagination |
-| `drupal_content_bulk_update` | 🔶 Stub | Bulk update multiple entities |
-| `drupal_media_fix_issues` | 🔶 Stub | Fix common media issues |
-| `drupal_alias_manage` | 🔶 Stub | Manage URL aliases |
-| `drupal_content_quality_analyze` | 🔶 Stub | Analyze content quality |
-| `drupal_test_content_generate` | 🔶 Stub | Generate test content |
+| `drupal_clean_nodes_ai` | ✅ Implemented | AI-powered duplicate content detection |
+| `drupal_map_fields_ai` | ✅ Implemented | AI field mapping between content types |
+| `drupal_bulk_update_nodes` | ✅ Implemented | Bulk update nodes via JSON:API PATCH |
+| `drupal_fix_media_references` | ✅ Implemented | Verify and fix broken media references |
+| `drupal_bulk_update_aliases` | ✅ Implemented | Bulk update URL aliases via Drush |
+| `drupal_analyze_content_quality` | ✅ Implemented | AI content quality scoring |
+| `drupal_generate_test_content` | ✅ Implemented | Generate test nodes for development |
 
 ### Migration Tools (7)
 | Tool | Status | Description |
 |------|--------|-------------|
-| `drupal_migration_generate_yaml` | ✅ Implemented | Generate migration YAML |
-| `drupal_migration_run_test` | ✅ Implemented | Run migration test |
-| `drupal_migration_validate` | ✅ Implemented | Validate migration |
-| `drupal_migration_rollback` | ✅ Implemented | Rollback migration |
-| `drupal_migration_sync_media` | ✅ Implemented | Sync media files |
-| `drupal_migration_module_config` | 🔶 Stub | Migrate module configuration |
-| `drupal_migration_taxonomy` | 🔶 Stub | Migrate taxonomy |
+| `drupal_generate_migration_yaml` | ✅ Implemented | Generate migration YAML via Drush |
+| `drupal_generate_module_migration` | ✅ Implemented | Generate module migration plugin boilerplate |
+| `drupal_run_migration_test` | ✅ Implemented | Run migration test (dry-run) |
+| `drupal_validate_migration` | ✅ Implemented | Validate migration status |
+| `drupal_rollback_migration` | ✅ Implemented | Rollback migration |
+| `drupal_sync_media_files` | ✅ Implemented | Sync media files via rsync/JSON:API |
+| `drupal_migrate_taxonomy` | ✅ Implemented | Migrate taxonomy vocabularies/terms |
 
-### Config Tools (6)
+### Config Tools (5)
 | Tool | Status | Description |
 |------|--------|-------------|
-| `drupal_config_export` | ✅ Implemented | Export configuration |
-| `drupal_config_import` | ✅ Implemented | Import configuration |
-| `drupal_config_sync` | 🔶 Stub | Sync config between environments |
-| `drupal_config_diff` | 🔶 Stub | Diff configurations |
-| `drupal_config_split` | 🔶 Stub | Manage config split |
+| `drupal_export_config` | ✅ Implemented | Export configuration via Drush |
+| `drupal_import_config` | ✅ Implemented | Import configuration via Drush |
+| `drupal_sync_config` | ✅ Implemented | Sync config between environments (dry-run) |
+| `drupal_diff_config` | ✅ Implemented | Diff configurations via Drush/YAML |
+| `drupal_split_config` | ✅ Implemented | Split config per file via Drush |
 
-### Analysis Tools (5)
+### Analysis Tools (6)
 | Tool | Status | Description |
 |------|--------|-------------|
-| `drupal_analysis_inventory_content_types` | ✅ Implemented | Inventory content types |
-| `drupal_analysis_inventory_modules` | ✅ Implemented | Inventory modules |
-| `drupal_analysis_site_analyze` | 🔶 Stub | Full site analysis (D7/D9/D10) |
-| `drupal_analysis_module_map` | 🔶 Stub | Map module equivalents |
-| `drupal_analysis_deprecated_code` | 🔶 Stub | Detect deprecated code |
+| `drupal_analyze_d7_site` | ✅ Implemented | Analyze D7 site for D10 upgrade readiness |
+| `drupal_analyze_d9_site` | ✅ Implemented | Analyze D9+ site for deprecated APIs |
+| `drupal_inventory_content_types` | ✅ Implemented | Inventory content types via JSON:API |
+| `drupal_inventory_modules` | ✅ Implemented | Inventory modules via Drush |
+| `drupal_map_modules_d7_to_d10` | ✅ Implemented | AI map D7 modules to D10 equivalents |
+| `drupal_find_deprecated_code` | ✅ Implemented | Scan for deprecated Drupal APIs (12 patterns) |
 
-### DevOps Tools (7)
+### DevOps Tools (12)
 | Tool | Status | Description |
 |------|--------|-------------|
-| `drupal_devops_drush_command` | ✅ Implemented | Execute Drush command |
-| `drupal_devops_ddev_start` | ✅ Implemented | Start DDEV |
-| `drupal_devops_ddev_stop` | ✅ Implemented | Stop DDEV |
-| `drupal_devops_ddev_exec` | ✅ Implemented | Execute in DDEV |
-| `drupal_devops_lando_start` | ✅ Implemented | Start Lando |
-| `drupal_devops_lando_stop` | ✅ Implemented | Stop Lando |
-| `drupal_devops_acquia_deploy` | 🔶 Stub | Deploy to Acquia Cloud |
-| `drupal_devops_backup_database` | 🔶 Stub | Backup/restore database |
+| `drupal_drush_command` | ✅ Implemented | Execute arbitrary Drush command |
+| `drupal_ddev_setup` | ✅ Implemented | Set up DDEV project |
+| `drupal_ddev_start` | ✅ Implemented | Start DDEV |
+| `drupal_ddev_stop` | ✅ Implemented | Stop DDEV |
+| `drupal_ddev_exec` | ✅ Implemented | Execute command in DDEV |
+| `drupal_lando_setup` | ✅ Implemented | Set up Lando project |
+| `drupal_lando_start` | ✅ Implemented | Start Lando |
+| `drupal_lando_stop` | ✅ Implemented | Stop Lando |
+| `drupal_lando_exec` | ✅ Implemented | Execute command in Lando |
+| `drupal_acquia_deploy` | ✅ Implemented | Deploy to Acquia Cloud |
+| `drupal_backup_database` | ✅ Implemented | Backup database via Drush sql-dump |
+| `drupal_cache_rebuild` | ✅ Implemented | Clear and rebuild all Drupal caches |
 
 ### AI Tools (4)
 | Tool | Status | Description |
 |------|--------|-------------|
-| `drupal_ai_complete` | ✅ Implemented | AI completion |
-| `drupal_ai_analyze` | ✅ Implemented | AI analysis |
-| `drupal_ai_generate` | ✅ Implemented | AI generation |
-| `drupal_ai_migrate_assist` | ✅ Implemented | AI migration assistance |
+| `drupal_ai_analyze_content_quality` | ✅ Implemented | AI content quality analysis |
+| `drupal_ai_suggest_field_mappings` | ✅ Implemented | AI field mapping suggestions |
+| `drupal_ai_generate_migration_plan` | ✅ Implemented | AI migration plan generation |
+| `drupal_ai_translate_content` | ✅ Implemented | AI content translation |
 
 ## Example Agent Workflows
 

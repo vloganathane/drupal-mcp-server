@@ -17,12 +17,15 @@ def register_tools(mcp, **deps):
         return await drush.run(command, cmd_args)
 
     @mcp.tool()
-    async def ddev_setup(project_name: str = ".", drupal_version: str = "10", webroot: str = "web") -> dict:
+    async def ddev_setup(
+        project_name: str = ".", drupal_version: str = "10", webroot: str = "web"
+    ) -> dict:
         """Generate .ddev/config.yaml for local Drupal env."""
         site_manager = deps.get("site_manager")
         if not site_manager:
             return {"error": "Site manager not available"}
         import os
+
         ddev_config = f"""name: {project_name}
 kind: drupal{drupal_version}
 webroot: {webroot}
@@ -32,7 +35,12 @@ webroot: {webroot}
             os.makedirs(os.path.dirname(config_path) or ".", exist_ok=True)
             with open(config_path, "w") as f:
                 f.write(ddev_config)
-            return {"status": "created", "path": config_path, "project": project_name, "version": drupal_version}
+            return {
+                "status": "created",
+                "path": config_path,
+                "project": project_name,
+                "version": drupal_version,
+            }
         except Exception as e:
             return {"error": str(e)}
 
@@ -57,7 +65,6 @@ webroot: {webroot}
             return {"error": "Site manager not available"}
         return await site_manager.ddev_exec(command)
 
-
     @mcp.tool()
     async def lando_start(project_name: str = ".") -> dict:
         """Start Lando project."""
@@ -80,12 +87,15 @@ webroot: {webroot}
         return await site_manager.lando_exec(command)
 
     @mcp.tool()
-    async def lando_setup(project_name: str = ".", drupal_version: str = "10", webroot: str = "web") -> dict:
+    async def lando_setup(
+        project_name: str = ".", drupal_version: str = "10", webroot: str = "web"
+    ) -> dict:
         """Generate .lando.yml for local Drupal env."""
         site_manager = deps.get("site_manager")
         if not site_manager:
             return {"error": "Site manager not available"}
         import os
+
         lando_config = f"""name: {project_name}
 recipe: drupal{drupal_version}
 webroot: {webroot}
@@ -129,3 +139,11 @@ webroot: {webroot}
             "sql-dump", ["--result-file=" + (backup_path or "/tmp/drupal-backup.sql")]
         )
         return {"returncode": result.get("returncode"), "path": backup_path}
+
+    @mcp.tool()
+    async def cache_rebuild() -> dict:
+        """Clear and rebuild all Drupal caches via Drush."""
+        if not drush:
+            return {"error": "Drush not available"}
+        result = await drush.run("cache-rebuild", [])
+        return {"returncode": result.get("returncode"), "stdout": result.get("stdout"), "stderr": result.get("stderr")}
