@@ -1,5 +1,6 @@
 """Analysis tools for Drupal site analysis."""
-from typing import Any
+
+import os
 
 
 def register_tools(mcp, **deps):
@@ -7,7 +8,9 @@ def register_tools(mcp, **deps):
     drush = deps.get("drush_client")
 
     @mcp.tool()
-    async def analyze_d7_site(site_url: str, auth: dict = None, include_modules: bool = True, include_content: bool = True) -> dict:
+    async def analyze_d7_site(
+        site_url: str, auth: dict = None, include_modules: bool = True, include_content: bool = True
+    ) -> dict:
         """Analyze a Drupal 7 site for D10 upgrade readiness."""
         if not drush:
             return {"error": "Drush client not available"}
@@ -23,7 +26,9 @@ def register_tools(mcp, **deps):
         }
 
     @mcp.tool()
-    async def analyze_d9_site(site_url: str, auth: dict = None, check_deprecated: bool = True) -> dict:
+    async def analyze_d9_site(
+        site_url: str, auth: dict = None, check_deprecated: bool = True
+    ) -> dict:
         """Analyze a Drupal 9+ site for deprecated code and APIs."""
         if not drush:
             return {"error": "Drush client not available"}
@@ -31,7 +36,11 @@ def register_tools(mcp, **deps):
         deprecated_apis = []
         if check_deprecated:
             deprecated_apis = [
-                {"api": "drupal_set_message", "replacement": "Messenger service", "severity": "warning"},
+                {
+                    "api": "drupal_set_message",
+                    "replacement": "Messenger service",
+                    "severity": "warning",
+                },
                 {"api": "variable_get", "replacement": "Configuration API", "severity": "critical"},
             ]
         return {
@@ -42,7 +51,9 @@ def register_tools(mcp, **deps):
         }
 
     @mcp.tool()
-    async def inventory_content_types(site_url: str, auth: dict = None, include_field_details: bool = False) -> list:
+    async def inventory_content_types(
+        site_url: str, auth: dict = None, include_field_details: bool = False
+    ) -> list:
         """List all content types on a Drupal site."""
         if not jsonapi:
             return [{"error": "JSON:API client not available"}]
@@ -61,7 +72,9 @@ def register_tools(mcp, **deps):
             return [{"error": str(e)}]
 
     @mcp.tool()
-    async def inventory_modules(site_url: str, auth: dict = None, filter_custom: bool = False) -> list:
+    async def inventory_modules(
+        site_url: str, auth: dict = None, filter_custom: bool = False
+    ) -> list:
         """List all modules on a Drupal site."""
         if not drush:
             return [{"error": "Drush client not available"}]
@@ -70,7 +83,11 @@ def register_tools(mcp, **deps):
         if filter_custom:
             modules = {k: v for k, v in modules.items() if not k.startswith("core/")}
         return [
-            {"name": name, "version": info.get("version", "unknown"), "status": info.get("status", "enabled")}
+            {
+                "name": name,
+                "version": info.get("version", "unknown"),
+                "status": info.get("status", "enabled"),
+            }
             for name, info in modules.items()
         ]
 
@@ -80,18 +97,23 @@ def register_tools(mcp, **deps):
         ai = deps.get("ai_service")
         if not ai:
             return {"error": "AI service not available"}
-        prompt = f"Map these D7 modules to D10 equivalents or alternatives: {', '.join(module_list)}"
+        prompt = (
+            f"Map these D7 modules to D10 equivalents or alternatives: {', '.join(module_list)}"
+        )
         try:
-            result = await ai.complete(prompt, system="You are a Drupal migration expert. Return JSON mapping.")
+            result = await ai.complete(
+                prompt, system="You are a Drupal migration expert. Return JSON mapping."
+            )
             return {"mapped_raw": result, "provider": ai_provider}
         except Exception as e:
             return {"error": str(e), "provider": ai_provider}
 
     @mcp.tool()
-    async def find_deprecated_code(site_path: str, scan_custom_modules: bool = False) -> list:
+    async def find_deprecated_code(
+        site_path: str, scan_custom_modules: bool = False
+    ) -> list[dict[str, str]]:
         """Scan custom modules for deprecated Drupal APIs."""
-        import subprocess
-        import os
+
         if not os.path.exists(site_path):
             return [{"error": f"Path not found: {site_path}"}]
         deprecated_patterns = [
@@ -100,7 +122,7 @@ def register_tools(mcp, **deps):
             ("variable_set", "Use \\Drupal::config()->set()"),
             ("drupal_goto", "Use $response->redirect()"),
         ]
-        findings = []
+        findings: list[dict[str, str]] = []
         for root, _, files in os.walk(site_path):
             if "node_modules" in root or ".git" in root:
                 continue
@@ -112,12 +134,14 @@ def register_tools(mcp, **deps):
                             content = fp.read()
                             for pattern, replacement in deprecated_patterns:
                                 if pattern in content:
-                                    findings.append({
-                                        "file": path,
-                                        "deprecated": pattern,
-                                        "replacement": replacement,
-                                        "severity": "warning" if "core" in path else "error",
-                                    })
-                    except:
+                                    findings.append(
+                                        {
+                                            "file": path,
+                                            "deprecated": pattern,
+                                            "replacement": replacement,
+                                            "severity": "warning" if "core" in path else "error",
+                                        }
+                                    )
+                    except Exception:
                         pass
         return findings[:50]

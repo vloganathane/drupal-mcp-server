@@ -1,6 +1,6 @@
 """Base HTTP client for Drupal REST endpoints."""
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 import httpx
 
@@ -17,7 +17,7 @@ class DrupalBaseClient:
     def _build_url(self, endpoint: str) -> str:
         return f"{self._base_url}/{endpoint.lstrip('/')}"
 
-    def _headers(self) -> Dict[str, str]:
+    def _headers(self) -> dict[str, str]:
         headers = {"Accept": "application/json", "Content-Type": "application/json"}
         if self.auth_manager:
             headers.update(self.auth_manager.get_headers())
@@ -26,8 +26,8 @@ class DrupalBaseClient:
     async def get(
         self,
         endpoint: str,
-        params: Dict[str, Any] = None,
-    ) -> Dict[str, Any]:
+        params: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | list:
         """Perform a GET request to the Drupal endpoint."""
         url = self._build_url(endpoint)
         async with httpx.AsyncClient(timeout=self._timeout) as client:
@@ -38,19 +38,17 @@ class DrupalBaseClient:
     async def post(
         self,
         endpoint: str,
-        data: Dict[str, Any] = None,
-        json_body: Dict[str, Any] = None,
-    ) -> Dict[str, Any]:
+        data: dict[str, Any] = None,
+        json_body: dict[str, Any] = None,
+    ) -> dict[str, Any]:
         """Perform a POST request to the Drupal endpoint."""
         url = self._build_url(endpoint)
         async with httpx.AsyncClient(timeout=self._timeout) as client:
-            response = await client.post(
-                url, headers=self._headers(), json=json_body or data, params=data
-            )
+            response = await client.post(url, headers=self._headers(), json=json_body or data)
         response.raise_for_status()
         return response.json()
 
-    async def patch(self, endpoint: str, json_body: Dict[str, Any]) -> Dict[str, Any]:
+    async def patch(self, endpoint: str, json_body: dict[str, Any]) -> dict[str, Any]:
         """Perform a PATCH request to the Drupal endpoint."""
         url = self._build_url(endpoint)
         async with httpx.AsyncClient(timeout=self._timeout) as client:
@@ -58,7 +56,7 @@ class DrupalBaseClient:
         response.raise_for_status()
         return response.json()
 
-    async def delete(self, endpoint: str) -> Dict[str, Any]:
+    async def delete(self, endpoint: str) -> dict[str, Any]:
         """Perform a DELETE request to the Drupal endpoint."""
         url = self._build_url(endpoint)
         async with httpx.AsyncClient(timeout=self._timeout) as client:

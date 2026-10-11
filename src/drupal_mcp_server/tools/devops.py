@@ -38,14 +38,33 @@ def register_tools(mcp, **deps):
         return await site_manager.ddev_exec(command)
 
     @mcp.tool()
-    async def acquia_deploy(environment: str, branch: str = "main") -> dict:
-        """Deploy to Acquia Cloud."""
-        return {"environment": environment, "branch": branch, "status": "not_implemented"}
+    async def acquia_deploy(environment: str, branch: str = "main", site_id: str = None) -> dict:
+        """Deploy to Acquia Cloud via Drush (requires acquia-cli or Drush acquia integration)."""
+        if not drush:
+            return {"error": "Drush not available"}
+        if not site_id:
+            return {
+                "error": "site_id required for Acquia deploy. Provide via Acquia Cloud Platform UI or DRUPAL_ACQUIA_SITE_ID env var."
+            }
+        # Check if acquia-cli is available via drush
+        try:
+            result = await drush.run(
+                "acquia-deploy",
+                ["--site=" + site_id, "--environment=" + environment, "--branch=" + branch],
+            )
+            return result
+        except Exception as e:
+            return {
+                "error": f"Acquia deploy failed: {str(e)}",
+                "hint": "Ensure acquia-cli is installed and authenticated",
+            }
 
     @mcp.tool()
     async def backup_database(backup_path: str = None) -> dict:
         """Create database backup via Drush."""
         if not drush:
             return {"error": "Drush not available"}
-        result = await drush.run("sql-dump", ["--result-file=" + (backup_path or "/tmp/drupal-backup.sql")])
+        result = await drush.run(
+            "sql-dump", ["--result-file=" + (backup_path or "/tmp/drupal-backup.sql")]
+        )
         return {"returncode": result.get("returncode"), "path": backup_path}
