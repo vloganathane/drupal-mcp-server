@@ -9,6 +9,42 @@ from fastmcp import FastMCP
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
     drush = deps.get("drush_client")
+    jsonapi = deps.get("jsonapi_client")
+
+    def _ensure_dict(result: dict[str, Any] | list[Any] | None) -> dict[str, Any]:
+        """Ensure result is a dict, not a list."""
+        if result is None:
+            return {"error": "No response"}
+        if isinstance(result, list):
+            return {"error": f"Unexpected list response: {result}"}
+        return result
+
+    @mcp.tool()
+    async def config_get(name: str) -> dict[str, Any]:
+        """Get a single configuration object by name."""
+        if not jsonapi:
+            return {"error": "JSON:API not available"}
+        try:
+            result = await jsonapi.get_resource("config", {"filter[name]": name})
+            return _ensure_dict(result)
+        except Exception as e:
+            return {"error": str(e)}
+
+    @mcp.tool()
+    async def config_set(name: str, value: dict[str, Any]) -> dict[str, Any]:
+        """Set a single configuration value."""
+        if not drush:
+            return {"error": "Drush not available"}
+        try:
+            # Use drush config:set for individual config values
+            # Format: drush config:set config.name key value
+            for key, val in value.items():
+                result = await drush.run("config:set", [name, key, str(val)])
+                if result.get("returncode") != 0:
+                    return {"error": f"Failed to set {name}.{key}: {result.get('stderr', '')}"}
+            return {"success": True, "config": name, "updated": list(value.keys())}
+        except Exception as e:
+            return {"error": str(e)}
 
     @mcp.tool()
     async def export_config(

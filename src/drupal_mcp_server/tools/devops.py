@@ -11,6 +11,14 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
     drush = deps.get("drush_client")
     site_manager = deps.get("site_manager")
 
+    def _ensure_dict(result: dict[str, Any] | list[Any] | None) -> dict[str, Any]:
+        """Ensure result is a dict, not a list."""
+        if result is None:
+            return {"error": "No response"}
+        if isinstance(result, list):
+            return {"error": f"Unexpected list response: {result}"}
+        return result
+
     @mcp.tool()
     async def drush_command(command: str, args: list[str] | None = None, options: dict[str, Any] | None = None) -> dict[str, Any]:
         """Execute any Drush command."""
@@ -295,3 +303,136 @@ webroot: {webroot}
             return {"error": "Drush not available"}
         result = await drush.run("cache-rebuild", [])
         return {"returncode": result.get("returncode"), "stdout": result.get("stdout"), "stderr": result.get("stderr")}
+
+    @mcp.tool()
+    async def composer_install(
+        working_dir: str = ".",
+        no_dev: bool = False,
+        optimize: bool = True,
+    ) -> dict[str, Any]:
+        """Run composer install."""
+        if not drush:
+            return {"error": "Drush not available"}
+        try:
+            args = ["install"]
+            if no_dev:
+                args.append("--no-dev")
+            if optimize:
+                args.append("--optimize-autoloader")
+            args.append("--working-dir=" + working_dir)
+            result = await drush.run("composer", args)
+            return _ensure_dict(result)
+        except Exception as e:
+            return {"error": str(e)}
+
+    @mcp.tool()
+    async def composer_require(
+        package: str,
+        version: str | None = None,
+        dev: bool = False,
+        working_dir: str = ".",
+    ) -> dict[str, Any]:
+        """Require a package via composer."""
+        if not drush:
+            return {"error": "Drush not available"}
+        try:
+            pkg = f"{package}:{version}" if version else package
+            args = ["require"]
+            if dev:
+                args.append("--dev")
+            args.append(pkg)
+            args.append("--working-dir=" + working_dir)
+            result = await drush.run("composer", args)
+            return _ensure_dict(result)
+        except Exception as e:
+            return {"error": str(e)}
+
+    @mcp.tool()
+    async def composer_update(
+        working_dir: str = ".",
+        no_dev: bool = False,
+    ) -> dict[str, Any]:
+        """Run composer update."""
+        if not drush:
+            return {"error": "Drush not available"}
+        try:
+            args = ["update"]
+            if no_dev:
+                args.append("--no-dev")
+            args.append("--working-dir=" + working_dir)
+            result = await drush.run("composer", args)
+            return _ensure_dict(result)
+        except Exception as e:
+            return {"error": str(e)}
+
+    @mcp.tool()
+    async def drush_cron() -> dict[str, Any]:
+        """Run cron."""
+        if not drush:
+            return {"error": "Drush not available"}
+        try:
+            result = await drush.run("cron")
+            return _ensure_dict(result)
+        except Exception as e:
+            return {"error": str(e)}
+
+    @mcp.tool()
+    async def drush_watchdog(
+        count: int = 50,
+        type_filter: str | None = None,
+        severity: str | None = None,
+    ) -> dict[str, Any]:
+        """Show recent log entries from watchdog."""
+        if not drush:
+            return {"error": "Drush not available"}
+        try:
+            args = ["watchdog:show", f"--count={count}", "--format=json"]
+            if type_filter:
+                args.append(f"--type={type_filter}")
+            if severity:
+                args.append(f"--severity={severity}")
+            result = await drush.run("watchdog:show", args)
+            return _ensure_dict(result)
+        except Exception as e:
+            return {"error": str(e)}
+
+    @mcp.tool()
+    async def cache_clear(bins: list[str] | None = None) -> dict[str, Any]:
+        """Clear specific cache bins."""
+        if not drush:
+            return {"error": "Drush not available"}
+        try:
+            if bins:
+                results = {}
+                for bin_name in bins:
+                    result = await drush.run("cache:clear", [bin_name])
+                    results[bin_name] = _ensure_dict(result)
+                return {"bins_cleared": results}
+            else:
+                # Clear all caches
+                result = await drush.run("cache:rebuild", [])
+                return _ensure_dict(result)
+        except Exception as e:
+            return {"error": str(e)}
+
+    @mcp.tool()
+    async def drush_updb() -> dict[str, Any]:
+        """Run database updates."""
+        if not drush:
+            return {"error": "Drush not available"}
+        try:
+            result = await drush.run("updatedb", ["-y"])
+            return _ensure_dict(result)
+        except Exception as e:
+            return {"error": str(e)}
+
+    @mcp.tool()
+    async def drush_php_eval(code: str) -> dict[str, Any]:
+        """Execute arbitrary PHP code via Drush."""
+        if not drush:
+            return {"error": "Drush not available"}
+        try:
+            result = await drush.run("php:eval", [code])
+            return _ensure_dict(result)
+        except Exception as e:
+            return {"error": str(e)}
