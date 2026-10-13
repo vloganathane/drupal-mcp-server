@@ -7,7 +7,7 @@ from drupal_mcp_server.auth import AuthManager
 from drupal_mcp_server.clients import DrushClient, GraphQLClient, JSONAPIClient
 from drupal_mcp_server.config import get_settings
 from drupal_mcp_server.services import AIService, MigrationService, SiteManager
-from drupal_mcp_server.tools import ai, analysis, content, devops, migration, taxonomy, users, database
+from drupal_mcp_server.tools import ai, analysis, content, devops, migration, taxonomy, users, database, views, paragraphs, menus, fields, revisions, redirects, scheduler, code_audit, security_audit, drupal_org, moderation
 from drupal_mcp_server.tools import config as config_tools
 
 
@@ -28,7 +28,7 @@ def create_server() -> FastMCP:
         name="drupal-mcp-server",
         instructions="Drupal MCP Server - JSON:API, GraphQL, Drush, AI-powered migration.",
     )
-    for module in [analysis, migration, content, config_tools, devops, ai, taxonomy, users, database]:
+    for module in [analysis, migration, content, config_tools, devops, ai, taxonomy, users, database, views, paragraphs, menus, fields, revisions, redirects, scheduler, code_audit, security_audit, drupal_org, moderation]:
         module.register_tools(
             mcp, jsonapi_client=jsonapi_client, graphql_client=graphql_client,
             drush_client=drush_client, ai_service=ai_service, site_manager=site_manager,
