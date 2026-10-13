@@ -378,7 +378,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:
-            promo_data = {
+            promo_data: dict[str, Any] = {
                 "type": "commerce_promotion",
                 "id": id,
                 "label": label,
@@ -425,7 +425,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:
-            shipping_data = {
+            shipping_data: dict[str, Any] = {
                 "type": "commerce_shipping_method",
                 "id": id,
                 "label": label,
