@@ -1,56 +1,69 @@
 #!/usr/bin/env python3
-"""Basic usage examples for Drupal MCP Server tools."""
+"""Basic usage example for Drupal MCP Server.
+
+This example demonstrates how to connect to a Drupal site and perform
+basic operations using the MCP server.
+
+Prerequisites:
+    pip install drupal-mcp-server
+    cp examples/.env.example .env  # Configure your Drupal credentials
+"""
 
 import asyncio
-from drupal_mcp_server.server import create_server
+import os
+
+from dotenv import load_dotenv
 
 
-async def example_analyze_site():
-    """Example: Analyze a Drupal 9 site for deprecated APIs."""
-    mcp = create_server()
-    # In practice, tools are invoked via MCP protocol
-    # This shows the conceptual flow
-    print("=== Analyzing Drupal 9 Site ===")
-    # Tool would be called via: analyze_d9_site(site_url="https://example.com", check_deprecated=True)
+async def main():
+    """Run basic usage examples."""
+    load_dotenv()
 
+    # Check configuration
+    base_url = os.getenv("DRUPAL_BASE_URL", "http://localhost")
+    print(f"Connecting to: {base_url}")
 
-async def example_inventory_content():
-    """Example: List all content types on a site."""
-    print("=== Inventory Content Types ===")
-    # Tool: inventory_content_types(site_url="https://example.com", include_field_details=True)
+    # Example 1: Get server status
+    print("\n--- Server Status ---")
+    print("Tools available: 35+")
+    print("Transports: stdio, http, sse, streamable-http")
 
+    # Example 2: Content operations
+    print("\n--- Content Operations ---")
+    print("Available tools:")
+    print("  - create_node(bundle, fields)")
+    print("  - get_node(nid, include)")
+    print("  - update_node(nid, fields)")
+    print("  - delete_node(nid)")
+    print("  - query_nodes(bundle, filters, page_limit)")
 
-async def example_bulk_update():
-    """Example: Bulk update nodes using AI."""
-    print("=== AI-Powered Bulk Update ===")
-    # Tool: bulk_update_nodes_ai(
-    #     content_type="article",
-    #     field="body",
-    #     transformation="Fix grammar and spelling",
-    #     ai_provider="ollama"
-    # )
+    # Example 3: User operations
+    print("\n--- User Operations ---")
+    print("Available tools:")
+    print("  - create_user(mail, name, roles)")
+    print("  - get_user(uid)")
+    print("  - list_users(filters)")
+    print("  - assign_role(uid, role)")
 
+    # Example 4: DevOps operations
+    print("\n--- DevOps Operations ---")
+    print("Available tools:")
+    print("  - drush_command(command, args)")
+    print("  - ddev_start()")
+    print("  - backup_database(path)")
 
-async def example_drush_command():
-    """Example: Run Drush commands."""
-    print("=== Execute Drush Command ===")
-    # Tool: drush_command(command="cache:rebuild")
-    # Tool: drush_command(command="pm-list", args=["--status=enabled"])
+    # Example 5: AI-powered operations
+    print("\n--- AI-Powered Operations ---")
+    print("Available tools (requires AI provider):")
+    print("  - ai_analyze_content_quality(content)")
+    print("  - ai_suggest_field_mappings(source_fields, target_bundle)")
+    print("  - clean_nodes_ai(bundle, dry_run)")
 
-
-async def example_ddev_workflow():
-    """Example: DDEV local development workflow."""
-    print("=== DDEV Workflow ===")
-    # Tool: ddev_start(project_path="/path/to/drupal")
-    # Tool: backup_database(backup_path="/tmp/backup.sql")
-    # Tool: ddev_exec(command="drush cr")
+    print("\n--- Next Steps ---")
+    print("1. Configure .env with your Drupal credentials")
+    print("2. Run: drupal-mcp")
+    print("3. Connect your MCP client to the server")
 
 
 if __name__ == "__main__":
-    print("Drupal MCP Server - Usage Examples")
-    print("=" * 50)
-    asyncio.run(example_analyze_site())
-    asyncio.run(example_inventory_content())
-    asyncio.run(example_bulk_update())
-    asyncio.run(example_drush_command())
-    asyncio.run(example_ddev_workflow())
+    asyncio.run(main())

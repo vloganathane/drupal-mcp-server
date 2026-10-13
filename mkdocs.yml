@@ -1,0 +1,60 @@
+site_name: Drupal MCP Server
+site_description: MCP server for Drupal operations - JSON:API, GraphQL, Drush, AI-powered migration
+site_author: Drupal MCP Team
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: installation.md
+      - Quickstart: quickstart.md
+      - Configuration: configuration.md
+  - Tools:
+      - Overview: tools/index.md
+      - Content: tools/content.md
+      - Users: tools/users.md
+      - DevOps: tools/devops.md
+  - Development:
+      - Architecture: architecture.md
+      - Contributing: CONTRIBUTING.md
+      - Docstring Standard: docstring_standard.md
+  - Project:
+      - Changelog: CHANGELOG.md
+      - Security: SECURITY.md
+      - Code of Conduct: CODE_OF_CONDUCT.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - toc:
+      permalink: true

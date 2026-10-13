@@ -1,6 +1,19 @@
 # Drupal MCP Server
 
+[![CI](https://github.com/drupal-mcp/drupal-mcp-server/actions/workflows/ci.yml/badge.svg)](https://github.com/drupal-mcp/drupal-mcp-server/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/drupal-mcp/drupal-mcp-server/branch/main/graph/badge.svg)](https://codecov.io/gh/drupal-mcp/drupal-mcp-server)
+[![PyPI version](https://badge.fury.io/py/drupal-mcp-server.svg)](https://badge.fury.io/py/drupal-mcp-server)
+[![Python versions](https://img.shields.io/pypi/pyversions/drupal-mcp-server.svg)](https://pypi.org/project/drupal-mcp-server/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/drupal-mcp/drupal-mcp-server/blob/main/LICENSE)
+
 A Model Context Protocol (MCP) server for Drupal operations. Provides 35+ tools for site analysis, migration, content management, configuration, and DevOps operations.
+
+## Why Use This?
+
+- **Unified interface** — Access JSON:API, GraphQL, Drush, and AI through one MCP server
+- **AI-powered** — Content analysis, field mapping, and migration planning with your choice of LLM
+- **Multi-transport** — Stdio for desktop apps, HTTP/SSE for remote deployments
+- **Secure** — Input validation, OAuth 2.1, no shell injection
 
 ## Features
 
@@ -9,6 +22,9 @@ A Model Context Protocol (MCP) server for Drupal operations. Provides 35+ tools 
 - **DDEV/Lando Support** - Local development environment management
 - **AI-Powered Tools** - Multi-provider AI (Ollama, OpenAI, Anthropic, NVIDIA NIM)
 - **Migration Assistance** - Generate and validate migration configurations
+- **Security Audits** - PHPStan, Drupal Check, dependency scanning
+- **Content Management** - CRUD for nodes, media, users, taxonomy, comments
+- **DevOps** - Config export/import, database queries, cron, queues
 
 ## Installation
 
@@ -19,16 +35,51 @@ pip install drupal-mcp-server
 Or with uv:
 
 ```bash
-uv pip install -e .
+uv pip install drupal-mcp-server
+```
+
+## Quickstart
+
+### 1. Configure
+
+```bash
+cp examples/.env.example .env
+```
+
+Minimal `.env`:
+
+```bash
+DRUPAL_BASE_URL=https://your-drupal-site.com
+DRUPAL_USERNAME=admin
+DRUPAL_PASSWORD=secret
+```
+
+### 2. Run
+
+```bash
+drupal-mcp
+```
+
+### 3. Use with Claude Desktop
+
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "drupal": {
+      "command": "drupal-mcp",
+      "env": {
+        "DRUPAL_BASE_URL": "https://your-drupal-site.com",
+        "DRUPAL_USERNAME": "admin",
+        "DRUPAL_PASSWORD": "secret"
+      }
+    }
+  }
+}
 ```
 
 ## Configuration
-
-Copy `.env.example` to `.env` and configure:
-
-```bash
-cp .env.example .env
-```
 
 ### Authentication
 
@@ -46,27 +97,13 @@ Set `DEFAULT_AI_PROVIDER` to one of:
 - `anthropic`
 - `nvidia_nim`
 
-## Usage
+### Transport
 
-### As MCP Server (Claude Desktop)
-
-Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json`):
-
-```json
-{
-  "mcpServers": {
-    "drupal": {
-      "command": "drupal-mcp"
-    }
-  }
-}
-```
-
-### Direct Execution
-
-```bash
-drupal-mcp
-```
+Set `MCP_TRANSPORT` to one of:
+- `stdio` (default, for desktop apps)
+- `http` (for remote HTTP deployment)
+- `sse` (for Server-Sent Events)
+- `streamable-http` (for Streamable HTTP)
 
 ## Tools
 
@@ -87,35 +124,53 @@ drupal-mcp
 - `sync_media_files` - Sync media between paths
 - `migrate_taxonomy` - Migrate taxonomy vocabularies
 
-### Content (7 tools)
+### Content (12 tools)
+- `create_node` / `get_node` / `update_node` / `delete_node` / `query_nodes`
+- `upload_media` / `create_media`
 - `clean_nodes_ai` - Clean duplicate nodes with AI
 - `map_fields_ai` - AI field mapping suggestions
 - `bulk_update_nodes` - Bulk node updates
-- `fix_media_references` - Fix broken media refs
-- `bulk_update_aliases` - Bulk URL alias updates
 - `analyze_content_quality` - AI content analysis
 - `generate_test_content` - Generate test content
 
-### Config (5 tools)
-- `export_config` - Export Drupal config
-- `import_config` - Import Drupal config
-- `sync_config` - Sync config between environments
-- `diff_config` - Diff config between envs
-- `split_config` - Split config for atomic deploy
+### Users (8 tools)
+- `create_user` / `get_user` / `update_user` / `delete_user` / `list_users`
+- `assign_role` / `remove_role` / `block_user` / `unblock_user`
 
-### DevOps (6 tools)
+### Taxonomy (7 tools)
+- CRUD for vocabularies and terms
+- `list_terms` with filtering and pagination
+
+### DevOps (10 tools)
 - `drush_command` - Execute any Drush command
-- `ddev_start` - Start DDEV project
-- `ddev_stop` - Stop DDEV project
-- `ddev_exec` - Execute in DDEV container
-- `acquia_deploy` - Deploy to Acquia Cloud
-- `backup_database` - Create database backup
+- `ddev_start` / `ddev_stop` / `ddev_exec`
+- `lando_start` / `lando_stop` / `lando_exec`
+- `backup_database` / `cache_rebuild` / `drush_cron`
 
-### AI (4 tools)
-- `ai_analyze_content_quality` - Analyze content quality
-- `ai_suggest_field_mappings` - Suggest field mappings
-- `ai_generate_migration_plan` - Generate migration plan
-- `ai_translate_content` - Translate content
+### Security Audit (6 tools)
+- `security_scan` - PHPStan with security extensions
+- `dependency_scan` - Composer audit
+- `permission_audit` - Role and permission audit
+- `sql_injection_scan` - SQL injection detection
+- `xss_scan` - XSS vulnerability detection
+- `config_security_check` - Drupal config security
+
+### Module Development (10 tools)
+- `module_create` - Full module scaffolding
+- `module_service_create` - Service class generation
+- `module_plugin_create` - Plugin scaffolding
+- `module_form_create` - Form class generation
+- `module_controller_create` - Controller with routing
+- `module_event_subscriber_create` - Event subscriber
+- `module_hook_implement` - Hook implementation
+- `module_test_create` - PHPUnit test scaffolding
+
+## Documentation
+
+- [Contributing Guide](CONTRIBUTING.md)
+- [Changelog](CHANGELOG.md)
+- [Security Policy](SECURITY.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ## Development
 
@@ -131,7 +186,10 @@ pip install -e ".[dev]"
 pytest
 
 # Lint
-ruff check src/
+ruff check src/ tests/
+
+# Type check
+mypy src/drupal_mcp_server/
 ```
 
 ## License
