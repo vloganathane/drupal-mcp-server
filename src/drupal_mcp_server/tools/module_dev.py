@@ -1204,3 +1204,316 @@ function {machine_name}_config_import_create($config_name, $config_storage) {{
             "info_file": info_file,
             "generated": info_yml,
         }
+
+    @mcp.tool()
+    async def module_permission_create(
+        machine_name: str,
+        permissions: list[dict[str, Any]] | None = None,
+        path: str | None = None,
+    ) -> dict[str, Any]:
+        """Create or update permissions.yml with custom permissions."""
+        if not drush:
+            return {"error": "Drush not available"}
+        
+        module_path = path or f"modules/custom/{machine_name}"
+        
+        if not os.path.exists(module_path):
+            return {"error": f"Module not found: {module_path}"}
+        
+        perms_file = os.path.join(module_path, f"{machine_name}.permissions.yml")
+        
+        # Default permissions if not provided
+        if not permissions:
+            permissions = [
+                {
+                    "id": f"administer {machine_name}",
+                    "title": f"Administer {machine_name.replace('_', ' ').title()}",
+                    "description": f"Perform administration tasks for {machine_name.replace('_', ' ').title()}.",
+                },
+                {
+                    "id": f"access {machine_name} content",
+                    "title": f"Access {machine_name.replace('_', ' ').title()} content",
+                    "description": f"View {machine_name.replace('_', ' ').title()} content.",
+                },
+            ]
+        
+        # Read existing permissions.yml or create new
+        if os.path.exists(perms_file):
+            with open(perms_file, "r") as f:
+                perms_yml = yaml.safe_load(f) or {}
+        else:
+            perms_yml = {}
+        
+        # Add/update permissions
+        for perm in permissions:
+            perm_id = perm.get("id", f"administer {machine_name}")
+            perms_yml[perm_id] = {
+                "title": perm.get("title", perm_id.replace("_", " ").title()),
+                "description": perm.get("description", ""),
+            }
+        
+        with open(perms_file, "w") as f:
+            yaml.dump(perms_yml, f, default_flow_style=False, sort_keys=False)
+        
+        return {
+            "success": True,
+            "permissions_file": perms_file,
+            "permissions_added": len(permissions),
+            "permissions": list(perms_yml.keys()),
+        }
+
+    @mcp.tool()
+    async def module_config_schema_create(
+        machine_name: str,
+        schema_name: str | None = None,
+        schema: dict[str, Any] | None = None,
+        path: str | None = None,
+    ) -> dict[str, Any]:
+        """Create or update config schema YAML for module settings."""
+        if not drush:
+            return {"error": "Drush not available"}
+        
+        module_path = path or f"modules/custom/{machine_name}"
+        
+        if not os.path.exists(module_path):
+            return {"error": f"Module not found: {module_path}"}
+        
+        schema_name = schema_name or f"{machine_name}.settings"
+        schema_file = os.path.join(module_path, "config", "schema", f"{machine_name}.schema.yml")
+        
+        # Default schema if not provided
+        if not schema:
+            schema = {
+                schema_name: {
+                    "type": "config_object",
+                    "label": f"{machine_name.replace('_', ' ').title()} settings",
+                    "mapping": {
+                        "enabled": {
+                            "type": "boolean",
+                            "label": "Enabled",
+                        },
+                    },
+                },
+            }
+        
+        # Read existing schema or create new
+        schema_dir = os.path.join(module_path, "config", "schema")
+        os.makedirs(schema_dir, exist_ok=True)
+        
+        if os.path.exists(schema_file):
+            with open(schema_file, "r") as f:
+                schema_yml = yaml.safe_load(f) or {}
+        else:
+            schema_yml = {}
+        
+        # Merge schema
+        schema_yml.update(schema)
+        
+        with open(schema_file, "w") as f:
+            yaml.dump(schema_yml, f, default_flow_style=False, sort_keys=False)
+        
+        return {
+            "success": True,
+            "schema_file": schema_file,
+            "schema_name": schema_name,
+            "schema": schema,
+        }
+
+    @mcp.tool()
+    async def module_test_create(
+        machine_name: str,
+        test_name: str,
+        test_type: str = "KernelTest",
+        class_name: str | None = None,
+        test_methods: list[str] | None = None,
+        path: str | None = None,
+    ) -> dict[str, Any]:
+        """Create a PHPUnit/Kernel test skeleton."""
+        if not drush:
+            return {"error": "Drush not available"}
+        
+        module_path = path or f"modules/custom/{machine_name}"
+        
+        if not os.path.exists(module_path):
+            return {"error": f"Module not found: {module_path}"}
+        
+        class_name = class_name or f"{machine_name.capitalize()}{test_name.replace('_', ' ').title().replace(' ', '')}Test"
+        
+        # Build test directory
+        if test_type == "KernelTest":
+            test_dir = os.path.join(module_path, "tests", "src", "Kernel")
+            base_class = "Drupal\KernelTests\KernelTestBase"
+        elif test_type == "UnitTest":
+            test_dir = os.path.join(module_path, "tests", "src", "Unit")
+            base_class = "PHPUnit\Framework\TestCase"
+        elif test_type == "FunctionalTest":
+            test_dir = os.path.join(module_path, "tests", "src", "Functional")
+            base_class = "Drupal\Tests\BrowserTestBase"
+        else:
+            return {"error": f"Unknown test type: {test_type}. Available: KernelTest, UnitTest, FunctionalTest"}
+        
+        os.makedirs(test_dir, exist_ok=True)
+        
+        # Default test methods
+        if not test_methods:
+            test_methods = ["testExample"]
+        
+        # Build test class
+        test_class = f"""<?php
+
+namespace Drupal\\Tests\\{machine_name}\\{test_type}s;
+
+use {base_class};
+
+/**
+ * Tests for {machine_name}.
+ *
+ * @group {machine_name}
+ */
+class {class_name} extends {base_class.split('\\')[-1]} {{
+"""
+        
+        if test_type == "KernelTest":
+            test_class += f"""  /**
+   * {{@inheritdoc}}
+   */
+  protected static \$modules = ['{machine_name}'];
+"""
+        elif test_type == "FunctionalTest":
+            test_class += f"""  /**
+   * {{@inheritdoc}}
+   */
+  protected \$defaultTheme = 'stark';
+"""
+        
+        for method in test_methods:
+            test_class += f"""
+  public function test{method.replace('_', ' ').title().replace(' ', '')}() {{
+    // TODO: Implement test
+    \$this->assertTrue(TRUE);
+  }}
+"""
+        
+        test_class += "}\n"
+        
+        # Write test file
+        test_file = os.path.join(test_dir, f"{class_name}.php")
+        with open(test_file, "w") as f:
+            f.write(test_class)
+        
+        return {
+            "success": True,
+            "test_type": test_type,
+            "class_name": class_name,
+            "test_file": test_file,
+            "methods": test_methods,
+        }
+
+    @mcp.tool()
+    async def module_dependencies_analyze(
+        machine_name: str,
+        path: str | None = None,
+    ) -> dict[str, Any]:
+        """Analyze module code and suggest missing dependencies."""
+        if not drush:
+            return {"error": "Drush not available"}
+        
+        module_path = path or f"modules/custom/{machine_name}"
+        
+        if not os.path.exists(module_path):
+            return {"error": f"Module not found: {module_path}"}
+        
+        module_file = os.path.join(module_path, f"{machine_name}.module")
+        info_file = os.path.join(module_path, f"{machine_name}.info.yml")
+        
+        if not os.path.exists(module_file):
+            return {"error": f"Module file not found: {module_file}"}
+        
+        # Read module file
+        with open(module_file, "r") as f:
+            content = f.read()
+        
+        # Read existing info.yml
+        if os.path.exists(info_file):
+            with open(info_file, "r") as f:
+                info_yml = yaml.safe_load(f) or {}
+        else:
+            info_yml = {}
+        
+        # Analyze for dependencies
+        import re
+        deps = set()
+        
+        # Check for service usage
+        service_pattern = r'\\\([a-zA-Z_][a-zA-Z0-9_]*::class\)'
+        for match in re.finditer(service_pattern, content):
+            service = match.group(1)
+            if service.startswith('Drupal\\'):
+                parts = service.split('\\')
+                if len(parts) >= 3 and parts[1] != machine_name:
+                    deps.add(parts[1].lower())
+        
+        # Check for hook implementations that imply dependencies
+        hook_deps = {
+            "hook_form_alter": "form",
+            "hook_entity_presave": "entity",
+            "hook_entity_insert": "entity",
+            "hook_entity_update": "entity",
+            "hook_entity_delete": "entity",
+            "hook_views_data": "views",
+            "hook_views_data_alter": "views",
+            "hook_views_query_alter": "views",
+            "hook_field_widget_info": "field",
+            "hook_field_formatter_info": "field",
+            "hook_block_view": "block",
+            "hook_menu": "menu",
+            "hook_cron": "cron",
+        }
+        
+        for hook, dep in hook_deps.items():
+            if f"function {machine_name}_{hook.replace('hook_', '')}" in content:
+                deps.add(dep)
+        
+        # Check for plugin types that imply dependencies
+        plugin_deps = {
+            "Plugin\\Block": "block",
+            "Plugin\\Field\\FieldWidget": "field",
+            "Plugin\\Field\\FieldFormatter": "field",
+            "Plugin\\views": "views",
+            "Plugin\\migrate": "migrate",
+            "Plugin\\rest": "rest",
+            "Plugin\\Action": "action",
+            "Plugin\\Condition": "condition",
+        }
+        
+        for plugin_ns, dep in plugin_deps.items():
+            if plugin_ns in content:
+                deps.add(dep)
+        
+        # Check for service injection
+        if "ContainerInterface" in content:
+            deps.add("container")
+        
+        # Check for config factory usage
+        if "ConfigFactoryInterface" in content or "config.factory" in content:
+            deps.add("config")
+        
+        # Read existing dependencies
+        if os.path.exists(info_file):
+            with open(info_file, "r") as f:
+                info_yml = yaml.safe_load(f) or {}
+        else:
+            info_yml = {}
+        
+        existing_deps = info_yml.get("dependencies", [])
+        
+        # Find missing dependencies
+        missing_deps = deps - set(existing_deps)
+        
+        return {
+            "success": True,
+            "machine_name": machine_name,
+            "existing_dependencies": existing_deps,
+            "suggested_dependencies": sorted(list(missing_deps)),
+            "all_detected": sorted(list(deps)),
+        }
