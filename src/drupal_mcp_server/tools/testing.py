@@ -1,6 +1,5 @@
 """Automated Testing tools for Drupal."""
 
-import os
 from typing import Any
 
 from fastmcp import FastMCP

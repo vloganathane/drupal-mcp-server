@@ -3,8 +3,8 @@
 from typing import Any
 
 from .basic import BasicAuth
-from .token import TokenAuth
 from .mcp_oauth import DrupalOAuthProvider
+from .token import TokenAuth
 
 
 class AuthManager:

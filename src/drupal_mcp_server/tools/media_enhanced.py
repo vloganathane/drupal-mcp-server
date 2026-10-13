@@ -1,7 +1,7 @@
 """Media enhancement tools for Drupal."""
 
-import os
 import base64
+import os
 from typing import Any
 
 from fastmcp import FastMCP

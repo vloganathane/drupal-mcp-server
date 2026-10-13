@@ -112,7 +112,6 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:
-            import difflib
             
             resource_type = f"{entity_type}--{entity_type}"
             

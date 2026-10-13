@@ -1,6 +1,7 @@
 """Analysis tools for Drupal site analysis."""
 
 import json
+import os
 from typing import Any
 
 from fastmcp import FastMCP

@@ -1,5 +1,4 @@
 """Unit tests for tool modules."""
-import pytest
 
 
 def test_analysis_register():

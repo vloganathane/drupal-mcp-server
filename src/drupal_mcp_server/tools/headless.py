@@ -1,6 +1,6 @@
 """Headless/Decoupled tools for Drupal."""
 
-import json
+import os
 from typing import Any
 
 from fastmcp import FastMCP
@@ -127,7 +127,6 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                         "api_url": f"/jsonapi/{entity_type}",
                     }
             
-            import json
             os.makedirs(output_dir, exist_ok=True)
             with open(os.path.join(output_dir, "drupal-types.ts"), "w") as f:
                 f.write("// Generated Drupal types\n")

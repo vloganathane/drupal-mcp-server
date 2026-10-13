@@ -2,12 +2,10 @@
 
 import os
 import re
-import yaml
 from typing import Any
 
+import yaml
 from fastmcp import FastMCP
-
-from ._utils import ensure_dict as _ensure_dict
 
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
@@ -246,7 +244,7 @@ class {machine_name.capitalize()}Controller extends ControllerBase {{
         
         # Read existing services.yml or create new
         if os.path.exists(services_file):
-            with open(services_file, "r") as f:
+            with open(services_file) as f:
                 services_yml = yaml.safe_load(f) or {"services": {}}
         else:
             services_yml = {"services": {}}
@@ -408,9 +406,9 @@ class {class_name} {{
             elif key == "title":
                 annotation_lines.append(f'  title = @Translation("{label}"),')
             elif key == "type":
-                annotation_lines.append(f'  type = "custom",')
+                annotation_lines.append('  type = "custom",')
             elif key == "field_types":
-                annotation_lines.append(f'  field_types = ["string"],')
+                annotation_lines.append('  field_types = ["string"],')
             elif key == "source_module":
                 annotation_lines.append(f'  source_module = "{machine_name}",')
             elif key == "uri_paths":
@@ -571,7 +569,7 @@ use {form_info["base_class"]};
 use Drupal\\Core\\Form\\FormStateInterface;
 """
         if form_info["requires_config"]:
-            form_class += f"use Drupal\\Core\\Config\\ConfigFactoryInterface;\nuse Symfony\\Component\\DependencyInjection\\ContainerInterface;\n"
+            form_class += "use Drupal\\Core\\Config\\ConfigFactoryInterface;\nuse Symfony\\Component\\DependencyInjection\\ContainerInterface;\n"
         
         form_class += f"""\nclass {class_name} extends {form_info["base_class"]} {{"""
         
@@ -630,7 +628,7 @@ use Drupal\\Core\\Form\\FormStateInterface;
       '#default_value' => $config->get('{field_name}') ?? '{field_default}',
     ];"""
             else:
-                form_class += f"""
+                form_class += """
     $form['example_field'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Example field'),
@@ -654,14 +652,14 @@ use Drupal\\Core\\Form\\FormStateInterface;
                     form_class += f"""
     $config->set('{field_name}', $form_state->getValue('{field_name}'));"""
             else:
-                form_class += f"""
+                form_class += """
     $config->set('example_field', $form_state->getValue('example_field'));"""
             
-            form_class += f"""
+            form_class += """
 
     $config->save();
     parent::submitForm($form, $form_state);
-  }}
+  }
 
 """
         
@@ -748,24 +746,24 @@ use Drupal\\Core\\Form\\FormStateInterface;
       '#default_value' => '{field_default}',
     ];"""
             else:
-                form_class += f"""
+                form_class += """
     $form['example_field'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Example field'),
       '#default_value' => '',
     ];"""
             
-            form_class += f"""
+            form_class += """
 
     return $form;
-  }}
+  }
 
   /**
-   * {{@inheritdoc}}
+   * {@inheritdoc}
    */
-  public function submitForm(array &$form, FormStateInterface $form_state) {{
+  public function submitForm(array &$form, FormStateInterface $form_state) {
     // Add your submit logic here
-  }}
+  }
 
 """
         
@@ -779,7 +777,7 @@ use Drupal\\Core\\Form\\FormStateInterface;
         # Update routing.yml
         routing_file = os.path.join(module_path, f"{machine_name}.routing.yml")
         if os.path.exists(routing_file):
-            with open(routing_file, "r") as f:
+            with open(routing_file) as f:
                 routing_yml = yaml.safe_load(f) or {}
         else:
             routing_yml = {}
@@ -803,7 +801,7 @@ use Drupal\\Core\\Form\\FormStateInterface;
         if form_info["requires_config"]:
             services_file = os.path.join(module_path, f"{machine_name}.services.yml")
             if os.path.exists(services_file):
-                with open(services_file, "r") as f:
+                with open(services_file) as f:
                     services_yml = yaml.safe_load(f) or {"services": {}}
             else:
                 services_yml = {"services": {}}
@@ -889,7 +887,7 @@ use Symfony\Component\HttpFoundation\Response;
         # Update routing.yml
         routing_file = os.path.join(module_path, f"{machine_name}.routing.yml")
         if os.path.exists(routing_file):
-            with open(routing_file, "r") as f:
+            with open(routing_file) as f:
                 routing_yml = yaml.safe_load(f) or {}
         else:
             routing_yml = {}
@@ -907,7 +905,7 @@ use Symfony\Component\HttpFoundation\Response;
                     "_title": route_title,
                 },
                 "requirements": {
-                    "_permission": f"access content",
+                    "_permission": "access content",
                 },
             }
         
@@ -952,7 +950,7 @@ use Symfony\Component\HttpFoundation\Response;
         # Read existing services.yml or create new
         services_file = os.path.join(module_path, f"{machine_name}.services.yml")
         if os.path.exists(services_file):
-            with open(services_file, "r") as f:
+            with open(services_file) as f:
                 services_yml = yaml.safe_load(f) or {"services": {}}
         else:
             services_yml = {"services": {}}
@@ -1017,7 +1015,7 @@ class {class_name} implements EventSubscriberInterface {{
         # Also update services.yml to include the event_subscriber tag
         services_file = os.path.join(module_path, f"{machine_name}.services.yml")
         if os.path.exists(services_file):
-            with open(services_file, "r") as f:
+            with open(services_file) as f:
                 services_yml = yaml.safe_load(f) or {"services": {}}
         else:
             services_yml = {"services": {}}
@@ -1124,7 +1122,7 @@ function {machine_name}_config_import_create($config_name, $config_storage) {{
             return {"error": f"Unknown hook: {hook}. Available: {available}"}
         
         # Read existing module file
-        with open(module_file, "r") as f:
+        with open(module_file) as f:
             content = f.read()
         
         # Check if hook already exists
@@ -1160,11 +1158,10 @@ function {machine_name}_config_import_create($config_name, $config_storage) {{
             return {"error": f"Module file not found: {module_file}"}
         
         # Read module file to extract info
-        with open(module_file, "r") as f:
+        with open(module_file) as f:
             content = f.read()
         
         # Try to extract name from hook_help or comments
-        import re
         name_match = re.search(r'name["\']?\s*[=>:]\s*["\']([^"\']+)["\']', content)
         desc_match = re.search(r'description["\']?\s*[=>:]\s*["\']([^"\']+)["\']', content)
         
@@ -1234,7 +1231,7 @@ function {machine_name}_config_import_create($config_name, $config_storage) {{
         
         # Read existing permissions.yml or create new
         if os.path.exists(perms_file):
-            with open(perms_file, "r") as f:
+            with open(perms_file) as f:
                 perms_yml = yaml.safe_load(f) or {}
         else:
             perms_yml = {}
@@ -1296,7 +1293,7 @@ function {machine_name}_config_import_create($config_name, $config_storage) {{
         os.makedirs(schema_dir, exist_ok=True)
         
         if os.path.exists(schema_file):
-            with open(schema_file, "r") as f:
+            with open(schema_file) as f:
                 schema_yml = yaml.safe_load(f) or {}
         else:
             schema_yml = {}
@@ -1354,6 +1351,7 @@ function {machine_name}_config_import_create($config_name, $config_storage) {{
             test_methods = ["testExample"]
         
         # Build test class
+        base_class_name = base_class.split("\\")[-1]
         test_class = f"""<?php
 
 namespace Drupal\\Tests\\{machine_name}\\{test_type}s;
@@ -1365,7 +1363,7 @@ use {base_class};
  *
  * @group {machine_name}
  */
-class {class_name} extends {base_class.split('\\')[-1]} {{
+class {class_name} extends {base_class_name} {{
 """
         
         if test_type == "KernelTest":
@@ -1375,8 +1373,8 @@ class {class_name} extends {base_class.split('\\')[-1]} {{
   protected static \$modules = ['{machine_name}'];
 """
         elif test_type == "FunctionalTest":
-            test_class += f"""  /**
-   * {{@inheritdoc}}
+            test_class += """  /**
+   * {@inheritdoc}
    */
   protected \$defaultTheme = 'stark';
 """
@@ -1425,18 +1423,17 @@ class {class_name} extends {base_class.split('\\')[-1]} {{
             return {"error": f"Module file not found: {module_file}"}
         
         # Read module file
-        with open(module_file, "r") as f:
+        with open(module_file) as f:
             content = f.read()
         
         # Read existing info.yml
         if os.path.exists(info_file):
-            with open(info_file, "r") as f:
+            with open(info_file) as f:
                 info_yml = yaml.safe_load(f) or {}
         else:
             info_yml = {}
         
         # Analyze for dependencies
-        import re
         deps = set()
         
         # Check for service usage
@@ -1495,7 +1492,7 @@ class {class_name} extends {base_class.split('\\')[-1]} {{
         
         # Read existing dependencies
         if os.path.exists(info_file):
-            with open(info_file, "r") as f:
+            with open(info_file) as f:
                 info_yml = yaml.safe_load(f) or {}
         else:
             info_yml = {}

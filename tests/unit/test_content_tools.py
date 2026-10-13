@@ -1,7 +1,8 @@
 """Functional tests for content management tools with mocked responses."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 
 @pytest.fixture

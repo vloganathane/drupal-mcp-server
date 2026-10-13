@@ -4,7 +4,8 @@ from typing import Any
 
 from fastmcp import FastMCP
 
-from ._utils import ensure_dict as _ensure_dict, validate_pagination
+from ._utils import ensure_dict as _ensure_dict
+from ._utils import validate_pagination
 
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:

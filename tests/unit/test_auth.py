@@ -1,5 +1,4 @@
 """Unit tests for auth strategies."""
-import pytest
 
 
 def test_auth_manager_init():

@@ -1,12 +1,10 @@
 """Theme development tools for Drupal."""
 
 import os
-import yaml
 from typing import Any
 
+import yaml
 from fastmcp import FastMCP
-
-from ._utils import ensure_dict as _ensure_dict
 
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
@@ -243,7 +241,7 @@ function {machine_name}_preprocess_page(&$variables) {{
         libs_file = os.path.join(theme_path, f"{machine_name}.libraries.yml")
         
         if os.path.exists(libs_file):
-            with open(libs_file, "r") as f:
+            with open(libs_file) as f:
                 libs_yml = yaml.safe_load(f) or {}
         else:
             libs_yml = {}
@@ -284,7 +282,7 @@ function {machine_name}_preprocess_page(&$variables) {{
         if not os.path.exists(info_file):
             return {"error": f"Theme info file not found: {info_file}"}
         
-        with open(info_file, "r") as f:
+        with open(info_file) as f:
             info_yml = yaml.safe_load(f) or {}
         
         if "regions" not in info_yml:
@@ -445,7 +443,7 @@ function {machine_name}_preprocess_{hook}(&$variables) {{
             multipliers = ["1x"]
         
         if os.path.exists(bp_file):
-            with open(bp_file, "r") as f:
+            with open(bp_file) as f:
                 bp_yml = yaml.safe_load(f) or {}
         else:
             bp_yml = {}
@@ -483,7 +481,7 @@ function {machine_name}_preprocess_{hook}(&$variables) {{
         if not os.path.exists(info_file):
             return {"error": f"Theme info file not found: {info_file}"}
         
-        with open(info_file, "r") as f:
+        with open(info_file) as f:
             info_yml = yaml.safe_load(f) or {}
         
         old_base = info_yml.get("base theme", "none")
@@ -610,7 +608,7 @@ class ThemeSettingsForm extends ConfigFormBase {{
         # Update routing.yml
         routing_file = os.path.join(theme_path, f"{machine_name}.routing.yml")
         if os.path.exists(routing_file):
-            with open(routing_file, "r") as f:
+            with open(routing_file) as f:
                 routing_yml = yaml.safe_load(f) or {}
         else:
             routing_yml = {}
@@ -632,7 +630,7 @@ class ThemeSettingsForm extends ConfigFormBase {{
         # Update services.yml
         services_file = os.path.join(theme_path, f"{machine_name}.services.yml")
         if os.path.exists(services_file):
-            with open(services_file, "r") as f:
+            with open(services_file) as f:
                 services_yml = yaml.safe_load(f) or {"services": {}}
         else:
             services_yml = {"services": {}}
@@ -740,7 +738,7 @@ class ThemeSettingsForm extends ConfigFormBase {{
         # Basic syntax check
         errors = []
         for twig_file in twig_files:
-            with open(twig_file, "r") as f:
+            with open(twig_file) as f:
                 content = f.read()
             
             # Check for balanced braces

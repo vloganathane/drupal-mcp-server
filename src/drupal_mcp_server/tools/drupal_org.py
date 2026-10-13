@@ -1,6 +1,5 @@
 """Drupal.org API integration tools."""
 
-import json
 from typing import Any
 
 import httpx

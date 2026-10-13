@@ -1,5 +1,4 @@
 """Unit tests for Drupal clients."""
-import pytest
 
 
 def test_jsonapi_client_exists():

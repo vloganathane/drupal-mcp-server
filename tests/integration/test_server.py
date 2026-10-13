@@ -1,5 +1,4 @@
 """Integration tests for the full server."""
-import pytest
 
 
 def test_server_import():

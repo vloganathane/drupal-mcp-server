@@ -1,6 +1,5 @@
 """Multilingual workflow tools for Drupal."""
 
-import json
 from typing import Any
 
 from fastmcp import FastMCP

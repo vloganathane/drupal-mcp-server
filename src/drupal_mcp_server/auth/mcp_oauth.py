@@ -2,16 +2,15 @@
 
 from typing import Any
 
-from fastmcp.server.auth import OAuthProvider, AccessToken as FastMCPAccessToken
-from mcp.shared.auth import OAuthClientInformationFull, OAuthToken
+from fastmcp.server.auth import AccessToken as FastMCPAccessToken
+from fastmcp.server.auth import OAuthProvider
 from mcp.server.auth.provider import (
-    AuthorizationParams,
-    RefreshToken,
-    AuthorizationCode,
     AccessToken,
-    RefreshTokenT,
     AuthorizationCodeT,
+    AuthorizationParams,
+    RefreshTokenT,
 )
+from mcp.shared.auth import OAuthClientInformationFull, OAuthToken
 
 
 class DrupalOAuthProvider(OAuthProvider):
@@ -167,7 +166,8 @@ class DrupalOAuthProvider(OAuthProvider):
         code_data = self._auth_codes.pop(auth_code_str)
         
         # Generate tokens
-        import secrets, time
+        import secrets
+        import time
         access_token = secrets.token_urlsafe(32)
         refresh_token = secrets.token_urlsafe(32)
         expires_at = time.time() + 3600  # 1 hour
@@ -205,7 +205,8 @@ class DrupalOAuthProvider(OAuthProvider):
         
         token_data = self._refresh_tokens[refresh_token_str]
         
-        import secrets, time
+        import secrets
+        import time
         new_access_token = secrets.token_urlsafe(32)
         new_refresh_token = secrets.token_urlsafe(32)
         expires_at = time.time() + 3600

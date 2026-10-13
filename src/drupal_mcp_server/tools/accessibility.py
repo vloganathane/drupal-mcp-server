@@ -1,7 +1,7 @@
 """Accessibility (WCAG) tools for Drupal."""
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from fastmcp import FastMCP
@@ -260,7 +260,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             os.makedirs(output_dir, exist_ok=True)
             
             report: dict[str, Any] = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "level": level,
                 "pages": [],
             }
