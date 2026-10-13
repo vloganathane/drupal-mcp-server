@@ -513,6 +513,421 @@ use {plugin_info["annotation_class"]};
         }
 
     @mcp.tool()
+    async def module_form_create(
+        machine_name: str,
+        form_name: str,
+        form_type: str = "ConfigForm",
+        class_name: str | None = None,
+        form_id: str | None = None,
+        fields: list[dict[str, Any]] | None = None,
+        path: str | None = None,
+    ) -> dict[str, Any]:
+        """Create a form class (ConfigForm, ConfirmForm, FormBase, etc.) with proper scaffolding."""
+        if not drush:
+            return {"error": "Drush not available"}
+        
+        module_path = path or f"modules/custom/{machine_name}"
+        
+        if not os.path.exists(module_path):
+            return {"error": f"Module not found: {module_path}"}
+        
+        # Valid form types and their base classes
+        form_types = {
+            "ConfigForm": {
+                "base_class": "Drupal\\Core\\Form\\ConfigFormBase",
+                "namespace": "Form",
+                "requires_config": True,
+            },
+            "ConfirmForm": {
+                "base_class": "Drupal\\Core\\Form\\ConfirmFormBase",
+                "namespace": "Form",
+                "requires_config": False,
+            },
+            "FormBase": {
+                "base_class": "Drupal\\Core\\Form\\FormBase",
+                "namespace": "Form",
+                "requires_config": False,
+            },
+            "EntityForm": {
+                "base_class": "Drupal\\Core\\Entity\\EntityForm",
+                "namespace": "Form",
+                "requires_config": False,
+            },
+        }
+        
+        if form_type not in form_types:
+            available = list(form_types.keys())
+            return {"error": f"Unknown form type: {form_type}. Available: {available}"}
+        
+        form_info = form_types[form_type]
+        class_name = class_name or f"{machine_name.capitalize()}{form_name.replace('_', ' ').title().replace(' ', '')}{form_type}"
+        form_id = form_id or f"{machine_name}_{form_name}"
+        
+        # Build form directory
+        form_dir = os.path.join(module_path, "src", str(form_info["namespace"]))
+        os.makedirs(form_dir, exist_ok=True)
+        
+        # Build form class
+        form_class = f"""<?php
+
+namespace Drupal\\{machine_name}\\{form_info["namespace"]};
+
+use {form_info["base_class"]};
+use Drupal\\Core\\Form\\FormStateInterface;
+"""
+        if form_info["requires_config"]:
+            form_class += f"use Drupal\\Core\\Config\\ConfigFactoryInterface;\nuse Symfony\\Component\\DependencyInjection\\ContainerInterface;\n"
+        
+        form_class += f"""\nclass {class_name} extends {form_info["base_class"]} {{"""
+        
+        if form_type == "ConfigForm":
+            form_class += f"""
+  /**
+   * {{@inheritdoc}}
+   */
+  protected $configFactory;
+
+  public function __construct(ConfigFactoryInterface $config_factory) {{
+    $this->configFactory = $config_factory;
+  }}
+
+  public static function create(ContainerInterface $container) {{
+    return new static(
+      $container->get('config.factory')
+    );
+  }}
+
+  /**
+   * {{@inheritdoc}}
+   */
+  protected function getEditableConfigNames() {{
+    return [
+      '{machine_name}.settings',
+    ];
+  }}
+
+  /**
+   * {{@inheritdoc}}
+   */
+  public function getFormId() {{
+    return '{form_id}';
+  }}
+
+  /**
+   * {{@inheritdoc}}
+   */
+  public function buildForm(array $form, FormStateInterface $form_state) {{
+    $config = $this->config('{machine_name}.settings');
+"""
+            
+            # Add form fields
+            if fields:
+                for field in fields:
+                    field_name = field.get("name", "field")
+                    field_type = field.get("type", "textfield")
+                    field_title = field.get("title", field_name.replace("_", " ").title())
+                    field_default = field.get("default", "")
+                    
+                    form_class += f"""
+    $form['{field_name}'] = [
+      '#type' => '{field_type}',
+      '#title' => $this->t('{field_title}'),
+      '#default_value' => $config->get('{field_name}') ?? '{field_default}',
+    ];"""
+            else:
+                form_class += f"""
+    $form['example_field'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Example field'),
+      '#default_value' => $config->get('example_field') ?? '',
+    ];"""
+            
+            form_class += f"""
+
+    return parent::buildForm($form, $form_state);
+  }}
+
+  /**
+   * {{@inheritdoc}}
+   */
+  public function submitForm(array &$form, FormStateInterface $form_state) {{
+    $config = $this->config('{machine_name}.settings');
+"""
+            if fields:
+                for field in fields:
+                    field_name = field.get("name", "field")
+                    form_class += f"""
+    $config->set('{field_name}', $form_state->getValue('{field_name}'));"""
+            else:
+                form_class += f"""
+    $config->set('example_field', $form_state->getValue('example_field'));"""
+            
+            form_class += f"""
+
+    $config->save();
+    parent::submitForm($form, $form_state);
+  }}
+
+"""
+        
+        elif form_type == "ConfirmForm":
+            form_class += f"""
+  /**
+   * {{@inheritdoc}}
+   */
+  public function getFormId() {{
+    return '{form_id}';
+  }}
+
+  /**
+   * {{@inheritdoc}}
+   */
+  public function getQuestion() {{
+    return $this->t('Are you sure you want to proceed?');
+  }}
+
+  /**
+   * {{@inheritdoc}}
+   */
+  public function getConfirmText() {{
+    return $this->t('Confirm');
+  }}
+
+  /**
+   * {{@inheritdoc}}
+   */
+  public function getCancelText() {{
+    return $this->t('Cancel');
+  }}
+
+  /**
+   * {{@inheritdoc}}
+   */
+  public function getCancelUrl() {{
+    return new \\Drupal\\Core\\Url('<front>');
+  }}
+
+  /**
+   * {{@inheritdoc}}
+   */
+  public function buildForm(array $form, FormStateInterface $form_state) {{
+    return parent::buildForm($form, $form_state);
+  }}
+
+  /**
+   * {{@inheritdoc}}
+   */
+  public function submitForm(array &$form, FormStateInterface $form_state) {{
+    // Add your confirmation logic here
+    parent::submitForm($form, $form_state);
+  }}
+
+"""
+        
+        else:  # FormBase
+            form_class += f"""
+  /**
+   * {{@inheritdoc}}
+   */
+  public function getFormId() {{
+    return '{form_id}';
+  }}
+
+  /**
+   * {{@inheritdoc}}
+   */
+  public function buildForm(array $form, FormStateInterface $form_state) {{
+"""
+            
+            if fields:
+                for field in fields:
+                    field_name = field.get("name", "field")
+                    field_type = field.get("type", "textfield")
+                    field_title = field.get("title", field_name.replace("_", " ").title())
+                    field_default = field.get("default", "")
+                    
+                    form_class += f"""
+    $form['{field_name}'] = [
+      '#type' => '{field_type}',
+      '#title' => $this->t('{field_title}'),
+      '#default_value' => '{field_default}',
+    ];"""
+            else:
+                form_class += f"""
+    $form['example_field'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Example field'),
+      '#default_value' => '',
+    ];"""
+            
+            form_class += f"""
+
+    return $form;
+  }}
+
+  /**
+   * {{@inheritdoc}}
+   */
+  public function submitForm(array &$form, FormStateInterface $form_state) {{
+    // Add your submit logic here
+  }}
+
+"""
+        
+        form_class += "}\n"
+        
+        # Write form file
+        form_file = os.path.join(form_dir, f"{class_name}.php")
+        with open(form_file, "w") as f:
+            f.write(form_class)
+        
+        # Update routing.yml
+        routing_file = os.path.join(module_path, f"{machine_name}.routing.yml")
+        if os.path.exists(routing_file):
+            with open(routing_file, "r") as f:
+                routing_yml = yaml.safe_load(f) or {}
+        else:
+            routing_yml = {}
+        
+        route_name = f"{machine_name}.{form_name}"
+        routing_yml[route_name] = {
+            "path": f"/{machine_name}/{form_name}",
+            "defaults": {
+                "_form": f"\\Drupal\\{machine_name}\\Form\\{class_name}",
+                "_title": form_name.replace("_", " ").title(),
+            },
+            "requirements": {
+                "_permission": f"administer {machine_name}",
+            },
+        }
+        
+        with open(routing_file, "w") as f:
+            yaml.dump(routing_yml, f, default_flow_style=False, sort_keys=False)
+        
+        # Update services.yml if ConfigForm
+        if form_info["requires_config"]:
+            services_file = os.path.join(module_path, f"{machine_name}.services.yml")
+            if os.path.exists(services_file):
+                with open(services_file, "r") as f:
+                    services_yml = yaml.safe_load(f) or {"services": {}}
+            else:
+                services_yml = {"services": {}}
+            
+            service_id = f"{machine_name}.form.{form_name}"
+            services_yml.setdefault("services", {})[service_id] = {
+                "class": f"Drupal\\{machine_name}\\Form\\{class_name}",
+                "arguments": ["@config.factory"],
+            }
+            
+            with open(services_file, "w") as f:
+                yaml.dump(services_yml, f, default_flow_style=False, sort_keys=False)
+        
+        return {
+            "success": True,
+            "form_type": form_type,
+            "form_id": form_id,
+            "class_name": class_name,
+            "form_file": os.path.join("src", "Form", f"{class_name}.php"),
+            "routing_file": routing_file,
+            "base_class": form_info["base_class"],
+        }
+
+    @mcp.tool()
+    async def module_controller_create(
+        machine_name: str,
+        controller_name: str,
+        class_name: str | None = None,
+        methods: list[dict[str, Any]] | None = None,
+        path: str | None = None,
+    ) -> dict[str, Any]:
+        """Create a controller class with routing."""
+        if not drush:
+            return {"error": "Drush not available"}
+        
+        module_path = path or f"modules/custom/{machine_name}"
+        
+        if not os.path.exists(module_path):
+            return {"error": f"Module not found: {module_path}"}
+        
+        class_name = class_name or f"{machine_name.capitalize()}{controller_name.replace('_', ' ').title().replace(' ', '')}Controller"
+        
+        # Build controller directory
+        controller_dir = os.path.join(module_path, "src", "Controller")
+        os.makedirs(controller_dir, exist_ok=True)
+        
+        # Default methods if not provided
+        if not methods:
+            methods = [
+                {"name": "content", "route": f"/{machine_name}", "title": f"{machine_name} page"},
+            ]
+        
+        # Build controller class
+        controller_class = f"""<?php
+
+namespace Drupal\\{machine_name}\\Controller;
+
+use Drupal\Core\Controller\ControllerBase;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
+"""
+        
+        for method in methods:
+            method_name = method.get("name", "content")
+            controller_class += f"""
+  /**
+   * {method.get('description', f'{method_name} method')}.
+   */
+  public function {method_name}() {{
+    return [
+      '#markup' => $this->t('{method_name} method of {machine_name} controller'),
+    ];
+  }}
+"""
+        
+        controller_class += "}\n"
+        
+        # Write controller file
+        controller_file = os.path.join(controller_dir, f"{class_name}.php")
+        with open(controller_file, "w") as f:
+            f.write(controller_class)
+        
+        # Update routing.yml
+        routing_file = os.path.join(module_path, f"{machine_name}.routing.yml")
+        if os.path.exists(routing_file):
+            with open(routing_file, "r") as f:
+                routing_yml = yaml.safe_load(f) or {}
+        else:
+            routing_yml = {}
+        
+        for method in methods:
+            method_name = method.get("name", "content")
+            route_path = method.get("route", f"/{machine_name}/{method_name}")
+            route_title = method.get("title", method_name.replace("_", " ").title())
+            route_name = f"{machine_name}.{method_name}"
+            
+            routing_yml[f"{machine_name}.{method_name}"] = {
+                "path": route_path,
+                "defaults": {
+                    "_controller": f"\\Drupal\\{machine_name}\\Controller\\{class_name}::{method_name}",
+                    "_title": route_title,
+                },
+                "requirements": {
+                    "_permission": f"access content",
+                },
+            }
+        
+        with open(routing_file, "w") as f:
+            yaml.dump(routing_yml, f, default_flow_style=False, sort_keys=False)
+        
+        return {
+            "success": True,
+            "class_name": class_name,
+            "controller_file": os.path.join("src", "Controller", f"{class_name}.php"),
+            "routing_file": routing_file,
+            "methods": methods,
+        }
+
+    @mcp.tool()
     async def module_event_subscriber_create(
         machine_name: str,
         subscriber_name: str,
