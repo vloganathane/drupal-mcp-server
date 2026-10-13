@@ -36,10 +36,14 @@ class AuthManager:
         except Exception:
             return ""
 
-    async def get_headers(self) -> dict[str, str]:
+    def get_headers(self) -> dict[str, str]:
+        """Return request headers for the active auth strategy.
+
+        Synchronous to match the underlying strategies and the sync call site in
+        ``clients/base.py::_headers``.
+        """
         if self._auth:
-            headers = self._auth.get_headers()
-            return headers  # type: ignore[no-any-return]
+            return self._auth.get_headers()
         return {}
 
     def get_mcp_oauth_provider(self, settings: Any) -> DrupalOAuthProvider | None:

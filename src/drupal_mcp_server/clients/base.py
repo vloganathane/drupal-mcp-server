@@ -60,10 +60,13 @@ class DrupalBaseClient:
         return data  # type: ignore[no-any-return]
 
     async def delete(self, endpoint: str) -> dict[str, Any] | list[Any]:
-        """Perform a DELETE request to the Drupal endpoint."""
+        """Perform a DELETE request to the Drupal endpoint.
+
+        Drupal answers DELETE with 204 No Content, so an empty body is normal
+        and must not be parsed as JSON.
+        """
         url = self._build_url(endpoint)
         async with httpx.AsyncClient(timeout=self._timeout) as client:
             response = await client.delete(url, headers=self._headers())
         response.raise_for_status()
-        data = response.json()
-        return data  # type: ignore[no-any-return]
+        return {"deleted": True, "status_code": response.status_code}
