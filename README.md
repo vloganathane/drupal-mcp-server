@@ -1,12 +1,12 @@
 # Drupal MCP Server
 
-[![CI](https://github.com/drupal-mcp/drupal-mcp-server/actions/workflows/ci.yml/badge.svg)](https://github.com/drupal-mcp/drupal-mcp-server/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/drupal-mcp/drupal-mcp-server/branch/main/graph/badge.svg)](https://codecov.io/gh/drupal-mcp/drupal-mcp-server)
+[![CI](https://github.com/vloganathane/drupal-mcp-server/actions/workflows/ci.yml/badge.svg)](https://github.com/vloganathane/drupal-mcp-server/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/vloganathane/drupal-mcp-server/branch/main/graph/badge.svg)](https://codecov.io/gh/vloganathane/drupal-mcp-server)
 [![PyPI version](https://badge.fury.io/py/drupal-mcp-server.svg)](https://badge.fury.io/py/drupal-mcp-server)
 [![Python versions](https://img.shields.io/pypi/pyversions/drupal-mcp-server.svg)](https://pypi.org/project/drupal-mcp-server/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/drupal-mcp/drupal-mcp-server/blob/main/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/vloganathane/drupal-mcp-server/blob/main/LICENSE)
 
-A Model Context Protocol (MCP) server for Drupal operations. Provides 35+ tools for site analysis, migration, content management, configuration, and DevOps operations.
+A Model Context Protocol (MCP) server for Drupal operations. Provides **367 tools across 35 categories** for site analysis, migration, content management, configuration, commerce, headless, DevOps, security, and more.
 
 ## Why Use This?
 
@@ -14,17 +14,26 @@ A Model Context Protocol (MCP) server for Drupal operations. Provides 35+ tools 
 - **AI-powered** — Content analysis, field mapping, and migration planning with your choice of LLM
 - **Multi-transport** — Stdio for desktop apps, HTTP/SSE for remote deployments
 - **Secure** — Input validation, OAuth 2.1, no shell injection
+- **Comprehensive** — 35 tool modules covering every major Drupal subsystem
 
 ## Features
 
-- **JSON:API & GraphQL** - Full support for Drupal's REST endpoints
-- **Drush Integration** - Execute any Drush command
-- **DDEV/Lando Support** - Local development environment management
-- **AI-Powered Tools** - Multi-provider AI (Ollama, OpenAI, Anthropic, NVIDIA NIM)
-- **Migration Assistance** - Generate and validate migration configurations
-- **Security Audits** - PHPStan, Drupal Check, dependency scanning
-- **Content Management** - CRUD for nodes, media, users, taxonomy, comments
-- **DevOps** - Config export/import, database queries, cron, queues
+- **JSON:API & GraphQL** — Full support for Drupal's REST endpoints, schema introspection, sparse fieldsets
+- **Drush Integration** — Execute any Drush command (cache, cron, updb, watchdog, php-eval, etc.)
+- **DDEV/Lando/Acquia Support** — Local and cloud development environment management
+- **AI-Powered Tools** — Multi-provider AI (Ollama, OpenAI, Anthropic, NVIDIA NIM, Google)
+- **Migration Assistance** — Generate and validate migration configurations, D7→D10 upgrades
+- **Security Audits** — PHPStan, Drupal Check, dependency scanning, SQL injection, XSS, CSP, file permissions
+- **Content Management** — CRUD for nodes, media, users, taxonomy, comments, revisions, paragraphs
+- **Commerce** — Stores, products, orders, payments, promotions, shipping (18 tools)
+- **Configuration** — Export/import, sync, diff, split (7 tools)
+- **DevOps** — Database queries, Composer, cache, cron, queues, backups (20 tools)
+- **Headless** — Next.js/Gatsby helpers, JSON:API optimization, GraphQL schema (10 tools)
+- **Search** — Search API servers, indexes, facets, reindex (13 tools)
+- **Multilingual** — Languages, content translation, interface translation, config translation (18 tools)
+- **Module Development** — Scaffolding for modules, services, plugins, forms, controllers, tests (12 tools)
+- **Theme Development** — Theme creation, libraries, regions, templates, preprocessing, assets (11 tools)
+- **Webform** — Forms, submissions, elements, handlers, tokens, export (16 tools)
 
 ## Installation
 
@@ -85,85 +94,229 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 The server supports three auth methods (in priority order):
 
-1. **Basic Auth** - Set `DRUPAL_USERNAME` and `DRUPAL_PASSWORD`
-2. **OAuth2** - Set `DRUPAL_OAUTH_CLIENT_ID`, `DRUPAL_OAUTH_CLIENT_SECRET`, `DRUPAL_OAUTH_TOKEN_URL`
-3. **Bearer Token** - Set via `DRUPAL_API_TOKEN`
+1. **Basic Auth** — Set `DRUPAL_USERNAME` and `DRUPAL_PASSWORD`
+2. **OAuth2** — Set `DRUPAL_OAUTH_CLIENT_ID`, `DRUPAL_OAUTH_CLIENT_SECRET`, `DRUPAL_OAUTH_TOKEN_URL`
+3. **Bearer Token** — Set via `DRUPAL_API_TOKEN`
 
 ### AI Providers
 
 Set `DEFAULT_AI_PROVIDER` to one of:
+
 - `ollama` (default, local)
 - `openai`
 - `anthropic`
 - `nvidia_nim`
+- `google`
 
 ### Transport
 
 Set `MCP_TRANSPORT` to one of:
+
 - `stdio` (default, for desktop apps)
 - `http` (for remote HTTP deployment)
 - `sse` (for Server-Sent Events)
 - `streamable-http` (for Streamable HTTP)
 
-## Tools
+## Tools (367 total)
 
-### Analysis (6 tools)
-- `analyze_d7_site` - Analyze D7 site for D10 readiness
-- `analyze_d9_site` - Analyze D9+ for deprecated APIs
-- `inventory_content_types` - List all content types
-- `inventory_modules` - List all modules
-- `map_modules_d7_to_d10` - AI-powered module mapping
-- `find_deprecated_code` - Scan for deprecated APIs
+### Accessibility (5)
+- `accessibility_axe_scan` — Run axe-core accessibility scan
+- `accessibility_wcag_check` — WCAG compliance check
+- `accessibility_color_contrast` — Color contrast validation
+- `accessibility_aria_validate` — ARIA attribute validation
+- `accessibility_report_generate` — Generate accessibility report
 
-### Migration (7 tools)
-- `generate_migration_yaml` - Generate migration YAML
-- `generate_module_migration` - Generate migration module
-- `run_migration_test` - Test migration with limited records
-- `validate_migration` - Validate migration config
-- `rollback_migration` - Rollback a migration
-- `sync_media_files` - Sync media between paths
-- `migrate_taxonomy` - Migrate taxonomy vocabularies
+### AI (4)
+- `ai_analyze_content_quality` — Analyze content quality with AI
+- `ai_suggest_field_mappings` — Suggest field mappings between bundles
+- `ai_generate_migration_plan` — Generate migration plan with AI
+- `ai_translate_content` — Translate content with AI
 
-### Content (12 tools)
-- `create_node` / `get_node` / `update_node` / `delete_node` / `query_nodes`
-- `upload_media` / `create_media`
-- `clean_nodes_ai` - Clean duplicate nodes with AI
-- `map_fields_ai` - AI field mapping suggestions
-- `bulk_update_nodes` - Bulk node updates
-- `analyze_content_quality` - AI content analysis
-- `generate_test_content` - Generate test content
+### Analysis (6)
+- `analyze_d7_site` — Analyze D7 site for D10 readiness
+- `analyze_d9_site` — Analyze D9+ for deprecated APIs
+- `inventory_content_types` — List all content types
+- `inventory_modules` — List all modules
+- `map_modules_d7_to_d10` — AI-powered module mapping D7→D10
+- `find_deprecated_code` — Scan for deprecated APIs
 
-### Users (8 tools)
-- `create_user` / `get_user` / `update_user` / `delete_user` / `list_users`
-- `assign_role` / `remove_role` / `block_user` / `unblock_user`
+### Code Audit (7)
+- `code_audit_phpstan` — Run PHPStan static analysis
+- `drupal_check` — Run Drupal Check
+- `code_sniffer` — Run PHP_CodeSniffer
+- `deprecation_scan` — Scan for deprecated code
+- `security_audit` — Security-focused code audit
+- `composer_audit` — Composer dependency audit
+- `code_quality_report` — Combined code quality report
 
-### Taxonomy (7 tools)
-- CRUD for vocabularies and terms
-- `list_terms` with filtering and pagination
+### Comments (10)
+- `comment_list`, `comment_get`, `comment_create`, `comment_update`, `comment_delete`
+- `comment_thread_list`, `comment_approve`, `comment_unapprove`
+- `comment_field_settings`, `comment_field_configure`
 
-### DevOps (10 tools)
-- `drush_command` - Execute any Drush command
-- `ddev_start` / `ddev_stop` / `ddev_exec`
-- `lando_start` / `lando_stop` / `lando_exec`
-- `backup_database` / `cache_rebuild` / `drush_cron`
+### Commerce (18)
+- `commerce_store_list`, `commerce_store_get`, `commerce_store_create`, `commerce_store_update`
+- `commerce_product_list`, `commerce_product_get`, `commerce_product_create`, `commerce_product_update`
+- `commerce_order_list`, `commerce_order_get`, `commerce_order_create`, `commerce_order_update`
+- `commerce_payment_gateway_list`, `commerce_payment_gateway_get`
+- `commerce_promotion_list`, `commerce_promotion_create`
+- `commerce_shipping_method_list`, `commerce_shipping_method_create`
 
-### Security Audit (6 tools)
-- `security_scan` - PHPStan with security extensions
-- `dependency_scan` - Composer audit
-- `permission_audit` - Role and permission audit
-- `sql_injection_scan` - SQL injection detection
-- `xss_scan` - XSS vulnerability detection
-- `config_security_check` - Drupal config security
+### Config (7)
+- `config_get`, `config_set`, `export_config`, `import_config`, `sync_config`, `diff_config`, `split_config`
 
-### Module Development (10 tools)
-- `module_create` - Full module scaffolding
-- `module_service_create` - Service class generation
-- `module_plugin_create` - Plugin scaffolding
-- `module_form_create` - Form class generation
-- `module_controller_create` - Controller with routing
-- `module_event_subscriber_create` - Event subscriber
-- `module_hook_implement` - Hook implementation
-- `module_test_create` - PHPUnit test scaffolding
+### Contact (9)
+- `contact_form_list`, `contact_form_get`, `contact_form_create`, `contact_form_update`, `contact_form_delete`
+- `contact_message_list`, `contact_message_get`, `contact_message_delete`, `contact_spam_check`
+
+### Content (14)
+- `create_node`, `get_node`, `update_node`, `delete_node`, `query_nodes`
+- `upload_media`, `create_media`
+- `clean_nodes_ai`, `map_fields_ai`, `bulk_update_nodes`
+- `fix_media_references`, `bulk_update_aliases`
+- `analyze_content_quality`, `generate_test_content`
+
+### Database (4)
+- `db_query`, `db_tables`, `db_table_info`, `db_count`
+
+### DevOps (20)
+- `drush_command` — Execute any Drush command
+- `ddev_setup`, `ddev_start`, `ddev_stop`, `ddev_exec`
+- `lando_start`, `lando_stop`, `lando_exec`, `lando_setup`
+- `acquia_deploy`, `backup_database`, `cache_rebuild`
+- `composer_install`, `composer_require`, `composer_update`
+- `drush_cron`, `drush_watchdog`, `cache_clear`, `drush_updb`, `drush_php_eval`
+
+### Drupal.org (9)
+- `module_search`, `module_get`, `module_versions`, `module_dependencies`, `module_compatibility`
+- `theme_search`, `theme_get`, `release_history`, `project_usage`
+
+### Feeds (12)
+- `feeds_feed_list`, `feeds_feed_get`, `feeds_feed_create`, `feeds_feed_update`, `feeds_feed_delete`
+- `feeds_import`, `feeds_import_status`, `feeds_log_list`
+- `feeds_tamper_list`, `feeds_parser_list`, `feeds_fetcher_list`, `feeds_processor_list`
+
+### Fields (10)
+- `field_config_list`, `field_config_get`, `field_config_create`, `field_config_update`, `field_config_delete`
+- `field_storage_list`, `field_storage_get`, `field_storage_create`, `field_storage_update`, `field_storage_delete`
+
+### Headless (10)
+- `jsonapi_schema_get`, `jsonapi_include_optimize`, `jsonapi_sparse_fieldsets`, `jsonapi_resources_list`, `jsonapi_resource_types`
+- `graphql_schema_get`, `graphql_query`, `graphql_schema_extend`
+- `nextjs_helpers_generate`, `gatsby_helpers_generate`
+
+### Layout Builder (15)
+- `block_list`, `block_get`, `block_create`, `block_update`, `block_delete`, `block_place`
+- `layout_builder_list`, `layout_builder_get`, `layout_builder_create`, `layout_builder_update`
+- `layout_builder_sections_list`, `layout_builder_section_add`
+- `block_plugin_list`, `block_region_list`, `layout_builder_override_remove`
+
+### Media Enhanced (8)
+- `media_type_list`, `media_type_get`, `media_type_create`
+- `media_create_from_url`, `media_create_from_base64`, `media_derivative_generate`
+- `media_bulk_import`, `media_library_list`
+
+### Menus (10)
+- `menu_list`, `menu_get`, `menu_create`, `menu_update`, `menu_delete`
+- `menu_link_list`, `menu_link_get`, `menu_link_create`, `menu_link_update`, `menu_link_delete`
+
+### Metatag (9)
+- `metatag_config_list`, `metatag_config_get`, `metatag_config_create`, `metatag_config_update`
+- `metatag_defaults_get`, `metatag_defaults_set`, `metatag_token_list`
+- `metatag_canonical_set`, `metatag_jsonld_generate`
+
+### Migration (7)
+- `generate_migration_yaml` — Generate migration YAML
+- `generate_module_migration` — Generate migration module
+- `run_migration_test` — Test migration with limited records
+- `validate_migration` — Validate migration config
+- `rollback_migration` — Rollback a migration
+- `sync_media_files` — Sync media between paths
+- `migrate_taxonomy` — Migrate taxonomy vocabularies
+
+### Moderation (12)
+- `moderation_state_list`, `moderation_state_get`, `moderation_state_create`, `moderation_state_update`, `moderation_state_delete`
+- `moderation_transition_list`, `moderation_transition_get`, `moderation_transition_create`, `moderation_transition_execute`
+- `content_moderation_dashboard`, `workflow_list`, `workflow_get`
+
+### Module Development (12)
+- `module_create`, `module_service_create`, `module_plugin_create`, `module_form_create`
+- `module_controller_create`, `module_event_subscriber_create`, `module_hook_implement`
+- `module_info_generate`, `module_permission_create`, `module_config_schema_create`
+- `module_test_create`, `module_dependencies_analyze`
+
+### Multilingual (18)
+- `language_list`, `language_get`, `language_add`, `language_enable`, `language_disable`, `language_delete`
+- `content_translation_enable`, `translation_status`, `translation_add`, `translation_update`
+- `interface_translation_list`, `interface_translation_add`, `interface_translation_update`, `interface_translation_delete`
+- `config_translation_list`, `config_translation_add`
+- `language_negotiation_get`, `language_negotiation_set`
+
+### Paragraphs (10)
+- `paragraphs_type_list`, `paragraphs_type_get`, `paragraphs_type_create`, `paragraphs_type_update`, `paragraphs_type_delete`
+- `paragraphs_item_list`, `paragraphs_item_get`, `paragraphs_item_create`, `paragraphs_item_update`, `paragraphs_item_delete`
+
+### Pathauto (9)
+- `pathauto_pattern_list`, `pathauto_pattern_get`, `pathauto_pattern_create`, `pathauto_pattern_update`, `pathauto_pattern_delete`
+- `pathauto_generate`, `pathauto_token_list`, `redirect_pattern_list`, `redirect_bulk_create`
+
+### Performance (7)
+- `performance_query_log`, `performance_cache_stats`, `performance_redis_info`
+- `performance_bigpipe_status`, `performance_bigpipe_enable`, `performance_memcached_stats`
+- `performance_page_load_analyze`
+
+### Redirects (7)
+- `redirect_list`, `redirect_get`, `redirect_create`, `redirect_update`, `redirect_delete`
+- `redirect_bulk_create`, `redirect_bulk_delete`
+
+### Revisions (5)
+- `revision_list`, `revision_get`, `revision_revert`, `revision_delete`, `revision_diff`
+
+### Scheduler (7)
+- `cron_run`, `cron_list`, `queue_list`, `queue_run`, `queue_delete`, `queue_info`, `queue_create`
+
+### Search API (13)
+- `search_api_server_list`, `search_api_server_get`, `search_api_server_create`, `search_api_server_enable`, `search_api_server_disable`
+- `search_api_index_list`, `search_api_index_get`, `search_api_index_create`, `search_api_index_update`
+- `search_api_index_reindex`, `search_api_index_clear`, `search_api_facet_list`, `search_api_facet_create`
+
+### Security Audit (8)
+- `security_scan` — PHPStan with security extensions
+- `dependency_scan` — Composer audit
+- `config_security_check` — Drupal config security
+- `permission_audit` — Role and permission audit
+- `sql_injection_scan` — SQL injection detection
+- `xss_scan` — XSS vulnerability detection
+- `csp_audit` — Content Security Policy audit
+- `file_permissions_audit` — File permissions audit
+
+### Taxonomy (10)
+- `create_vocabulary`, `get_vocabulary`, `update_vocabulary`, `delete_vocabulary`, `list_vocabularies`
+- `create_term`, `get_term`, `update_term`, `delete_term`, `list_terms`
+
+### Testing (9)
+- `test_run_phpunit`, `test_run_kernel`, `test_run_behat`, `test_run_nightwatch`
+- `test_scaffold_phpunit`, `test_scaffold_behat`, `test_scaffold_nightwatch`
+- `test_coverage_report`, `test_list_suites`
+
+### Theme Development (11)
+- `theme_create`, `theme_library_create`, `theme_region_create`, `theme_template_override`
+- `theme_preprocess_function`, `theme_breakpoint_create`, `theme_base_change`
+- `theme_settings_form`, `theme_asset_optimize`, `theme_debug_enable`, `theme_lint_twig`
+
+### Users (12)
+- `create_user`, `get_user`, `get_user_by_email`, `update_user`, `delete_user`, `list_users`
+- `assign_role`, `remove_role`, `list_roles`, `get_user_roles`, `block_user`, `unblock_user`
+
+### Views (7)
+- `views_list`, `views_get`, `views_create`, `views_update`, `views_delete`, `views_execute`, `views_export`
+
+### Webform (16)
+- `webform_list`, `webform_get`, `webform_create`, `webform_update`, `webform_delete`
+- `webform_submission_list`, `webform_submission_get`, `webform_submission_delete`
+- `webform_element_list`, `webform_element_create`
+- `webform_handler_list`, `webform_handler_create`, `webform_handler_update`, `webform_handler_delete`
+- `webform_token_list`, `webform_export_submissions`
 
 ## Documentation
 
@@ -171,6 +324,9 @@ Set `MCP_TRANSPORT` to one of:
 - [Changelog](CHANGELOG.md)
 - [Security Policy](SECURITY.md)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Architecture](docs/architecture.md)
+- [Migration Guide](docs/migration.md)
+- [Docstring Standard](docs/docstring_standard.md)
 
 ## Development
 

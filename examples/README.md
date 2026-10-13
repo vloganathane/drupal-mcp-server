@@ -1,6 +1,6 @@
 # Drupal MCP Server Examples
 
-Practical examples demonstrating the 35+ tools across all 6 categories.
+Practical examples demonstrating the **367 tools across 35 categories**.
 
 ## Quick Start
 
@@ -30,60 +30,76 @@ Conceptual examples showing tool invocation patterns:
 - Drush commands
 - DDEV workflow
 
-### 2. Claude Desktop Config (`claude_desktop_config.json`)
-Ready-to-use MCP server configuration for Claude Desktop:
-- Copy to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
-- Or `%APPDATA%/Claude/claude_desktop_config.json` (Windows)
-- Restart Claude Desktop
+### 2. Content Workflow (`content_workflow.py`)
+Complete content creation workflow:
+1. Create a node
+2. Upload media
+3. Set URL alias
+4. Verify content
 
-### 3. Migration Workflow (`migration_workflow.md`)
-Complete D7→D10 migration guide:
-- Step-by-step tool usage
-- AI-powered module mapping
-- Content migration orchestration
-- Post-migration cleanup
+### 3. Migration Workflow (`migration_workflow.py`)
+Complete D7→D10 migration workflow:
+1. Analyze source site
+2. Generate migration config
+3. Create migration module
+4. Test migration
+5. Run full migration
 
-### 4. Environment Template (`.env.example`)
+### 4. Custom Tool (`custom_tool.py`)
+Template for creating custom tool modules:
+- How to structure a tool module
+- Using shared utilities (`_utils.py`)
+- Input validation patterns
+- Error handling conventions
+
+### 5. Environment Template (`.env.example`)
 Configuration template covering:
 - Drupal connection (JSON:API, auth)
-- AI provider setup (Ollama, OpenAI, Anthropic, Google)
+- AI provider setup (Ollama, OpenAI, Anthropic, Google, NVIDIA NIM)
 - Drush and DDEV paths
+- Transport settings (stdio, HTTP, SSE)
 
-## Tool Categories
+## Tool Categories (35 modules, 367 tools)
 
-### Analysis (6 tools)
-- `analyze_d7_site` / `analyze_d9_site`
-- `inventory_content_types` / `inventory_modules`
-- `map_modules_d7_to_d10`
-- `find_deprecated_code`
-
-### Migration (7 tools)
-- `generate_migration_yaml`
-- `run_migration_test` / `execute_migration`
-- `validate_migration` / `rollback_migration`
-- `check_migration_status` / `import_legacy_database`
-
-### Content (7 tools)
-- `bulk_update_nodes` / `bulk_update_nodes_ai`
-- `clean_nodes_ai` / `deduplicate_content`
-- `bulk_publish` / `bulk_unpublish`
-- `generate_content_report`
-
-### Config (5 tools)
-- `export_config` / `import_config`
-- `diff_config` / `sync_config`
-- `validate_config`
-
-### DevOps (6 tools)
-- `drush_command`
-- `ddev_start` / `ddev_stop` / `ddev_exec`
-- `backup_database` / `restore_database`
-
-### AI (4 tools)
-- `ai_analyze_content_quality`
-- `ai_suggest_tags`
-- `ai_translate_content`
-- `ai_generate_summary`
+| Category | Tools | Module |
+|----------|-------|--------|
+| Accessibility | 5 | `accessibility.py` |
+| AI | 4 | `ai.py` |
+| Analysis | 6 | `analysis.py` |
+| Code Audit | 7 | `code_audit.py` |
+| Comments | 10 | `comments.py` |
+| Commerce | 18 | `commerce.py` |
+| Config | 7 | `config.py` |
+| Contact | 9 | `contact.py` |
+| Content | 14 | `content.py` |
+| Database | 4 | `database.py` |
+| DevOps | 20 | `devops.py` |
+| Drupal.org | 9 | `drupal_org.py` |
+| Feeds | 12 | `feeds.py` |
+| Fields | 10 | `fields.py` |
+| Headless | 10 | `headless.py` |
+| Layout Builder | 15 | `layout_builder.py` |
+| Media Enhanced | 8 | `media_enhanced.py` |
+| Menus | 10 | `menus.py` |
+| Metatag | 9 | `metatag.py` |
+| Migration | 7 | `migration.py` |
+| Moderation | 12 | `moderation.py` |
+| Module Development | 12 | `module_dev.py` |
+| Multilingual | 18 | `multilingual.py` |
+| Paragraphs | 10 | `paragraphs.py` |
+| Pathauto | 9 | `pathauto.py` |
+| Performance | 7 | `performance.py` |
+| Redirects | 7 | `redirects.py` |
+| Revisions | 5 | `revisions.py` |
+| Scheduler | 7 | `scheduler.py` |
+| Search API | 13 | `search_api.py` |
+| Security Audit | 8 | `security_audit.py` |
+| Taxonomy | 10 | `taxonomy.py` |
+| Testing | 9 | `testing.py` |
+| Theme Development | 11 | `theme_dev.py` |
+| Users | 12 | `users.py` |
+| Views | 7 | `views.py` |
+| Webform | 16 | `webform.py` |
 
 ## Usage in Claude Desktop
 
@@ -97,14 +113,20 @@ Once configured, invoke tools naturally:
 → Uses map_modules_d7_to_d10 tool
 
 "Bulk update all article nodes to fix grammar"
-→ Uses bulk_update_nodes_ai tool
+→ Uses bulk_update_nodes tool
 
 "Run drush cache:rebuild"
 → Uses drush_command tool
+
+"Create a commerce store with products"
+→ Uses commerce_store_create, commerce_product_create
+
+"Generate Next.js helpers for JSON:API"
+→ Uses nextjs_helpers_generate tool
 ```
 
 ## Next Steps
 
-- Read [QUICKSTART.md](../docs/QUICKSTART.md) for setup
-- Check [API.md](../docs/API.md) for full tool reference
-- Review [architecture/overview.md](../docs/architecture/overview.md) for internals
+- Read [Architecture](docs/architecture.md) for system design
+- Check [Migration Guide](docs/migration.md) for upgrade paths
+- Browse tool modules in `src/drupal_mcp_server/tools/` for implementation details
