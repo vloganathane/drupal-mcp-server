@@ -10,18 +10,12 @@ from typing import Any
 
 from fastmcp import FastMCP
 
+from ._utils import ensure_dict as _ensure_dict, validate_pagination
+
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
     jsonapi = deps.get("jsonapi_client")
     ai = deps.get("ai_service")
-
-    def _ensure_dict(result: dict[str, Any] | list[Any] | None) -> dict[str, Any]:
-        """Ensure result is a dict, not a list."""
-        if result is None:
-            return {"error": "No response"}
-        if isinstance(result, list):
-            return {"error": f"Unexpected list response: {result}"}
-        return result
 
     @mcp.tool()
     async def create_node(bundle: str, fields: dict[str, Any]) -> dict[str, Any]:
@@ -99,6 +93,9 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         """Query nodes with filters, sorts, includes, and pagination."""
         if not jsonapi:
             return {"error": "JSON:API not available"}
+        pag_err = validate_pagination(page_limit, page_offset)
+        if pag_err:
+            return pag_err
         try:
             params = {"page[limit]": str(page_limit), "page[offset]": str(page_offset)}
             
@@ -133,8 +130,12 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:
+            # Validate file path to prevent path traversal
+            file_path = os.path.realpath(file_path)
             if not os.path.exists(file_path):
                 return {"error": f"File not found: {file_path}"}
+            if not os.path.isfile(file_path):
+                return {"error": f"Not a file: {file_path}"}
             
             # Guess mime type
             mime_type, _ = mimetypes.guess_type(file_path)

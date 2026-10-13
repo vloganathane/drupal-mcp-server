@@ -4,17 +4,11 @@ from typing import Any
 
 from fastmcp import FastMCP
 
+from ._utils import ensure_dict as _ensure_dict
+
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
     drush = deps.get("drush_client")
-
-    def _ensure_dict(result: dict[str, Any] | list[Any] | None) -> dict[str, Any]:
-        """Ensure result is a dict, not a list."""
-        if result is None:
-            return {"error": "No response"}
-        if isinstance(result, list):
-            return {"error": f"Unexpected list response: {result}"}
-        return result
 
     @mcp.tool()
     async def db_query(query: str, args: list[str] | None = None) -> dict[str, Any]:
@@ -30,11 +24,11 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             if not query_stripped.startswith("SELECT"):
                 return {"error": "Only SELECT queries are allowed for safety"}
             
-            cmd_args = ["sql:query", query]
+            cmd_args = [query]
             if args:
                 cmd_args.extend(args)
             
-            result = await drush.run(*cmd_args)
+            result = await drush.run("sql:query", cmd_args)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -56,6 +50,10 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not drush:
             return {"error": "Drush not available"}
         try:
+            # Validate table name to prevent SQL injection
+            import re
+            if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', table):
+                return {"error": f"Invalid table name: {table}"}
             result = await drush.run("sql:query", [f"DESCRIBE {table}"])
             return _ensure_dict(result)
         except Exception as e:
@@ -67,8 +65,16 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not drush:
             return {"error": "Drush not available"}
         try:
+            # Validate table name to prevent SQL injection
+            import re
+            if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', table):
+                return {"error": f"Invalid table name: {table}"}
             query = f"SELECT COUNT(*) as count FROM {table}"
             if where:
+                # Basic WHERE clause validation — only allow simple conditions
+                # Format: column=value, column>value, column<value, column LIKE 'value'
+                if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]+\s*(=|!=|>|<|>=|<=|LIKE)\s*('[^']*'|[\w.]+)$", where.strip()):
+                    return {"error": f"Invalid WHERE clause: {where}"}
                 query += f" WHERE {where}"
             result = await drush.run("sql:query", [query])
             return _ensure_dict(result)

@@ -1,23 +1,16 @@
 """DevOps tools for Drupal (Drush, DDEV, etc.)."""
 
 import os
-import subprocess
 from typing import Any
 
 from fastmcp import FastMCP
+
+from ._utils import ensure_dict as _ensure_dict
 
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
     drush = deps.get("drush_client")
     site_manager = deps.get("site_manager")
-
-    def _ensure_dict(result: dict[str, Any] | list[Any] | None) -> dict[str, Any]:
-        """Ensure result is a dict, not a list."""
-        if result is None:
-            return {"error": "No response"}
-        if isinstance(result, list):
-            return {"error": f"Unexpected list response: {result}"}
-        return result
 
     @mcp.tool()
     async def drush_command(command: str, args: list[str] | None = None, options: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -105,10 +98,8 @@ webroot: {webroot}
         project_name: str = ".", drupal_version: str = "10", webroot: str = "web"
     ) -> dict[str, Any]:
         """Generate .lando.yml for local Drupal env."""
-        site_manager = deps.get("site_manager")
         if not site_manager:
             return {"error": "Site manager not available"}
-        import os
 
         lando_config = f"""name: {project_name}
 recipe: drupal{drupal_version}

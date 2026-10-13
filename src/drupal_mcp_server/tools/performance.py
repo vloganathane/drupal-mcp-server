@@ -1,24 +1,15 @@
 """Performance/APM tools for Drupal."""
 
-import os
-import yaml
-import json
 from typing import Any
 
 from fastmcp import FastMCP
+
+from ._utils import ensure_dict as _ensure_dict
 
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
     drush = deps.get("drush_client")
     jsonapi = deps.get("jsonapi_client")
-
-    def _ensure_dict(result: dict[str, Any] | list[Any] | None) -> dict[str, Any]:
-        """Ensure result is a dict, not a list."""
-        if result is None:
-            return {"error": "No response"}
-        if isinstance(result, list):
-            return {"error": f"Unexpected list response: {result}"}
-        return result
 
     @mcp.tool()
     async def performance_query_log(
@@ -29,6 +20,9 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not drush:
             return {"error": "Drush not available"}
         try:
+            # Validate limit to prevent injection
+            if not isinstance(limit, int) or limit < 1 or limit > 10000:
+                return {"error": "limit must be an integer between 1 and 10000"}
             cmd = ["exec", [
                 "\\$db = \\Drupal::database(); "
                 "\\$query = \\$db->select('watchdog', 'w')"
@@ -134,6 +128,13 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not drush:
             return {"error": "Drush not available"}
         try:
+            # Validate URL and runs to prevent injection
+            from urllib.parse import urlparse
+            parsed = urlparse(url)
+            if parsed.scheme not in ('http', 'https') or not parsed.netloc:
+                return {"error": f"Invalid URL: {url}"}
+            if not isinstance(runs, int) or runs < 1 or runs > 100:
+                return {"error": "runs must be an integer between 1 and 100"}
             cmd = ["exec", [
                 "\\$times = []; "
                 f"for (\\$i = 0; \\$i < {runs}; \\$i++) {{ "

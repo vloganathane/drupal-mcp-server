@@ -1,7 +1,9 @@
 """Security audit tools for Drupal."""
 
+import asyncio
 import json
 import os
+import re
 import shutil
 from typing import Any
 
@@ -22,13 +24,27 @@ def _find_tool_path(tool_name: str) -> str | None:
     return None
 
 
-def _ensure_dict(result: dict[str, Any] | list[Any] | None) -> dict[str, Any]:
-    """Ensure result is a dict, not a list."""
-    if result is None:
-        return {"error": "No response"}
-    if isinstance(result, list):
-        return {"error": f"Unexpected list response: {result}"}
-    return result
+async def _proc_run(cmd: list[str]) -> dict[str, Any]:
+    """Run a process safely without shell interpolation."""
+    proc = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    stdout, stderr = await proc.communicate()
+    try:
+        data = json.loads(stdout.decode()) if stdout else {}
+    except json.JSONDecodeError:
+        data = {"output": stdout.decode()}
+    return {
+        "returncode": proc.returncode,
+        "data": data,
+        "stderr": stderr.decode(),
+        "command": " ".join(cmd),
+    }
+
+
+from ._utils import ensure_dict as _ensure_dict
 
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
@@ -52,7 +68,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             if not include_vendors:
                 cmd.extend(["--exclude=vendor"])
             
-            result = await drush.run("ev", [f"exec(\"{' '.join(cmd)}\", \$output); print_r(\$output);"])
+            result = await _proc_run(cmd)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -152,7 +168,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 "--configuration=vendor/phpstan/phpstan-security/extension.neon"
             ]
             
-            result = await drush.run("ev", [f"exec(\"{' '.join(cmd)}\", \$output); print_r(\$output);"])
+            result = await _proc_run(cmd)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -167,15 +183,15 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             phpstan_path = _find_tool_path("phpstan")
             if not phpstan_path:
                 return {"error": "PHPStan not found. Install with: composer require --dev phpstan/phpstan phpstan/phpstan-security"}
-            
+
             cmd = [
                 phpstan_path, "analyse", path,
                 "--level=8",
                 "--error-format=json",
                 "--configuration=vendor/phpstan/phpstan-security/extension.neon"
             ]
-            
-            result = await drush.run("ev", [f"exec(\"{' '.join(cmd)}\", \$output); print_r(\$output);"])
+
+            result = await _proc_run(cmd)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -218,28 +234,13 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not drush:
             return {"error": "Drush not available"}
         try:
+            # Validate path to prevent injection
+            allowed_prefixes = ('public://', 'private://', 'temporary://')
+            if not any(path.startswith(p) for p in allowed_prefixes):
+                return {"error": f"Invalid path. Must start with one of: {allowed_prefixes}"}
             result = await drush.run("ev", [f"echo is_dir('{path}') ? 'exists' : 'not found';"])
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
 
-    def _find_tool_path(tool_name: str) -> str | None:
-        """Find the path to a tool executable."""
-        paths = [
-            shutil.which(tool_name),
-            f"/var/www/html/vendor/bin/{tool_name}",
-            f"/app/vendor/bin/{tool_name}",
-            f"./vendor/bin/{tool_name}",
-        ]
-        for path in paths:
-            if path and os.path.exists(path):
-                return path
-        return None
 
-    def _ensure_dict(result: dict[str, Any] | list[Any] | None) -> dict[str, Any]:
-        """Ensure result is a dict, not a list."""
-        if result is None:
-            return {"error": "No response"}
-        if isinstance(result, list):
-            return {"error": f"Unexpected list response: {result}"}
-        return result

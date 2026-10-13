@@ -4,17 +4,11 @@ from typing import Any
 
 from fastmcp import FastMCP
 
+from ._utils import ensure_dict as _ensure_dict, validate_pagination
+
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
     jsonapi = deps.get("jsonapi_client")
-
-    def _ensure_dict(result: dict[str, Any] | list[Any] | None) -> dict[str, Any]:
-        """Ensure result is a dict, not a list."""
-        if result is None:
-            return {"error": "No response"}
-        if isinstance(result, list):
-            return {"error": f"Unexpected list response: {result}"}
-        return result
 
     @mcp.tool()
     async def create_vocabulary(
@@ -155,6 +149,9 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         """List terms in a vocabulary with filters and pagination."""
         if not jsonapi:
             return {"error": "JSON:API not available"}
+        pag_err = validate_pagination(page_limit, page_offset)
+        if pag_err:
+            return pag_err
         try:
             params = {"page[limit]": str(page_limit), "page[offset]": str(page_offset)}
             

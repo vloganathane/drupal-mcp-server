@@ -15,8 +15,26 @@ class AuthManager:
         if settings.DRUPAL_USERNAME and settings.DRUPAL_PASSWORD:
             self._auth = BasicAuth(settings.DRUPAL_USERNAME, settings.DRUPAL_PASSWORD)
         elif settings.DRUPAL_OAUTH_TOKEN_URL:
-            # For token-based auth
-            self._auth = TokenAuth("")  # Will be set via _fetch_token
+            # For token-based auth — fetch token from OAuth token URL
+            self._auth = TokenAuth(self._fetch_oauth_token(settings))
+
+    def _fetch_oauth_token(self, settings: Any) -> str:
+        """Fetch OAuth token from the configured token URL."""
+        import httpx
+        try:
+            resp = httpx.post(
+                settings.DRUPAL_OAUTH_TOKEN_URL,
+                data={
+                    "grant_type": "client_credentials",
+                    "client_id": settings.DRUPAL_OAUTH_CLIENT_ID or "",
+                    "client_secret": settings.DRUPAL_OAUTH_CLIENT_SECRET or "",
+                },
+                timeout=30.0,
+            )
+            resp.raise_for_status()
+            return resp.json().get("access_token", "")
+        except Exception:
+            return ""
 
     async def get_headers(self) -> dict[str, str]:
         if self._auth:

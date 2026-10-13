@@ -1,22 +1,38 @@
 """Code audit/static analysis tools for Drupal."""
 
+import asyncio
 import os
 import shutil
 from typing import Any
 
 from fastmcp import FastMCP
 
+from ._utils import ensure_dict as _ensure_dict
+
+
+async def _proc_run(cmd: list[str]) -> dict[str, Any]:
+    """Run a process safely without shell interpolation."""
+    proc = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    stdout, stderr = await proc.communicate()
+    try:
+        import json
+        data = json.loads(stdout.decode()) if stdout else {}
+    except json.JSONDecodeError:
+        data = {"output": stdout.decode()}
+    return {
+        "returncode": proc.returncode,
+        "data": data,
+        "stderr": stderr.decode(),
+        "command": " ".join(cmd),
+    }
+
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
     drush = deps.get("drush_client")
-
-    def _ensure_dict(result: dict[str, Any] | list[Any] | None) -> dict[str, Any]:
-        """Ensure result is a dict, not a list."""
-        if result is None:
-            return {"error": "No response"}
-        if isinstance(result, list):
-            return {"error": f"Unexpected list response: {result}"}
-        return result
 
     def _find_tool_path(tool_name: str) -> str | None:
         """Find the path to a tool executable."""
@@ -51,7 +67,8 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 cmd.extend(["-c", configuration])
             cmd.extend(["--error-format=json"])
             
-            result = await drush.run("ev", [f"exec(\"{' '.join(cmd)}\", \$output); print_r(\$output);"])
+            # Use proc_run to avoid shell injection — pass cmd as separate args
+            result = await _proc_run(cmd)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -68,13 +85,13 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             dcheck_path = _find_tool_path("drupal-check")
             if not dcheck_path:
                 return {"error": "Drupal Check not found. Install with: composer require --dev mglaman/drupal-check"}
-            
+
             cmd = [dcheck_path, path]
             if severity:
                 cmd.extend(["--severity", severity])
             cmd.extend(["--format=json"])
-            
-            result = await drush.run("ev", [f"exec(\"{' '.join(cmd)}\", \$output); print_r(\$output);"])
+
+            result = await _proc_run(cmd)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -94,8 +111,8 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 return {"error": "PHP_CodeSniffer not found. Install with: composer require --dev squizlabs/php_codesniffer"}
             
             cmd = [phpcs_path, f"--standard={standard}", f"--severity={severity}", path, "--report=json"]
-            
-            result = await drush.run("ev", [f"exec(\"{' '.join(cmd)}\", \$output); print_r(\$output);"])
+
+            result = await _proc_run(cmd)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -116,7 +133,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             
             cmd = [dcheck_path, path, "--format=json"]
             
-            result = await drush.run("ev", [f"exec(\"{' '.join(cmd)}\", \$output); print_r(\$output);"])
+            result = await _proc_run(cmd)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -134,12 +151,12 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             phpstan_path = _find_tool_path("phpstan")
             if not phpstan_path:
                 return {"error": "PHPStan not found. Install with: composer require --dev phpstan/phpstan phpstan/phpstan-security"}
-            
+
             cmd = [phpstan_path, "analyse", path, "--level=8", "--error-format=json"]
             if not include_vendors:
                 cmd.extend(["--exclude=vendor"])
-            
-            result = await drush.run("ev", [f"exec(\"{' '.join(cmd)}\", \$output); print_r(\$output);"])
+
+            result = await _proc_run(cmd)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -170,11 +187,23 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             for tool in available_tools:
                 try:
                     if tool == "phpstan":
-                        result = await drush.run("ev", [f"exec(\"phpstan analyse {path} --error-format=json\", \$output); print_r(\$output);"])
+                        phpstan_path = _find_tool_path("phpstan")
+                        if phpstan_path:
+                            result = await _proc_run([phpstan_path, "analyse", path, "--error-format=json"])
+                        else:
+                            result = {"error": "PHPStan not found"}
                     elif tool == "drupal-check":
-                        result = await drush.run("ev", [f"exec(\"drupal-check {path} --format=json\", \$output); print_r(\$output);"])
+                        dcheck_path = _find_tool_path("drupal-check")
+                        if dcheck_path:
+                            result = await _proc_run([dcheck_path, path, "--format=json"])
+                        else:
+                            result = {"error": "Drupal Check not found"}
                     elif tool == "phpcs":
-                        result = await drush.run("ev", [f"exec(\"phpcs --standard=Drupal {path} --report=json\", \$output); print_r(\$output);"])
+                        phpcs_path = _find_tool_path("phpcs")
+                        if phpcs_path:
+                            result = await _proc_run([phpcs_path, "--standard=Drupal", path, "--report=json"])
+                        else:
+                            result = {"error": "PHP_CodeSniffer not found"}
                     else:
                         result = {"error": f"Unknown tool: {tool}"}
                     results[tool] = _ensure_dict(result)

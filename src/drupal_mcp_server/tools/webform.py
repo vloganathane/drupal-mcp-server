@@ -1,24 +1,15 @@
 """Webform tools for Drupal."""
 
-import os
-import yaml
-import json
 from typing import Any
 
 from fastmcp import FastMCP
+
+from ._utils import ensure_dict as _ensure_dict
 
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
     drush = deps.get("drush_client")
     jsonapi = deps.get("jsonapi_client")
-
-    def _ensure_dict(result: dict[str, Any] | list[Any] | None) -> dict[str, Any]:
-        """Ensure result is a dict, not a list."""
-        if result is None:
-            return {"error": "No response"}
-        if isinstance(result, list):
-            return {"error": f"Unexpected list response: {result}"}
-        return result
 
     @mcp.tool()
     async def webform_list(

@@ -1,24 +1,17 @@
 """Accessibility (WCAG) tools for Drupal."""
 
-import os
-import yaml
 import json
+from datetime import datetime, timezone
 from typing import Any
 
 from fastmcp import FastMCP
+
+from ._utils import ensure_dict as _ensure_dict
 
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
     drush = deps.get("drush_client")
     jsonapi = deps.get("jsonapi_client")
-
-    def _ensure_dict(result: dict[str, Any] | list[Any] | None) -> dict[str, Any]:
-        """Ensure result is a dict, not a list."""
-        if result is None:
-            return {"error": "No response"}
-        if isinstance(result, list):
-            return {"error": f"Unexpected list response: {result}"}
-        return result
 
     @mcp.tool()
     async def accessibility_axe_scan(
@@ -30,6 +23,11 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not drush:
             return {"error": "Drush not available"}
         try:
+            # Validate URL to prevent injection
+            from urllib.parse import urlparse
+            parsed = urlparse(url)
+            if parsed.scheme not in ('http', 'https') or not parsed.netloc:
+                return {"error": f"Invalid URL: {url}"}
             cmd = ["exec", [
                 f"\\$scan = require_once 'vendor/autoload.php'; "
                 f"\\$axe = new \\\\Deque\\\\Axe\\\\Axe(); "
@@ -262,12 +260,16 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             os.makedirs(output_dir, exist_ok=True)
             
             report: dict[str, Any] = {
-                "timestamp": "2024-01-01T00:00:00Z",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "level": level,
                 "pages": [],
             }
             
+            from urllib.parse import urlparse
             for url in urls:
+                parsed = urlparse(url)
+                if parsed.scheme not in ('http', 'https') or not parsed.netloc:
+                    return {"error": f"Invalid URL: {url}"}
                 # Run axe scan
                 cmd = ["exec", [
                     f"\\$axe = new \\\\Deque\\\\Axe\\\\Axe(); "

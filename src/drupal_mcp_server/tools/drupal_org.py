@@ -6,17 +6,11 @@ from typing import Any
 import httpx
 from fastmcp import FastMCP
 
+from ._utils import ensure_dict as _ensure_dict
+
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
     DRUPAL_ORG_API_BASE = "https://www.drupal.org/api-d7"
-
-    def _ensure_dict(result: dict[str, Any] | list[Any] | None) -> dict[str, Any]:
-        """Ensure result is a dict, not a list."""
-        if result is None:
-            return {"error": "No response"}
-        if isinstance(result, list):
-            return {"error": f"Unexpected list response: {result}"}
-        return result
 
     async def _drupal_org_request(endpoint: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
         """Make a request to Drupal.org API."""

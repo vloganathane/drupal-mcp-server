@@ -4,18 +4,12 @@ from typing import Any
 
 from fastmcp import FastMCP
 
+from ._utils import ensure_dict as _ensure_dict
+
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
     jsonapi = deps.get("jsonapi_client")
     drush = deps.get("drush_client")
-
-    def _ensure_dict(result: dict[str, Any] | list[Any] | None) -> dict[str, Any]:
-        """Ensure result is a dict, not a list."""
-        if result is None:
-            return {"error": "No response"}
-        if isinstance(result, list):
-            return {"error": f"Unexpected list response: {result}"}
-        return result
 
     @mcp.tool()
     async def redirect_list(

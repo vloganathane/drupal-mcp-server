@@ -32,3 +32,12 @@ class SiteManager:
 
     async def ddev_exec(self, command: str, cwd: str | None = None) -> dict[str, Any]:
         return await self._run([self._ddev, "exec", command], cwd=cwd)
+
+    async def lando_start(self, cwd: str | None = None) -> dict[str, Any]:
+        return await self._run(["lando", "start"], cwd=cwd)
+
+    async def lando_stop(self, cwd: str | None = None) -> dict[str, Any]:
+        return await self._run(["lando", "stop"], cwd=cwd)
+
+    async def lando_exec(self, command: str, cwd: str | None = None) -> dict[str, Any]:
+        return await self._run(["lando", "exec", command], cwd=cwd)

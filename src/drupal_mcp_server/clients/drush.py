@@ -10,6 +10,7 @@ class DrushClient:
     def __init__(self, settings: Any):
         self._drush = settings.DRUSH_PATH
         self._alias = settings.DRUSH_ALIAS
+        self._timeout = 120  # seconds
 
     async def run(
         self, command: str, args: list[str] | None = None, cwd: str | None = None
@@ -21,7 +22,16 @@ class DrushClient:
             stderr=asyncio.subprocess.PIPE,
             cwd=cwd,
         )
-        stdout, stderr = await proc.communicate()
+        try:
+            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=self._timeout)
+        except asyncio.TimeoutError:
+            proc.kill()
+            return {
+                "returncode": -1,
+                "data": {},
+                "stderr": f"Command timed out after {self._timeout}s",
+                "command": " ".join(cmd),
+            }
         try:
             data = json.loads(stdout.decode()) if stdout else {}
         except json.JSONDecodeError:

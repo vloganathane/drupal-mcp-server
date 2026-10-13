@@ -43,6 +43,10 @@ def create_server() -> FastMCP:
     # Add dynamic tool discovery endpoint
     @mcp.custom_route("/mcp/tools/list", methods=["GET"])
     async def list_tools_endpoint(request: Request) -> JSONResponse:
+        # Require authentication for tool listing
+        auth_header = request.headers.get("Authorization", "")
+        if not auth_header.startswith("Bearer "):
+            return JSONResponse({"error": "Authentication required"}, status_code=401)
         tools = await mcp.list_tools()
         return JSONResponse({
             "tools": [
@@ -124,18 +128,16 @@ def create_server() -> FastMCP:
 def run_server() -> None:
     settings = get_settings()
     mcp = create_server()
-    
-    # Attach OAuth provider to mcp for session management
-    auth_manager = AuthManager(settings)
-    oauth_provider = auth_manager.get_mcp_oauth_provider(settings)
-    if oauth_provider:
-        mcp._oauth_provider = oauth_provider  # type: ignore[attr-defined]
-    
+
     # Determine transport
     transport = os.getenv("MCP_TRANSPORT", settings.MCP_TRANSPORT)
-    
+
     if transport in ("http", "sse", "streamable-http"):
-        # HTTP transport with OAuth
+        # HTTP transport with OAuth — auth manager already created in create_server()
+        auth_manager = AuthManager(settings)
+        oauth_provider = auth_manager.get_mcp_oauth_provider(settings)
+        if oauth_provider:
+            mcp._oauth_provider = oauth_provider  # type: ignore[attr-defined]
         mcp.run(
             transport=transport,  # type: ignore[arg-type]
             host=settings.MCP_HOST,
