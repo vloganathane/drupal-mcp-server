@@ -3,18 +3,56 @@
 
 import os
 import uuid
-from typing import Any
-from fastmcp import FastMCP
-from starlette.responses import JSONResponse
-from starlette.requests import Request
 
+from fastmcp import FastMCP
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+
+from drupal_mcp_server import __version__
 from drupal_mcp_server.auth import AuthManager
+from drupal_mcp_server.auth.mcp_oauth import DrupalOAuthProvider
 from drupal_mcp_server.clients import DrushClient, GraphQLClient, JSONAPIClient
 from drupal_mcp_server.config import get_settings
 from drupal_mcp_server.services import AIService, MigrationService, SiteManager
-from drupal_mcp_server.tools import ai, analysis, content, devops, migration, taxonomy, users, database, views, paragraphs, menus, fields, revisions, redirects, scheduler, code_audit, security_audit, drupal_org, moderation, module_dev, theme_dev, layout_builder, search_api, multilingual, media_enhanced, pathauto, metatag, commerce, webform, headless, testing, accessibility, performance, contact, comments, feeds
+from drupal_mcp_server.tools import (
+    accessibility,
+    ai,
+    analysis,
+    code_audit,
+    comments,
+    commerce,
+    contact,
+    content,
+    database,
+    devops,
+    drupal_org,
+    feeds,
+    fields,
+    headless,
+    layout_builder,
+    media_enhanced,
+    menus,
+    metatag,
+    migration,
+    moderation,
+    module_dev,
+    multilingual,
+    paragraphs,
+    pathauto,
+    performance,
+    redirects,
+    revisions,
+    scheduler,
+    search_api,
+    security_audit,
+    taxonomy,
+    testing,
+    theme_dev,
+    users,
+    views,
+    webform,
+)
 from drupal_mcp_server.tools import config as config_tools
-from drupal_mcp_server.auth.mcp_oauth import DrupalOAuthProvider
 
 
 def create_server() -> FastMCP:
@@ -32,6 +70,7 @@ def create_server() -> FastMCP:
     )
     mcp = FastMCP(
         name=settings.MCP_SERVER_NAME,
+        version=__version__,
         instructions="Drupal MCP Server - JSON:API, GraphQL, Drush, AI-powered migration.",
     )
     for module in [analysis, migration, content, config_tools, devops, ai, taxonomy, users, database, views, paragraphs, menus, fields, revisions, redirects, scheduler, code_audit, security_audit, drupal_org, moderation, module_dev, theme_dev, layout_builder, search_api, multilingual, media_enhanced, pathauto, metatag, commerce, webform, headless, testing, accessibility, performance, contact, comments, feeds]:

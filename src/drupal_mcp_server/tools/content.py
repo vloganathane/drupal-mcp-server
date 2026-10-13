@@ -1,16 +1,17 @@
 """Content management tools for Drupal."""
 
+import base64
 import json
+import mimetypes
+import os
 import random
 import string
-import base64
-import os
-import mimetypes
 from typing import Any
 
 from fastmcp import FastMCP
 
-from ._utils import ensure_dict as _ensure_dict, validate_pagination
+from ._utils import ensure_dict as _ensure_dict
+from ._utils import validate_pagination
 
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
@@ -60,9 +61,8 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             if current.get("error"):
                 return current
             
-            node_type = current.get("data", {}).get("type", f"node--article")
-            bundle = node_type.replace("node--", "")
-            
+            node_type = current.get("data", {}).get("type", "node--article")
+
             update_data = {**fields, "id": nid, "type": node_type}
             result = await jsonapi.update_resource("node", nid, update_data)
             return _ensure_dict(result)
@@ -324,6 +324,19 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
 
     @mcp.tool()
     async def map_fields_ai(source_fields: list[str], target_bundle: str) -> dict[str, Any]:
+        """Suggest AI-powered field mappings from a source field list to a target bundle.
+
+        Reads the target bundle's available fields, then asks the AI provider to
+        map each source field onto the closest target field.
+
+        Args:
+            source_fields: Field names from the source system (e.g. D7 fields).
+            target_bundle: Bundle whose fields should be mapped onto.
+
+        Returns:
+            Mappings with source, target, confidence, and notes, plus aggregate
+            ``mapping_confidence`` and source/target counts.
+        """
         if not ai:
             return {"error": "AI service not available"}
         if not jsonapi:
@@ -355,6 +368,16 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
 
     @mcp.tool()
     async def bulk_update_nodes(bundle: str, filters: dict[str, Any], updates: dict[str, Any]) -> dict[str, Any]:
+        """Apply the same field updates to every node matching a set of filters.
+
+        Args:
+            bundle: Content type bundle to operate on (e.g. ``article``).
+            filters: JSON:API query filters selecting the target nodes.
+            updates: Field values applied to each matched node.
+
+        Returns:
+            Matched/updated counts, per-node errors, and the updated node IDs.
+        """
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:
@@ -377,6 +400,18 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
 
     @mcp.tool()
     async def fix_media_references(content_type: str) -> dict[str, Any]:
+        """Find broken media references across a content type.
+
+        Scans nodes of the given type and checks every media relationship,
+        reporting references whose target media entity no longer resolves.
+
+        Args:
+            content_type: Bundle to scan (e.g. ``article``).
+
+        Returns:
+            Scanned node count, number of broken references found, and details
+            of each failure (node ID and field name).
+        """
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:
@@ -406,6 +441,16 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
 
     @mcp.tool()
     async def bulk_update_aliases(bundle: str, pattern: str, action: str = "generate") -> dict[str, Any]:
+        """Regenerate URL aliases for a content type via Drush uuri.
+
+        Args:
+            bundle: Bundle whose nodes should have aliases regenerated.
+            pattern: URL pattern to apply (e.g. ``/blog/[node:title]``).
+            action: Operation to perform; currently only ``generate``.
+
+        Returns:
+            Drush return code and parsed output.
+        """
         drush = deps.get("drush_client")
         if not drush:
             return {"error": "Drush not available"}
@@ -414,6 +459,16 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
 
     @mcp.tool()
     async def analyze_content_quality(node_ids: list[str] | None = None, content_type: str | None = None) -> dict[str, Any]:
+        """Analyze content quality with AI for specific nodes or an entire type.
+
+        Args:
+            node_ids: Specific node IDs to analyze. Mutually exclusive with content_type.
+            content_type: Bundle to analyze (up to 50 nodes).
+
+        Returns:
+            AI analysis with issues, summary, and recommendations, plus the
+            number of nodes analyzed.
+        """
         if not ai:
             return {"error": "AI service not available"}
         if not jsonapi:
@@ -454,6 +509,16 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
 
     @mcp.tool()
     async def generate_test_content(bundle: str, count: int = 10, fields: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Generate sample nodes for a bundle to populate a development site.
+
+        Args:
+            bundle: Bundle to generate nodes for (e.g. ``article``).
+            count: Number of nodes to create.
+            fields: Optional field values applied to every generated node.
+
+        Returns:
+            Generated node count, the created node IDs, and any per-node errors.
+        """
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:

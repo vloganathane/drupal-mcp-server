@@ -1,6 +1,6 @@
 # Drupal MCP Server Examples
 
-Practical examples demonstrating the **367 tools across 35 categories**.
+Practical examples demonstrating the **366 tools across 35 modules**.
 
 ## Quick Start
 
@@ -59,7 +59,7 @@ Configuration template covering:
 - Drush and DDEV paths
 - Transport settings (stdio, HTTP, SSE)
 
-## Tool Categories (35 modules, 367 tools)
+## Tool Categories (35 modules, 366 tools)
 
 | Category | Tools | Module |
 |----------|-------|--------|

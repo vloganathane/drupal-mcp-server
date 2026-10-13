@@ -175,30 +175,5 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         except Exception as e:
             return {"error": str(e)}
 
-    @mcp.tool()
-    async def redirect_bulk_create(
-        redirects: list[dict[str, Any]],
-    ) -> dict[str, Any]:
-        """Create multiple redirects at once."""
-        if not jsonapi:
-            return {"error": "JSON:API not available"}
-        try:
-            results = []
-            for redirect in redirects:
-                redirect_data = {
-                    "type": "redirect",
-                    "redirect_source": redirect.get("source", ""),
-                    "redirect_source_options": redirect.get("source_options", {}),
-                    "redirect_redirect": redirect.get("redirect", ""),
-                    "redirect_redirect_options": redirect.get("redirect_options", {}),
-                    "status_code": redirect.get("status_code", 301),
-                }
-                if "langcode" in redirect:
-                    redirect_data["langcode"] = redirect["langcode"]
-                
-                result = await jsonapi.create_resource("redirect", redirect_data)
-                results.append(result)
-            
-            return _ensure_dict({"results": results})
-        except Exception as e:
-            return {"error": str(e)}
+    # NOTE: `redirect_bulk_create` is registered by `redirects.py` — do not
+    # duplicate it here or FastMCP will warn about a conflicting component.

@@ -48,7 +48,7 @@ all = [
 ]
 
 [project.scripts]
-drupal-mcp = "drupal_mcp_server.server:main"
+drupal-mcp = "drupal_mcp_server.server:run_server"
 
 [build-system]
 requires = ["hatchling"]
