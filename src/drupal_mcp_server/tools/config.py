@@ -153,11 +153,62 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             return {"error": str(e)}
 
     @mcp.tool()
-    async def split_config(config_names: list[str], output_dir: str = "./config/split") -> dict[str, Any]:
-        """Split configuration into separate directory for atomic deployment."""
+    async def split_config(
+        config_names: list[str], output_dir: str = "./config/split", source_dir: str = "./config/sync"
+    ) -> dict[str, Any]:
+        """Split configuration into separate directories for atomic deployment.
+        
+        Reads from source_dir (exported config) and creates individual config
+        files in output_dir for each specified config object.
+        """
+        if not os.path.exists(source_dir):
+            return {"error": f"Source config directory not found: {source_dir}"}
+
         os.makedirs(output_dir, exist_ok=True)
+        split_files = []
+        missing = []
+
         for name in config_names:
-            path = os.path.join(output_dir, f"{name}.yml")
-            with open(path, "w") as f:
-                yaml.dump({name: {}}, f)
-        return {"output_dir": output_dir, "split_configs": config_names}
+            # Config files are typically named like: system.site.yml, node.type.article.yml
+            # We need to find the matching file
+            found = False
+            for filename in os.listdir(source_dir):
+                if filename.endswith(".yml") or filename.endswith(".yaml"):
+                    # Check if this file contains the config we want
+                    filepath = os.path.join(source_dir, filename)
+                    try:
+                        with open(filepath) as f:
+                            data = yaml.safe_load(f)
+                        if data and isinstance(data, dict):
+                            # Config files often have the config name as a key
+                            # or the filename matches the pattern
+                            if name in data or name.replace(".", "_") in filename:
+                                dest_path = os.path.join(output_dir, filename)
+                                with open(dest_path, "w") as out:
+                                    yaml.dump(data, out, default_flow_style=False)
+                                split_files.append({"config": name, "file": filename, "path": dest_path})
+                                found = True
+                                break
+                    except Exception:
+                        continue
+            
+            if not found:
+                # Try exact filename match
+                exact_file = f"{name}.yml"
+                if os.path.exists(os.path.join(source_dir, exact_file)):
+                    dest_path = os.path.join(output_dir, exact_file)
+                    with open(os.path.join(source_dir, exact_file)) as src, open(dest_path, "w") as dst:
+                        dst.write(src.read())
+                    split_files.append({"config": name, "file": exact_file, "path": dest_path})
+                    found = True
+            
+            if not found:
+                missing.append(name)
+
+        return {
+            "output_dir": output_dir,
+            "source_dir": source_dir,
+            "split_configs": split_files,
+            "missing_configs": missing,
+            "total_split": len(split_files),
+        }

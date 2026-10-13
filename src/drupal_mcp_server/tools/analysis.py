@@ -322,20 +322,104 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
 
     @mcp.tool()
     async def map_modules_d7_to_d10(module_list: list[str], ai_provider: str = "ollama") -> dict[str, Any]:
-        """Map Drupal 7 modules to D10 equivalents using AI."""
+        """Map Drupal 7 modules to D10 equivalents using AI + known mappings."""
         ai = deps.get("ai_service")
-        if not ai:
-            return {"error": "AI service not available"}
-        prompt = (
-            f"Map these D7 modules to D10 equivalents or alternatives: {', '.join(module_list)}"
-        )
-        try:
-            result = await ai.complete(
-                prompt, system="You are a Drupal migration expert. Return JSON mapping."
-            )
-            return {"mapped_raw": result, "provider": ai_provider}
-        except Exception as e:
-            return {"error": str(e), "provider": ai_provider}
+
+        # Known D7 to D10 module mappings
+        known_mappings = {
+            "ctools": {"d10_equivalent": "Drupal core (Plugin API, Context API)", "status": "core", "notes": "Functionality moved to core"},
+            "entity": {"d10_equivalent": "Drupal core (Entity API)", "status": "core", "notes": "Entity API in core since D8"},
+            "rules": {"d10_equivalent": "Rules (D9+) or Event Subscribers", "status": "contrib", "notes": "Rules module ported to D9+, or use custom event subscribers"},
+            "features": {"d10_equivalent": "Config Export/Import (core), Config Split", "status": "core", "notes": "Config management in core; Config Split for env-specific config"},
+            "strongarm": {"d10_equivalent": "Config API (core)", "status": "core", "notes": "Variables now in config system"},
+            "uuid": {"d10_equivalent": "Drupal core (UUID field)", "status": "core", "notes": "UUID field type in core"},
+            "views": {"d10_equivalent": "Drupal core (Views)", "status": "core", "notes": "Views in core since D8"},
+            "panels": {"d10_equivalent": "Layout Builder (core) or Panels (D9+)", "status": "core/contrib", "notes": "Layout Builder recommended; Panels available for D9+"},
+            "page_manager": {"d10_equivalent": "Layout Builder (core)", "status": "core", "notes": "Page Manager functionality in Layout Builder"},
+            "panelizer": {"d10_equivalent": "Layout Builder (core)", "status": "core", "notes": "Panelizer replaced by Layout Builder"},
+            "ds": {"d10_equivalent": "Layout Builder (core) or Display Suite (D9+)", "status": "core/contrib", "notes": "Layout Builder preferred; DS available for D9+"},
+            "field_collection": {"d10_equivalent": "Paragraphs (recommended) or Field Collection (D9+)", "status": "contrib", "notes": "Paragraphs is more flexible and maintained"},
+            "field_group": {"d10_equivalent": "Field Group (D9+)", "status": "contrib", "notes": "Field Group ported to D9+"},
+            "entityreference": {"d10_equivalent": "Entity Reference (core)", "status": "core", "notes": "Entity Reference in core since D8"},
+            "references": {"d10_equivalent": "Entity Reference (core)", "status": "core", "notes": "References replaced by Entity Reference"},
+            "date": {"d10_equivalent": "Datetime (core)", "status": "core", "notes": "Date field in core as Datetime"},
+            "link": {"d10_equivalent": "Link (core)", "status": "core", "notes": "Link field in core"},
+            "email": {"d10_equivalent": "Email (core)", "status": "core", "notes": "Email field in core"},
+            "phone": {"d10_equivalent": "Telephone (core)", "status": "core", "notes": "Telephone field in core"},
+            "addressfield": {"d10_equivalent": "Address (contrib)", "status": "contrib", "notes": "Address module for D9+"},
+            "geofield": {"d10_equivalent": "Geofield (D9+)", "status": "contrib", "notes": "Geofield ported to D9+"},
+            "geolocation": {"d10_equivalent": "Geolocation (D9+)", "status": "contrib", "notes": "Geolocation ported to D9+"},
+            "location": {"d10_equivalent": "Location (D9+) or Address (contrib)", "status": "contrib", "notes": "Consider Address module instead"},
+            "imagefield": {"d10_equivalent": "Image (core)", "status": "core", "notes": "Image field in core"},
+            "filefield": {"d10_equivalent": "File (core)", "status": "core", "notes": "File field in core"},
+            "media": {"d10_equivalent": "Media (core)", "status": "core", "notes": "Media in core since D8.4"},
+            "token": {"d10_equivalent": "Token (D9+)", "status": "contrib", "notes": "Token module ported to D9+"},
+            "pathauto": {"d10_equivalent": "Pathauto (D9+)", "status": "contrib", "notes": "Pathauto ported to D9+"},
+            "redirect": {"d10_equivalent": "Redirect (D9+)", "status": "contrib", "notes": "Redirect module ported to D9+"},
+            "globalredirect": {"d10_equivalent": "Redirect (D9+) + core redirect", "status": "core/contrib", "notes": "Global Redirect functionality in core Redirect + Redirect module"},
+            "xmlsitemap": {"d10_equivalent": "XML Sitemap (D9+)", "status": "contrib", "notes": "XML Sitemap ported to D9+"},
+            "metatag": {"d10_equivalent": "Metatag (D9+)", "status": "contrib", "notes": "Metatag ported to D9+"},
+            "google_analytics": {"d10_equivalent": "Google Analytics (D9+)", "status": "contrib", "notes": "GA module ported to D9+"},
+            "webform": {"d10_equivalent": "Webform (D9+)", "status": "contrib", "notes": "Webform ported to D9+"},
+            "commerce": {"d10_equivalent": "Drupal Commerce 2.x (D9+)", "status": "contrib", "notes": "Commerce 2.x for D9+"},
+            "feeds": {"d10_equivalent": "Feeds (D9+)", "status": "contrib", "notes": "Feeds ported to D9+"},
+            "migrate": {"d10_equivalent": "Migrate (core)", "status": "core", "notes": "Migrate API in core since D8"},
+        }
+
+        results = []
+        for module in module_list:
+            if module in known_mappings:
+                results.append({
+                    "source_module": module,
+                    "d10_equivalent": known_mappings[module]["d10_equivalent"],
+                    "status": known_mappings[module]["status"],
+                    "confidence": 0.95,
+                    "notes": known_mappings[module]["notes"],
+                    "source": "known_mapping",
+                })
+            else:
+                # Use AI for unknown modules
+                ai_result = None
+                if ai:
+                    try:
+                        prompt = (
+                            f"Map this D7 module to D10 equivalent or alternative: {module}\n"
+                            f"Return JSON: {{\"d10_equivalent\": \"...\", \"status\": \"core|contrib|none\", \"notes\": \"...\"}}"
+                        )
+                        ai_result = await ai.complete(
+                            prompt, system="You are a Drupal migration expert. Return valid JSON only."
+                        )
+                        parsed = json.loads(ai_result) if isinstance(ai_result, str) else ai_result
+                        parsed["source_module"] = module
+                        parsed["confidence"] = parsed.get("confidence", 0.7)
+                        parsed["source"] = "ai"
+                        results.append(parsed)
+                    except Exception:
+                        results.append({
+                            "source_module": module,
+                            "d10_equivalent": "Unknown - check Drupal.org",
+                            "status": "unknown",
+                            "confidence": 0.1,
+                            "notes": "AI mapping failed",
+                            "source": "fallback",
+                        })
+                else:
+                    results.append({
+                        "source_module": module,
+                        "d10_equivalent": "Unknown - check Drupal.org",
+                        "status": "unknown",
+                        "confidence": 0.1,
+                        "notes": "AI service not available",
+                        "source": "fallback",
+                    })
+
+        return {
+            "mappings": results,
+            "total_mapped": len(results),
+            "known_mappings_used": len([r for r in results if r["source"] == "known_mapping"]),
+            "ai_mappings_used": len([r for r in results if r["source"] == "ai"]),
+            "provider": ai_provider,
+        }
 
     @mcp.tool()
     async def find_deprecated_code(

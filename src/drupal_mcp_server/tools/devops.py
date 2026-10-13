@@ -1,5 +1,7 @@
 """DevOps tools for Drupal (Drush, DDEV, etc.)."""
 
+import os
+import subprocess
 from typing import Any
 
 from fastmcp import FastMCP
@@ -113,26 +115,168 @@ webroot: {webroot}
             return {"error": str(e)}
 
     @mcp.tool()
-    async def acquia_deploy(environment: str, branch: str = "main", site_id: str | None = None) -> dict[str, Any]:
-        """Deploy to Acquia Cloud via Drush (requires acquia-cli or Drush acquia integration)."""
+    async def acquia_deploy(
+        environment: str,
+        branch: str = "main",
+        site_id: str | None = None,
+        code_path: str = ".",
+        database_name: str | None = None,
+        wait_for_completion: bool = True,
+        timeout: int = 600,
+    ) -> dict[str, Any]:
+        """Deploy to Acquia Cloud via acquia-cli or Drush acquia integration.
+        
+        Supports both acquia-cli (preferred) and legacy Drush acquia commands.
+        """
         if not drush:
             return {"error": "Drush not available"}
         if not site_id:
             return {
                 "error": "site_id required for Acquia deploy. Provide via Acquia Cloud Platform UI or DRUPAL_ACQUIA_SITE_ID env var."
             }
-        # Check if acquia-cli is available via drush
+
+        results: dict[str, Any] = {
+            "site_id": site_id,
+            "environment": environment,
+            "branch": branch,
+            "steps": [],
+        }
+
         try:
-            result = await drush.run(
-                "acquia-deploy",
-                ["--site=" + site_id, "--environment=" + environment, "--branch=" + branch],
+            # Step 1: Check if acquia-cli is available
+            cli_check = await drush.run("acquia-cli", ["--version"])
+            has_acquia_cli = cli_check.get("returncode") == 0
+
+            if has_acquia_cli:
+                # Use acquia-cli (modern approach)
+                results["method"] = "acquia-cli"
+                
+                # Deploy code
+                deploy_result = await drush.run(
+                    "acquia-cli",
+                    [
+                        "code:deploy",
+                        f"--site={site_id}",
+                        f"--environment={environment}",
+                        f"--branch={branch}",
+                        f"--source={code_path}",
+                    ],
+                )
+                results["steps"].append({"step": "code_deploy", "result": deploy_result})
+                
+                if deploy_result.get("returncode") != 0:
+                    results["error"] = "Code deployment failed"
+                    return results
+
+                # If database name provided, deploy database
+                if database_name:
+                    db_result = await drush.run(
+                        "acquia-cli",
+                        [
+                            "database:import",
+                            f"--site={site_id}",
+                            f"--environment={environment}",
+                            f"--database={database_name}",
+                        ],
+                    )
+                    results["steps"].append({"step": "database_import", "result": db_result})
+
+                # Run database updates
+                updb_result = await drush.run(
+                    "acquia-cli",
+                    [
+                        "command:run",
+                        f"--site={site_id}",
+                        f"--environment={environment}",
+                        "--command=drush updb -y",
+                    ],
+                )
+                results["steps"].append({"step": "database_updates", "result": updb_result})
+
+                # Clear cache
+                cache_result = await drush.run(
+                    "acquia-cli",
+                    [
+                        "command:run",
+                        f"--site={site_id}",
+                        f"--environment={environment}",
+                        "--command=drush cr",
+                    ],
+                )
+                results["steps"].append({"step": "cache_rebuild", "result": cache_result})
+
+                # Wait for completion if requested
+                if wait_for_completion:
+                    # Check deployment status
+                    status_result = await drush.run(
+                        "acquia-cli",
+                        [
+                            "deploy:status",
+                            f"--site={site_id}",
+                            f"--environment={environment}",
+                            f"--timeout={timeout}",
+                        ],
+                    )
+                    results["steps"].append({"step": "wait_for_deploy", "result": status_result})
+
+            else:
+                # Fallback to legacy Drush acquia commands
+                results["method"] = "legacy_drush"
+                
+                # Check if drush acquia command exists
+                acquia_check = await drush.run("acquia-deploy", ["--help"])
+                if acquia_check.get("returncode") != 0:
+                    return {
+                        "error": "Neither acquia-cli nor Drush acquia integration available",
+                        "hint": "Install acquia-cli: composer require acquia/cli or ensure Drush acquia commands are available",
+                    }
+
+                # Use legacy drush acquia-deploy
+                deploy_result = await drush.run(
+                    "acquia-deploy",
+                    [
+                        f"--site={site_id}",
+                        f"--environment={environment}",
+                        f"--branch={branch}",
+                    ],
+                )
+                results["steps"].append({"step": "acquia_deploy", "result": deploy_result})
+
+                if deploy_result.get("returncode") != 0:
+                    results["error"] = "Acquia deploy failed"
+                    return results
+
+                # Run database updates via drush
+                updb_result = await drush.run(
+                    "acquia-command",
+                    [
+                        f"--site={site_id}",
+                        f"--environment={environment}",
+                        "drush updb -y",
+                    ],
+                )
+                results["steps"].append({"step": "database_updates", "result": updb_result})
+
+                # Clear cache
+                cache_result = await drush.run(
+                    "acquia-command",
+                    [
+                        f"--site={site_id}",
+                        f"--environment={environment}",
+                        "drush cr",
+                    ],
+                )
+                results["steps"].append({"step": "cache_rebuild", "result": cache_result})
+
+            results["success"] = all(
+                step["result"].get("returncode", 0) == 0 for step in results["steps"]
             )
-            return result  # type: ignore[no-any-return]
+            return results
+
         except Exception as e:
-            return {
-                "error": f"Acquia deploy failed: {str(e)}",
-                "hint": "Ensure acquia-cli is installed and authenticated",
-            }
+            results["error"] = f"Acquia deploy failed: {str(e)}"
+            results["hint"] = "Ensure acquia-cli is installed and authenticated, or Drush acquia integration is configured"
+            return results
 
     @mcp.tool()
     async def backup_database(backup_path: str | None = None) -> dict[str, Any]:
