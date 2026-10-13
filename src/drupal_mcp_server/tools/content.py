@@ -1,14 +1,21 @@
 """Content management tools for Drupal."""
 
+import json
+import random
+import string
+from typing import Any
 
-def register_tools(mcp, **deps):
+from fastmcp import FastMCP
+
+
+def register_tools(mcp: FastMCP, **deps: Any) -> None:
     jsonapi = deps.get("jsonapi_client")
     ai = deps.get("ai_service")
 
     @mcp.tool()
     async def clean_nodes_ai(
         entity_type: str, bundle: str, dry_run: bool = True, confirm: bool = False, max_deletes: int = 10
-    ) -> dict:
+    ) -> dict[str, Any]:
         """Clean duplicate or malformed nodes using AI. Requires confirm=True to execute deletions."""
         if not jsonapi:
             return {"error": "JSON:API not available"}
@@ -37,7 +44,6 @@ def register_tools(mcp, **deps):
                 f'Nodes:\n{node_summaries}'
             )
             ai_result = await ai.complete(prompt)
-            import json
 
             try:
                 analysis = json.loads(ai_result) if isinstance(ai_result, str) else ai_result
@@ -78,9 +84,11 @@ def register_tools(mcp, **deps):
             return {"error": str(e)}
 
     @mcp.tool()
-    async def map_fields_ai(source_fields: list[str], target_bundle: str) -> dict:
+    async def map_fields_ai(source_fields: list[str], target_bundle: str) -> dict[str, Any]:
         if not ai:
             return {"error": "AI service not available"}
+        if not jsonapi:
+            return {"error": "JSON:API not available"}
         try:
             fields_response = await jsonapi.get_resource("field_config", {"bundle": target_bundle})
             target_fields = fields_response.get("data", [])
@@ -91,7 +99,6 @@ def register_tools(mcp, **deps):
                 f'Return mapping as JSON array: [ {{"source": "original_field", "target": "drupal_field", "confidence": 0.95, "notes": "conversion notes"}} ]'
             )
             result = await ai.complete(prompt)
-            import json
             mappings = json.loads(result) if isinstance(result, str) else result
             if not isinstance(mappings, list):
                 mappings = [{"source": source_fields[0], "target": "title", "confidence": 0.8, "notes": "fallback mapping"}]
@@ -107,7 +114,7 @@ def register_tools(mcp, **deps):
             return {"error": str(e)}
 
     @mcp.tool()
-    async def bulk_update_nodes(bundle: str, filters: dict, updates: dict) -> dict:
+    async def bulk_update_nodes(bundle: str, filters: dict[str, Any], updates: dict[str, Any]) -> dict[str, Any]:
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:
@@ -128,7 +135,7 @@ def register_tools(mcp, **deps):
             return {"error": str(e)}
 
     @mcp.tool()
-    async def fix_media_references(content_type: str) -> dict:
+    async def fix_media_references(content_type: str) -> dict[str, Any]:
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:
@@ -155,7 +162,7 @@ def register_tools(mcp, **deps):
             return {"error": str(e)}
 
     @mcp.tool()
-    async def bulk_update_aliases(bundle: str, pattern: str, action: str = "generate") -> dict:
+    async def bulk_update_aliases(bundle: str, pattern: str, action: str = "generate") -> dict[str, Any]:
         drush = deps.get("drush_client")
         if not drush:
             return {"error": "Drush not available"}
@@ -163,9 +170,11 @@ def register_tools(mcp, **deps):
         return {"returncode": result.get("returncode"), "output": result.get("data", {})}
 
     @mcp.tool()
-    async def analyze_content_quality(node_ids: list[str] = None, content_type: str = None) -> dict:
+    async def analyze_content_quality(node_ids: list[str] | None = None, content_type: str | None = None) -> dict[str, Any]:
         if not ai:
             return {"error": "AI service not available"}
+        if not jsonapi:
+            return {"error": "JSON:API not available"}
         try:
             nodes = []
             if node_ids:
@@ -193,20 +202,18 @@ def register_tools(mcp, **deps):
                 })
             prompt = f"Analyze content quality for {len(nodes)} nodes:\n\n{node_summaries}\n\nReturn JSON with issues array, summary, recommendations."
             result = await ai.complete(prompt)
-            import json
             analysis = json.loads(result) if isinstance(result, str) else result
             return {"analysis": analysis, "nodes_analyzed": len(nodes)}
         except Exception as e:
             return {"error": str(e)}
 
     @mcp.tool()
-    async def generate_test_content(bundle: str, count: int = 10, fields: dict = None) -> dict:
+    async def generate_test_content(bundle: str, count: int = 10, fields: dict[str, Any] | None = None) -> dict[str, Any]:
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:
             generated, errors = [], []
-            import random, string
-            def random_string(length=8):
+            def random_string(length: int = 8) -> str:
                 return "".join(random.choices(string.ascii_lowercase + string.digits, k=length))
             for i in range(count):
                 try:

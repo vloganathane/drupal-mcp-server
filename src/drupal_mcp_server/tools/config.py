@@ -1,17 +1,19 @@
 """Configuration management tools for Drupal."""
 
 import os
+from typing import Any
 
 import yaml
+from fastmcp import FastMCP
 
 
-def register_tools(mcp, **deps):
+def register_tools(mcp: FastMCP, **deps: Any) -> None:
     drush = deps.get("drush_client")
 
     @mcp.tool()
     async def export_config(
         export_path: str = "./config/export", include_optional: bool = False
-    ) -> dict:
+    ) -> dict[str, Any]:
         """Export Drupal configuration to files."""
         if not drush:
             return {"error": "Drush not available"}
@@ -26,7 +28,7 @@ def register_tools(mcp, **deps):
     @mcp.tool()
     async def import_config(
         import_path: str = "./config/sync", skip_hash_check: bool = False
-    ) -> dict:
+    ) -> dict[str, Any]:
         """Import Drupal configuration from files."""
         if not drush:
             return {"error": "Drush not available"}
@@ -41,7 +43,7 @@ def register_tools(mcp, **deps):
         }
 
     @mcp.tool()
-    async def sync_config(source_env: str, target_env: str, dry_run: bool = False) -> dict:
+    async def sync_config(source_env: str, target_env: str, dry_run: bool = False) -> dict[str, Any]:
         """Sync configuration between environments via Drush."""
         if not drush:
             return {"error": "Drush not available"}
@@ -78,7 +80,7 @@ def register_tools(mcp, **deps):
             return {"error": str(e)}
 
     @mcp.tool()
-    async def diff_config(config_name: str, env1: str = "staging", env2: str = "prod") -> dict:
+    async def diff_config(config_name: str, env1: str = "staging", env2: str = "prod") -> dict[str, Any]:
         """Show differences in configuration between environments."""
         if not drush:
             return {"error": "Drush not available"}
@@ -151,7 +153,7 @@ def register_tools(mcp, **deps):
             return {"error": str(e)}
 
     @mcp.tool()
-    async def split_config(config_names: list, output_dir: str = "./config/split") -> dict:
+    async def split_config(config_names: list[str], output_dir: str = "./config/split") -> dict[str, Any]:
         """Split configuration into separate directory for atomic deployment."""
         os.makedirs(output_dir, exist_ok=True)
         for name in config_names:

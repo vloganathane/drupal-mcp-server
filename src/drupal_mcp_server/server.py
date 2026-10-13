@@ -2,11 +2,13 @@
 """Drupal MCP Server - FastMCP server for Drupal operations."""
 
 from fastmcp import FastMCP
-from drupal_mcp_server.config import get_settings
+
 from drupal_mcp_server.auth import AuthManager
-from drupal_mcp_server.clients import JSONAPIClient, GraphQLClient, DrushClient
-from drupal_mcp_server.services import AIService, SiteManager, MigrationService
-from drupal_mcp_server.tools import analysis, migration, content, config as config_tools, devops, ai
+from drupal_mcp_server.clients import DrushClient, GraphQLClient, JSONAPIClient
+from drupal_mcp_server.config import get_settings
+from drupal_mcp_server.services import AIService, MigrationService, SiteManager
+from drupal_mcp_server.tools import ai, analysis, content, devops, migration
+from drupal_mcp_server.tools import config as config_tools
 
 
 def create_server() -> FastMCP:
@@ -18,7 +20,7 @@ def create_server() -> FastMCP:
     drush_client = DrushClient(settings)
     ai_service = AIService(settings)
     site_manager = SiteManager(settings)
-    migration_service = MigrationService(
+    MigrationService(
         settings=settings, jsonapi_client=jsonapi_client,
         drush_client=drush_client, ai_service=ai_service, site_manager=site_manager,
     )
@@ -34,9 +36,10 @@ def create_server() -> FastMCP:
     return mcp
 
 
-def main():
+def main() -> None:
     mcp = create_server()
     mcp.run()
+
 
 if __name__ == "__main__":
     main()

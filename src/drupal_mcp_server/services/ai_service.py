@@ -1,5 +1,7 @@
 """Multi-provider AI service."""
-from typing import Any, Dict, Optional
+
+from typing import Any
+
 import httpx
 
 
@@ -12,7 +14,7 @@ class AIService:
         self._enabled = settings.AI_ENABLED
         self._timeout = settings.AI_TIMEOUT
 
-    async def complete(self, prompt: str, system: Optional[str] = None) -> str:
+    async def complete(self, prompt: str, system: str | None = None) -> str:
         if not self._enabled:
             return ""
         if self._provider == "ollama":
@@ -25,7 +27,7 @@ class AIService:
             return await self._nvidia(prompt, system)
         raise ValueError(f"Unknown AI provider: {self._provider}")
 
-    async def _ollama(self, prompt: str, system: Optional[str]) -> str:
+    async def _ollama(self, prompt: str, system: str | None) -> str:
         messages = []
         if system:
             messages.append({"role": "system", "content": system})
@@ -36,9 +38,9 @@ class AIService:
                 json={"model": self.settings.OLLAMA_MODEL, "messages": messages, "stream": False},
             )
         resp.raise_for_status()
-        return resp.json()["message"]["content"]
+        return resp.json()["message"]["content"]  # type: ignore[no-any-return]
 
-    async def _openai(self, prompt: str, system: Optional[str]) -> str:
+    async def _openai(self, prompt: str, system: str | None) -> str:
         messages = []
         if system:
             messages.append({"role": "system", "content": system})
@@ -50,10 +52,10 @@ class AIService:
                 json={"model": self.settings.OPENAI_MODEL, "messages": messages},
             )
         resp.raise_for_status()
-        return resp.json()["choices"][0]["message"]["content"]
+        return resp.json()["choices"][0]["message"]["content"]  # type: ignore[no-any-return]
 
-    async def _anthropic(self, prompt: str, system: Optional[str]) -> str:
-        body: Dict[str, Any] = {
+    async def _anthropic(self, prompt: str, system: str | None) -> str:
+        body: dict[str, Any] = {
             "model": self.settings.ANTHROPIC_MODEL,
             "max_tokens": 4096,
             "messages": [{"role": "user", "content": prompt}],
@@ -70,9 +72,9 @@ class AIService:
                 json=body,
             )
         resp.raise_for_status()
-        return resp.json()["content"][0]["text"]
+        return resp.json()["content"][0]["text"]  # type: ignore[no-any-return]
 
-    async def _nvidia(self, prompt: str, system: Optional[str]) -> str:
+    async def _nvidia(self, prompt: str, system: str | None) -> str:
         messages = []
         if system:
             messages.append({"role": "system", "content": system})
@@ -84,4 +86,4 @@ class AIService:
                 json={"model": self.settings.NVIDIA_NIM_MODEL, "messages": messages},
             )
         resp.raise_for_status()
-        return resp.json()["choices"][0]["message"]["content"]
+        return resp.json()["choices"][0]["message"]["content"]  # type: ignore[no-any-return]

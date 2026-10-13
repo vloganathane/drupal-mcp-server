@@ -1,12 +1,16 @@
 """DevOps tools for Drupal (Drush, DDEV, etc.)."""
 
+from typing import Any
 
-def register_tools(mcp, **deps):
+from fastmcp import FastMCP
+
+
+def register_tools(mcp: FastMCP, **deps: Any) -> None:
     drush = deps.get("drush_client")
     site_manager = deps.get("site_manager")
 
     @mcp.tool()
-    async def drush_command(command: str, args: list = None, options: dict = None) -> dict:
+    async def drush_command(command: str, args: list[str] | None = None, options: dict[str, Any] | None = None) -> dict[str, Any]:
         """Execute any Drush command."""
         if not drush:
             return {"error": "Drush not available"}
@@ -14,12 +18,12 @@ def register_tools(mcp, **deps):
         if options:
             for k, v in options.items():
                 cmd_args.append(f"--{k}={v}" if v else f"--{k}")
-        return await drush.run(command, cmd_args)
+        return await drush.run(command, cmd_args)  # type: ignore[no-any-return]
 
     @mcp.tool()
     async def ddev_setup(
         project_name: str = ".", drupal_version: str = "10", webroot: str = "web"
-    ) -> dict:
+    ) -> dict[str, Any]:
         """Generate .ddev/config.yaml for local Drupal env."""
         site_manager = deps.get("site_manager")
         if not site_manager:
@@ -45,51 +49,51 @@ webroot: {webroot}
             return {"error": str(e)}
 
     @mcp.tool()
-    async def ddev_start(project_name: str = ".") -> dict:
+    async def ddev_start(project_name: str = ".") -> dict[str, Any]:
         """Start DDEV project."""
         if not site_manager:
             return {"error": "Site manager not available"}
-        return await site_manager.ddev_start()
+        return await site_manager.ddev_start()  # type: ignore[no-any-return]
 
     @mcp.tool()
-    async def ddev_stop(project_name: str = ".") -> dict:
+    async def ddev_stop(project_name: str = ".") -> dict[str, Any]:
         """Stop DDEV project."""
         if not site_manager:
             return {"error": "Site manager not available"}
-        return await site_manager.ddev_stop()
+        return await site_manager.ddev_stop()  # type: ignore[no-any-return]
 
     @mcp.tool()
-    async def ddev_exec(command: str, project_name: str = ".") -> dict:
+    async def ddev_exec(command: str, project_name: str = ".") -> dict[str, Any]:
         """Execute command in DDEV container."""
         if not site_manager:
             return {"error": "Site manager not available"}
-        return await site_manager.ddev_exec(command)
+        return await site_manager.ddev_exec(command)  # type: ignore[no-any-return]
 
     @mcp.tool()
-    async def lando_start(project_name: str = ".") -> dict:
+    async def lando_start(project_name: str = ".") -> dict[str, Any]:
         """Start Lando project."""
         if not site_manager:
             return {"error": "Site manager not available"}
-        return await site_manager.lando_start()
+        return await site_manager.lando_start()  # type: ignore[no-any-return]
 
     @mcp.tool()
-    async def lando_stop(project_name: str = ".") -> dict:
+    async def lando_stop(project_name: str = ".") -> dict[str, Any]:
         """Stop Lando project."""
         if not site_manager:
             return {"error": "Site manager not available"}
-        return await site_manager.lando_stop()
+        return await site_manager.lando_stop()  # type: ignore[no-any-return]
 
     @mcp.tool()
-    async def lando_exec(command: str, project_name: str = ".") -> dict:
+    async def lando_exec(command: str, project_name: str = ".") -> dict[str, Any]:
         """Execute command in Lando container."""
         if not site_manager:
             return {"error": "Site manager not available"}
-        return await site_manager.lando_exec(command)
+        return await site_manager.lando_exec(command)  # type: ignore[no-any-return]
 
     @mcp.tool()
     async def lando_setup(
         project_name: str = ".", drupal_version: str = "10", webroot: str = "web"
-    ) -> dict:
+    ) -> dict[str, Any]:
         """Generate .lando.yml for local Drupal env."""
         site_manager = deps.get("site_manager")
         if not site_manager:
@@ -109,7 +113,7 @@ webroot: {webroot}
             return {"error": str(e)}
 
     @mcp.tool()
-    async def acquia_deploy(environment: str, branch: str = "main", site_id: str = None) -> dict:
+    async def acquia_deploy(environment: str, branch: str = "main", site_id: str | None = None) -> dict[str, Any]:
         """Deploy to Acquia Cloud via Drush (requires acquia-cli or Drush acquia integration)."""
         if not drush:
             return {"error": "Drush not available"}
@@ -123,7 +127,7 @@ webroot: {webroot}
                 "acquia-deploy",
                 ["--site=" + site_id, "--environment=" + environment, "--branch=" + branch],
             )
-            return result
+            return result  # type: ignore[no-any-return]
         except Exception as e:
             return {
                 "error": f"Acquia deploy failed: {str(e)}",
@@ -131,7 +135,7 @@ webroot: {webroot}
             }
 
     @mcp.tool()
-    async def backup_database(backup_path: str = None) -> dict:
+    async def backup_database(backup_path: str | None = None) -> dict[str, Any]:
         """Create database backup via Drush."""
         if not drush:
             return {"error": "Drush not available"}
@@ -141,7 +145,7 @@ webroot: {webroot}
         return {"returncode": result.get("returncode"), "path": backup_path}
 
     @mcp.tool()
-    async def cache_rebuild() -> dict:
+    async def cache_rebuild() -> dict[str, Any]:
         """Clear and rebuild all Drupal caches via Drush."""
         if not drush:
             return {"error": "Drush not available"}

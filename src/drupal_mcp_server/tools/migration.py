@@ -1,15 +1,20 @@
 """Migration tools for Drupal upgrades and content migration."""
 
 import asyncio
+import os
+import shutil
+from typing import Any
+
+from fastmcp import FastMCP
 
 
-def register_tools(mcp, **deps):
+def register_tools(mcp: FastMCP, **deps: Any) -> None:
     drush = deps.get("drush_client")
-    ai = deps.get("ai_service")
+    deps.get("ai_service")
     jsonapi = deps.get("jsonapi_client")
 
     @mcp.tool()
-    async def generate_migration_yaml(migration_type: str, source: dict, destination: dict) -> dict:
+    async def generate_migration_yaml(migration_type: str, source: dict[str, Any], destination: dict[str, Any]) -> dict[str, Any]:
         """Generate migration YAML configuration."""
         yaml_content = f"""id: {migration_type}
 label: {migration_type}
@@ -25,7 +30,7 @@ migration_dependencies: {{}}
     @mcp.tool()
     async def generate_module_migration(
         module_name: str, source_version: str, target_version: str, base_path: str = "src/Plugin/migrate/source"
-    ) -> dict:
+    ) -> dict[str, Any]:
         """Generate migration module for a custom module."""
         if not drush:
             return {"error": "Drush not available"}
@@ -41,7 +46,6 @@ migration_dependencies: {{}}
 
             # Generate migration plugin boilerplate
             migration_dir = base_path
-            import os
 
             os.makedirs(migration_dir, exist_ok=True)
 
@@ -98,7 +102,7 @@ class {module_name.capitalize()} extends SqlBase {{
             return {"error": str(e)}
 
     @mcp.tool()
-    async def run_migration_test(migration_id: str, limit: int = 10) -> dict:
+    async def run_migration_test(migration_id: str, limit: int = 10) -> dict[str, Any]:
         """Test migration with limited records."""
         if not drush:
             return {"error": "Drush not available"}
@@ -106,7 +110,7 @@ class {module_name.capitalize()} extends SqlBase {{
         return {"returncode": result.get("returncode"), "data": result.get("data", {})}
 
     @mcp.tool()
-    async def validate_migration(migration_id: str) -> dict:
+    async def validate_migration(migration_id: str) -> dict[str, Any]:
         """Validate migration configuration."""
         if not drush:
             return {"error": "Drush not available"}
@@ -114,7 +118,7 @@ class {module_name.capitalize()} extends SqlBase {{
         return {"returncode": result.get("returncode"), "status": result.get("data", {})}
 
     @mcp.tool()
-    async def rollback_migration(migration_id: str) -> dict:
+    async def rollback_migration(migration_id: str) -> dict[str, Any]:
         """Rollback a completed migration."""
         if not drush:
             return {"error": "Drush not available"}
@@ -125,10 +129,8 @@ class {module_name.capitalize()} extends SqlBase {{
         }
 
     @mcp.tool()
-    async def sync_media_files(source_path: str, destination_path: str) -> dict:
+    async def sync_media_files(source_path: str, destination_path: str) -> dict[str, Any]:
         """Sync media files between paths."""
-        import os
-        import shutil
 
         synced = 0
         if os.path.exists(source_path):
@@ -142,9 +144,11 @@ class {module_name.capitalize()} extends SqlBase {{
         return {"synced_files": synced, "source": source_path, "destination": destination_path}
 
     @mcp.tool()
-    async def migrate_taxonomy(vocabularies: list, source_jsonapi: str = None) -> dict:
+    async def migrate_taxonomy(vocabularies: list[dict[str, Any]], source_jsonapi: str | None = None) -> dict[str, Any]:
         """Migrate taxonomy vocabularies."""
         if not jsonapi and not source_jsonapi:
+            return {"error": "JSON:API client not available"}
+        if not jsonapi:
             return {"error": "JSON:API client not available"}
         try:
             migrated = 0

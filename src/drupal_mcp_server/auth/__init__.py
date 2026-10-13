@@ -31,5 +31,5 @@ class AuthManager:
             if hasattr(self._auth, "_access_token") and self._auth._access_token is None:
                 await self._auth._fetch_token()
                 headers = self._auth.get_headers()
-            return headers
+            return headers  # type: ignore[no-any-return]
         return {}

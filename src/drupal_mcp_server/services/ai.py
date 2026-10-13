@@ -4,7 +4,9 @@ Affected API: Internal services module, provides complete() method for AI-enhanc
 Data Schemas: None (service wrapper)
 User Instruction: "Implement the actual MCP server (the tools, resources, and FastMCP app)"
 """
-from typing import Optional, Any
+from typing import Any
+
+import httpx
 
 
 class AIService:
@@ -13,7 +15,7 @@ class AIService:
     def __init__(self, settings: Any):
         self.settings = settings
 
-    async def complete(self, prompt: str, timeout: Optional[int] = None) -> str:
+    async def complete(self, prompt: str, timeout: int | None = None) -> str:
         """Complete a prompt using the configured AI provider."""
         provider = self.settings.DEFAULT_AI_PROVIDER
         timeout_val = timeout or self.settings.AI_TIMEOUT
@@ -28,7 +30,6 @@ class AIService:
         return f"[Mock AI response] {provider}: {prompt}"
 
     async def _ollama_complete(self, prompt: str, timeout: int) -> str:
-        import httpx
         try:
             async with httpx.AsyncClient(timeout=timeout) as client:
                 resp = await client.post(
@@ -40,12 +41,12 @@ class AIService:
                     },
                 )
                 resp.raise_for_status()
-                return resp.json().get("response", "")
+                data = resp.json()
+                return str(data.get("response", ""))
         except Exception:
             return f"[AI Mock] {prompt}"
 
     async def _openai_complete(self, prompt: str, timeout: int) -> str:
-        import httpx
         try:
             async with httpx.AsyncClient(timeout=timeout) as client:
                 resp = await client.post(
@@ -57,12 +58,12 @@ class AIService:
                     },
                 )
                 resp.raise_for_status()
-                return resp.json()["choices"][0]["message"]["content"]
+                data = resp.json()
+                return str(data["choices"][0]["message"]["content"])
         except Exception:
             return f"[AI Mock] {prompt}"
 
     async def _anthropic_complete(self, prompt: str, timeout: int) -> str:
-        import httpx
         try:
             async with httpx.AsyncClient(timeout=timeout) as client:
                 resp = await client.post(
@@ -75,12 +76,12 @@ class AIService:
                     },
                 )
                 resp.raise_for_status()
-                return resp.json()["content"][0]["text"]
+                data = resp.json()
+                return str(data["content"][0]["text"])
         except Exception:
             return f"[AI Mock] {prompt}"
 
     async def _nvidia_nim_complete(self, prompt: str, timeout: int) -> str:
-        import httpx
         try:
             async with httpx.AsyncClient(timeout=timeout) as client:
                 resp = await client.post(
@@ -92,6 +93,7 @@ class AIService:
                     },
                 )
                 resp.raise_for_status()
-                return resp.json()["choices"][0]["message"]["content"]
+                data = resp.json()
+                return str(data["choices"][0]["message"]["content"])
         except Exception:
             return f"[AI Mock] {prompt}"

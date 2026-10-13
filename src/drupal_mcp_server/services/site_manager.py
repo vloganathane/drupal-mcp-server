@@ -1,6 +1,6 @@
 """DDEV/Lando site management service."""
 import asyncio
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class SiteManager:
@@ -9,7 +9,7 @@ class SiteManager:
     def __init__(self, settings: Any):
         self._ddev = settings.DDEV_BINARY
 
-    async def _run(self, cmd: List[str], cwd: Optional[str] = None) -> Dict[str, Any]:
+    async def _run(self, cmd: list[str], cwd: str | None = None) -> dict[str, Any]:
         proc = await asyncio.create_subprocess_exec(
             *cmd,
             stdout=asyncio.subprocess.PIPE,
@@ -24,11 +24,11 @@ class SiteManager:
             "command": " ".join(cmd),
         }
 
-    async def ddev_start(self, cwd: Optional[str] = None) -> Dict[str, Any]:
+    async def ddev_start(self, cwd: str | None = None) -> dict[str, Any]:
         return await self._run([self._ddev, "start"], cwd=cwd)
 
-    async def ddev_stop(self, cwd: Optional[str] = None) -> Dict[str, Any]:
+    async def ddev_stop(self, cwd: str | None = None) -> dict[str, Any]:
         return await self._run([self._ddev, "stop"], cwd=cwd)
 
-    async def ddev_exec(self, command: str, cwd: Optional[str] = None) -> Dict[str, Any]:
+    async def ddev_exec(self, command: str, cwd: str | None = None) -> dict[str, Any]:
         return await self._run([self._ddev, "exec", command], cwd=cwd)

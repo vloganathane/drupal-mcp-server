@@ -1,7 +1,7 @@
 """Configuration settings for Drupal MCP Server."""
 
 from functools import lru_cache
-from typing import Optional
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -20,11 +20,11 @@ class Settings(BaseSettings):
     DRUPAL_BASE_URL: str = Field(default="http://localhost", description="Base URL of Drupal site")
     DRUPAL_JSONAPI_PATH: str = Field(default="/jsonapi", description="JSON:API endpoint path")
     DRUPAL_GRAPHQL_PATH: str = Field(default="/graphql", description="GraphQL endpoint path")
-    DRUPAL_USERNAME: Optional[str] = Field(default=None, description="Basic auth username")
-    DRUPAL_PASSWORD: Optional[str] = Field(default=None, description="Basic auth password")
-    DRUPAL_OAUTH_CLIENT_ID: Optional[str] = Field(default=None, description="OAuth client ID")
-    DRUPAL_OAUTH_CLIENT_SECRET: Optional[str] = Field(default=None, description="OAuth client secret")
-    DRUPAL_OAUTH_TOKEN_URL: Optional[str] = Field(default=None, description="OAuth token endpoint URL")
+    DRUPAL_USERNAME: str | None = Field(default=None, description="Basic auth username")
+    DRUPAL_PASSWORD: str | None = Field(default=None, description="Basic auth password")
+    DRUPAL_OAUTH_CLIENT_ID: str | None = Field(default=None, description="OAuth client ID")
+    DRUPAL_OAUTH_CLIENT_SECRET: str | None = Field(default=None, description="OAuth client secret")
+    DRUPAL_OAUTH_TOKEN_URL: str | None = Field(default=None, description="OAuth token endpoint URL")
 
     # Drush
     DRUSH_PATH: str = Field(default="drush", description="Path to drush executable")
@@ -44,15 +44,15 @@ class Settings(BaseSettings):
     OLLAMA_MODEL: str = Field(default="llama3.2:3b", description="Ollama model name")
 
     # OpenAI
-    OPENAI_API_KEY: Optional[str] = Field(default=None, description="OpenAI API key")
+    OPENAI_API_KEY: str | None = Field(default=None, description="OpenAI API key")
     OPENAI_MODEL: str = Field(default="gpt-4o-mini", description="OpenAI model name")
 
     # Anthropic
-    ANTHROPIC_API_KEY: Optional[str] = Field(default=None, description="Anthropic API key")
+    ANTHROPIC_API_KEY: str | None = Field(default=None, description="Anthropic API key")
     ANTHROPIC_MODEL: str = Field(default="claude-3-5-haiku-20241022", description="Anthropic model name")
 
     # NVIDIA NIM
-    NVIDIA_NIM_API_KEY: Optional[str] = Field(default=None, description="NVIDIA NIM API key")
+    NVIDIA_NIM_API_KEY: str | None = Field(default=None, description="NVIDIA NIM API key")
     NVIDIA_NIM_BASE_URL: str = Field(default="https://integrate.api.nvidia.com/v1", description="NVIDIA NIM base URL")
     NVIDIA_NIM_MODEL: str = Field(default="nvidia/nemotron-3-ultra", description="NVIDIA NIM model name")
 

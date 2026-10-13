@@ -1,11 +1,15 @@
 """AI-powered tools for Drupal."""
 
+from typing import Any
 
-def register_tools(mcp, **deps):
+from fastmcp import FastMCP
+
+
+def register_tools(mcp: FastMCP, **deps: Any) -> None:
     ai = deps.get("ai_service")
 
     @mcp.tool()
-    async def ai_analyze_content_quality(content: str) -> dict:
+    async def ai_analyze_content_quality(content: str) -> dict[str, Any]:
         """Analyze content quality using AI."""
         if not ai:
             return {"error": "AI service not available"}
@@ -17,7 +21,7 @@ def register_tools(mcp, **deps):
             return {"error": str(e)}
 
     @mcp.tool()
-    async def ai_suggest_field_mappings(source_fields: list, target_bundle: str) -> dict:
+    async def ai_suggest_field_mappings(source_fields: list[str], target_bundle: str) -> dict[str, Any]:
         """Suggest field mappings using AI."""
         if not ai:
             return {"error": "AI service not available"}
@@ -29,7 +33,7 @@ def register_tools(mcp, **deps):
             return {"error": str(e)}
 
     @mcp.tool()
-    async def ai_generate_migration_plan(source_type: str, target_version: str = "10") -> dict:
+    async def ai_generate_migration_plan(source_type: str, target_version: str = "10") -> dict[str, Any]:
         """Generate migration plan using AI."""
         if not ai:
             return {"error": "AI service not available"}
@@ -41,7 +45,7 @@ def register_tools(mcp, **deps):
             return {"error": str(e)}
 
     @mcp.tool()
-    async def ai_translate_content(content: str, target_lang: str, source_lang: str = "en") -> dict:
+    async def ai_translate_content(content: str, target_lang: str, source_lang: str = "en") -> dict[str, Any]:
         """Translate content using AI."""
         if not ai:
             return {"error": "AI service not available"}

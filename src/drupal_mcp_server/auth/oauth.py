@@ -1,5 +1,5 @@
 """OAuth2 client credentials authentication for Drupal."""
-from typing import Dict, Optional
+
 import httpx
 
 
@@ -8,7 +8,7 @@ class OAuth2Auth:
         self._client_id = client_id
         self._client_secret = client_secret
         self._token_url = token_url
-        self._access_token: Optional[str] = None
+        self._access_token: str | None = None
 
     async def _fetch_token(self) -> str:
         async with httpx.AsyncClient(timeout=30) as client:
@@ -21,7 +21,7 @@ class OAuth2Auth:
         self._access_token = resp.json()["access_token"]
         return self._access_token
 
-    def get_headers(self) -> Dict[str, str]:
+    def get_headers(self) -> dict[str, str]:
         # Token fetched lazily on first real request via AuthManager
         if self._access_token:
             return {"Authorization": f"Bearer {self._access_token}"}

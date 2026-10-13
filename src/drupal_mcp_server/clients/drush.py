@@ -1,7 +1,7 @@
 """Drush command client."""
 import asyncio
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class DrushClient:
@@ -12,8 +12,8 @@ class DrushClient:
         self._alias = settings.DRUSH_ALIAS
 
     async def run(
-        self, command: str, args: Optional[List[str]] = None, cwd: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, command: str, args: list[str] | None = None, cwd: str | None = None
+    ) -> dict[str, Any]:
         cmd = [self._drush, self._alias, command, "--format=json"] + (args or [])
         proc = await asyncio.create_subprocess_exec(
             *cmd,
@@ -33,5 +33,5 @@ class DrushClient:
             "command": " ".join(cmd),
         }
 
-    async def status(self) -> Dict[str, Any]:
+    async def status(self) -> dict[str, Any]:
         return await self.run("status")
