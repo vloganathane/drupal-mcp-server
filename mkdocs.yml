@@ -1,6 +1,6 @@
 site_name: Drupal MCP Server
 site_description: MCP server for Drupal operations - JSON:API, GraphQL, Drush, AI-powered migration
-site_author: Drupal MCP Team
+site_author: Loganathane V
 
 theme:
   name: material
