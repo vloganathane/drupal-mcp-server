@@ -4,7 +4,7 @@
 
 | Name | Role | GitHub | Responsibilities |
 |------|------|--------|------------------|
-| Drupal MCP Team | Lead Maintainer | @drupal-mcp-team | Project direction, releases, security |
+| Loganathane V | Lead Maintainer | [@vloganathane](https://github.com/vloganathane) | Project direction, releases, security |
 
 ## Roles
 
