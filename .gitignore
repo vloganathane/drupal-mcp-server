@@ -29,6 +29,10 @@ env/
 # Local DDEV test site (see tests/live/README.md to rebuild it)
 drupal-live/
 
+# Coverage output
+coverage.xml
+.coverage
+
 # Live-test output
 tests/live/sweep-results.json
 
