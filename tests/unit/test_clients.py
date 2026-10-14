@@ -684,3 +684,48 @@ def test_delete_and_204_are_allowed_to_be_empty():
 
     assert DrupalBaseClient._decode(_FakeResponse(204, b""), "GET") == {}
     assert DrupalBaseClient._decode(_FakeResponse(200, b""), "DELETE") == {}
+
+
+# --- Argument construction -------------------------------------------------
+
+
+def test_list_arguments_are_passed_through_as_single_tokens():
+    """Anything holding a space was shlex-split into separate argv entries.
+
+    Against a live site `sql:query ["SHOW TABLES"]` reached drush as two
+    arguments and answered "Too many arguments", so db_tables, db_query,
+    db_count and drush_php_eval all failed, as did every tool running `ev`.
+    """
+    from drupal_mcp_server.clients.drush import DrushClient
+
+    flatten = DrushClient._flatten
+
+    assert flatten([["SHOW TABLES"]]) == ["SHOW TABLES"]
+    assert flatten([["SELECT COUNT(*) as c FROM node"]]) == ["SELECT COUNT(*) as c FROM node"]
+    assert flatten([["user:role:add", "administrator", "admin", "--yes"]]) == [
+        "user:role:add", "administrator", "admin", "--yes",
+    ]
+    # Quotes must survive so PHP and SQL keep their string boundaries.
+    assert flatten(['print json_encode(["a" => 1]);']) == [
+        "print", "json_encode([a", "=>", "1]);",
+    ]
+    assert flatten([['print json_encode(["a" => 1]);']]) == ['print json_encode(["a" => 1]);']
+
+
+def test_list_arguments_keep_empty_and_drop_none():
+    from drupal_mcp_server.clients.drush import DrushClient
+
+    flatten = DrushClient._flatten
+
+    # Inside a list an empty string is a real, if odd, argv token.
+    assert flatten([["", "a"]]) == ["", "a"]
+    assert flatten([[None, "a", None]]) == ["a"]
+    # A bare empty string part is dropped, as it always was.
+    assert flatten([None, "", "x"]) == ["x"]
+
+
+def test_list_arguments_are_not_character_split():
+    """A string used to be treated as a sequence of characters."""
+    from drupal_mcp_server.clients.drush import DrushClient
+
+    assert DrushClient._flatten(["cron"]) == ["cron"]

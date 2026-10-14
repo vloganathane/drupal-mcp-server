@@ -47,13 +47,17 @@ class DrushClient:
             if part is None:
                 continue
             if isinstance(part, str):
-                tokens.extend(shlex.split(part) if part.split() else [part] if part else [])
+                tokens.extend(shlex.split(part) if part.split() else ([part] if part else []))
             elif isinstance(part, (list, tuple)):
+                # Items in a list are already argv tokens and must be passed
+                # through whole. Splitting each one destroyed anything holding
+                # a space: `sql:query ["SHOW TABLES"]` became two arguments, so
+                # drush answered "Too many arguments", and PHP handed to
+                # php:eval was shredded before it ever reached Drupal.
                 for item in part:
                     if item is None:
                         continue
-                    text = str(item)
-                    tokens.extend(shlex.split(text) if text.split() else [text])
+                    tokens.append(str(item))
             else:
                 tokens.append(str(part))
         return tokens
