@@ -297,6 +297,131 @@ def test_composer_tools_run_the_composer_binary_not_drush(monkeypatch):
     assert "Drush not available" not in str(result)
 
 
+def test_composer_require_splits_several_packages(monkeypatch):
+    """An agent asks for "these two modules" and got a version-parse error.
+
+    The package string was handed to composer as one argv token, so composer
+    read `drupal/pathauto` as a version constraint on `drupal/token`.
+    """
+    import asyncio
+
+    import drupal_mcp_server.tools.devops as devops
+
+    seen: list[list[str]] = []
+
+    async def fake_composer(args: list[str]) -> dict[str, Any]:
+        seen.append(args)
+        return {"returncode": 0, "output": "ok"}
+
+    monkeypatch.setattr(devops, "_run_composer", fake_composer, raising=True)
+    fns = _register("devops", drush_client=None, site_manager=object())
+
+    asyncio.run(fns["composer_require"]("drupal/token drupal/pathauto"))
+
+    assert seen == [["require", "drupal/token", "drupal/pathauto", "--working-dir=."]]
+
+
+def test_composer_require_applies_a_version_to_a_single_package(monkeypatch):
+    import asyncio
+
+    import drupal_mcp_server.tools.devops as devops
+
+    seen: list[list[str]] = []
+
+    async def fake_composer(args: list[str]) -> dict[str, Any]:
+        seen.append(args)
+        return {"returncode": 0, "output": "ok"}
+
+    monkeypatch.setattr(devops, "_run_composer", fake_composer, raising=True)
+    fns = _register("devops", drush_client=None, site_manager=object())
+
+    # One package: the version pins it.
+    asyncio.run(fns["composer_require"]("drupal/redirect", version="^3"))
+    # Several: pinning each one identically would be wrong, so it is left off
+    # and the caller gets composer's own resolution.
+    asyncio.run(fns["composer_require"]("drupal/redirect drupal/metatag", version="^3"))
+
+    assert seen[0] == ["require", "drupal/redirect:^3", "--working-dir=."]
+    assert seen[1] == ["require", "drupal/redirect", "drupal/metatag", "--working-dir=."]
+
+
+def test_composer_require_rejects_an_empty_package_list(monkeypatch):
+    import asyncio
+
+    import drupal_mcp_server.tools.devops as devops
+
+    async def fake_composer(args: list[str]) -> dict[str, Any]:
+        raise AssertionError("composer must not run with no packages")
+
+    monkeypatch.setattr(devops, "_run_composer", fake_composer, raising=True)
+    fns = _register("devops", drush_client=None, site_manager=object())
+
+    result = asyncio.run(fns["composer_require"]("   "))
+
+    assert "No package given" in result["error"]
+
+
+def test_composer_runs_in_the_container_for_a_ddev_project(monkeypatch, tmp_path):
+    """The host composer resolved against the host's PHP and took the site down.
+
+    It locked in a `doctrine/collections` release needing PHP 8.4 for a
+    container running 8.3, and Composer's platform check then aborted every
+    subsequent request.
+    """
+    import drupal_mcp_server.tools._utils as tool_utils
+
+    (tmp_path / ".ddev").mkdir()
+    monkeypatch.setattr(tool_utils.shutil, "which", lambda name: f"/usr/bin/{name}")
+    monkeypatch.setattr(tool_utils.os.path, "isdir", lambda p: str(p).endswith(".ddev"))
+
+    argv = tool_utils._container_composer(
+        ["require", "drupal/commerce", f"--working-dir={tmp_path}"]
+    )
+
+    assert argv == ["ddev", "composer"]
+
+
+def test_composer_uses_lando_when_the_project_is_lando_managed(monkeypatch, tmp_path):
+    import drupal_mcp_server.tools._utils as tool_utils
+
+    lando = tmp_path / ".lando.yml"
+    lando.write_text("name: site\n")
+    monkeypatch.setattr(tool_utils.shutil, "which", lambda name: f"/usr/bin/{name}")
+    monkeypatch.setattr(tool_utils.os.path, "isdir", lambda p: False)
+    monkeypatch.setattr(tool_utils.os.path, "exists", lambda p: str(p).endswith(".lando.yml"))
+
+    argv = tool_utils._container_composer(["require", "x", f"--working-dir={tmp_path}"])
+
+    assert argv == ["lando", "composer"]
+
+
+def test_composer_falls_back_to_a_local_binary_for_a_plain_project(monkeypatch, tmp_path):
+    import drupal_mcp_server.tools._utils as tool_utils
+
+    monkeypatch.setattr(tool_utils.shutil, "which", lambda name: f"/usr/bin/{name}")
+    monkeypatch.setattr(tool_utils.os.path, "isdir", lambda p: False)
+    monkeypatch.setattr(tool_utils.os.path, "exists", lambda p: False)
+
+    argv = tool_utils._container_composer(["require", "x", f"--working-dir={tmp_path}"])
+
+    assert argv is None
+
+
+def test_composer_skips_the_container_when_the_tool_is_missing(monkeypatch, tmp_path):
+    """A .ddev directory with no ddev binary must not produce a broken command."""
+    import drupal_mcp_server.tools._utils as tool_utils
+
+    (tmp_path / ".ddev").mkdir()
+    monkeypatch.setattr(
+        tool_utils.shutil, "which", lambda name: None if name == "ddev" else f"/usr/bin/{name}"
+    )
+    monkeypatch.setattr(tool_utils.os.path, "isdir", lambda p: str(p).endswith(".ddev"))
+
+    argv = tool_utils._container_composer(["require", "x", f"--working-dir={tmp_path}"])
+
+    assert argv is None
+
+
 def test_composer_runner_reports_a_missing_composer(monkeypatch):
     import asyncio
 
@@ -516,3 +641,129 @@ def test_permission_audit_filters_a_role_on_label():
     assert "filter[name]" not in params
     assert params["filter[label]"] == "administrator"
     assert result["role"] == "administrator"
+
+
+# --- drush_command option rendering ---------------------------------------
+#
+# `drush_command` rendered every option as `--key=value` whenever the value
+# was truthy. Drush flags take no value, so the documented way to answer a
+# confirmation -- `options={"yes": True}` -- became `--yes=True` and drush
+# refused it: "The --yes option does not accept a value". Installing a module
+# through the tool therefore failed every time while reporting success, and
+# the live site silently kept every module uninstalled.
+
+
+def test_drush_command_renders_a_true_option_as_a_bare_flag():
+    """`--yes=True` is rejected by drush; the flag must carry no value."""
+    import asyncio
+
+    drush = _Drush({"returncode": 0, "data": {}, "stderr": ""})
+    fns = _register("devops", drush_client=drush, site_manager=None)
+
+    result = asyncio.run(fns["drush_command"](
+        "pm:install", ["media"], {"yes": True},
+    ))
+
+    assert drush.calls[0] == ("pm:install", ["media", "--yes"])
+    assert "error" not in result
+
+
+def test_drush_command_omits_a_false_option_entirely():
+    """A False means "do not pass this flag", not "--flag=False".
+
+    It used to render as a bare `--yes`, which is the exact opposite of what
+    the caller asked for and suppressed confirmation on destructive commands.
+    """
+    import asyncio
+
+    drush = _Drush({"returncode": 0, "data": {}, "stderr": ""})
+    fns = _register("devops", drush_client=drush, site_manager=None)
+
+    asyncio.run(fns["drush_command"]("user:delete", ["1"], {"yes": False}))
+
+    assert drush.calls[0] == ("user:delete", ["1"])
+
+
+def test_drush_command_keeps_zero_valued_options():
+    """`if v` treated 0 as absent, so `--limit=0` became a bare `--limit`."""
+    import asyncio
+
+    drush = _Drush({"returncode": 0, "data": {}, "stderr": ""})
+    fns = _register("devops", drush_client=drush, site_manager=None)
+
+    asyncio.run(fns["drush_command"]("watchdog:show", [], {"count": 0}))
+
+    assert drush.calls[0] == ("watchdog:show", ["--count=0"])
+
+
+def test_drush_command_keeps_valued_options_verbatim():
+    import asyncio
+
+    drush = _Drush({"returncode": 0, "data": {}, "stderr": ""})
+    fns = _register("devops", drush_client=drush, site_manager=None)
+
+    asyncio.run(fns["drush_command"]("pm:list", [], {"format": "json", "status": "enabled"}))
+
+    assert drush.calls[0] == ("pm:list", ["--format=json", "--status=enabled"])
+
+
+def test_drush_command_surfaces_a_failed_run_as_an_error():
+    """The generic escape hatch returned the raw drush dict with no `error`.
+
+    `ensure_dict` already fixes this for the 224 specialised call sites, but
+    `drush_command` -- the tool an agent reaches for first -- bypassed it, so a
+    command that exited non-zero looked like a success with empty data.
+    """
+    import asyncio
+
+    drush = _Drush({
+        "returncode": 1,
+        "data": {},
+        "stderr": "Failed to run drush pm:install media: exit status 1",
+        "command": "ddev drush pm:install media --yes",
+    })
+    fns = _register("devops", drush_client=drush, site_manager=None)
+
+    result = asyncio.run(fns["drush_command"]("pm:install", ["media"], {"yes": True}))
+
+    assert "exit status 1" in result["error"]
+    # The rest of the payload is preserved alongside the new key.
+    assert result["returncode"] == 1
+    assert result["command"].endswith("pm:install media --yes")
+
+
+def test_langcode_is_only_sent_when_the_caller_asks_for_it():
+    """A default of "en" made every create 403 on a multilingual site.
+
+    Once a second language exists, `langcode` becomes a permission-gated
+    field, so posting it unconditionally failed with "the current user is not
+    allowed to POST the selected field (langcode)" for anyone who cannot
+    translate -- including an ordinary authenticated user creating a term in
+    the site's own language.
+    """
+    from drupal_mcp_server.tools._utils import langcode_field
+
+    assert langcode_field(None) == {}
+    assert langcode_field("") == {}
+    assert langcode_field("fr") == {"langcode": "fr"}
+
+
+def test_create_term_omits_langcode_unless_asked():
+    import asyncio
+
+    class _API:
+        def __init__(self) -> None:
+            self.payloads: list[dict[str, Any]] = []
+
+        async def create_resource(self, resource: str, data: dict[str, Any]):
+            self.payloads.append(data)
+            return {"data": {"id": "1", "attributes": {}}}
+
+    api = _API()
+    fns = _register("taxonomy", jsonapi_client=api)
+
+    asyncio.run(fns["create_term"]("tags", "one"))
+    asyncio.run(fns["create_term"]("tags", "two", langcode="fr"))
+
+    assert "langcode" not in api.payloads[0]
+    assert api.payloads[1]["langcode"] == "fr"

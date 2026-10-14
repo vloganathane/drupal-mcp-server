@@ -27,14 +27,33 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
 
     @mcp.tool()
     async def drush_command(command: str, args: list[str] | None = None, options: dict[str, Any] | None = None) -> dict[str, Any]:
-        """Execute any Drush command."""
+        """Execute any Drush command.
+
+        ``options`` values are rendered as drush expects them. Drush flags take
+        no value, so ``{"yes": True}`` must become ``--yes`` and not
+        ``--yes=True``, which drush rejects with "The --yes option does not
+        accept a value". That made every confirmation-answering call fail --
+        including ``pm:install``, so installing a module reported success
+        while nothing was installed. A ``False`` means the caller does not want
+        the flag, so it is omitted rather than spelled ``--yes=False``; that
+        direction was the dangerous one, because it used to *pass* ``--yes``
+        and silently suppress confirmation on destructive commands.
+        """
         if not drush:
             return {"error": "Drush not available"}
-        cmd_args = args or []
+        cmd_args = list(args or [])
         if options:
             for k, v in options.items():
-                cmd_args.append(f"--{k}={v}" if v else f"--{k}")
-        return await drush.run(command, cmd_args)  # type: ignore[no-any-return]
+                if v is None or v is False:
+                    continue
+                if v is True:
+                    cmd_args.append(f"--{k}")
+                else:
+                    # Not `if v`: `--limit=0` and `--offset=0` are meaningful,
+                    # and a falsy check turned them into bare `--limit`, which
+                    # drush reads as a missing value.
+                    cmd_args.append(f"--{k}={v}")
+        return _ensure_dict(await drush.run(command, cmd_args))
 
     @mcp.tool()
     async def ddev_setup(
@@ -368,10 +387,25 @@ webroot: {webroot}
         dev: bool = False,
         working_dir: str = ".",
     ) -> dict[str, Any]:
-        """Require a package via composer."""
+        """Require one or more packages via composer.
+
+        Several packages may be given at once, space separated, the way
+        `composer require` itself accepts them. They used to arrive as a single
+        argv token, so composer read "drupal/pathauto" as a version constraint
+        on "drupal/token" and refused the command with "Could not parse version
+        constraint" -- a confusing error for the ordinary request "install
+        these two modules". A package name never contains a space, so the
+        split is unambiguous.
+        """
         try:
-            pkg = f"{package}:{version}" if version else package
-            args = ["require", pkg]
+            packages = str(package).split()
+            if not packages:
+                return {"error": "No package given."}
+            # A version only makes sense against a single package; applying it
+            # to each one in a list would silently pin all of them the same.
+            if version and len(packages) == 1:
+                packages = [f"{packages[0]}:{version}"]
+            args = ["require", *packages]
             if dev:
                 args.append("--dev")
             args.append("--working-dir=" + working_dir)
