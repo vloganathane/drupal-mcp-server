@@ -4,6 +4,7 @@ from typing import Any
 
 from fastmcp import FastMCP
 
+from ._utils import drush_result as _drush_result
 from ._utils import ensure_dict as _ensure_dict
 from ._utils import validate_pagination
 
@@ -135,7 +136,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             return {"error": "Drush not available"}
         try:
             result = await drush.run("user:role:add", [role, uid])
-            return {"returncode": result.get("returncode"), "output": result.get("data", {})}
+            return _drush_result(result, role=role, uid=uid)
         except Exception as e:
             return {"error": str(e)}
 
@@ -146,7 +147,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             return {"error": "Drush not available"}
         try:
             result = await drush.run("user:role:remove", [role, uid])
-            return {"returncode": result.get("returncode"), "output": result.get("data", {})}
+            return _drush_result(result, role=role, uid=uid)
         except Exception as e:
             return {"error": str(e)}
 

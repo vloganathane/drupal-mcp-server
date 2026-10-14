@@ -6,21 +6,33 @@ from typing import Any
 import yaml
 from fastmcp import FastMCP
 
-from ._utils import ensure_dict as _ensure_dict
+from ._utils import drush_output as _output
+from ._utils import drush_result as _drush_result
 
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
     drush = deps.get("drush_client")
-    jsonapi = deps.get("jsonapi_client")
 
     @mcp.tool()
     async def config_get(name: str) -> dict[str, Any]:
         """Get a single configuration object by name."""
-        if not jsonapi:
-            return {"error": "JSON:API not available"}
+        if not drush:
+            return {
+                "error": (
+                    "Drush not available. Config objects are not exposed by "
+                    "JSON:API, so this tool needs `drush config:get`."
+                )
+            }
         try:
-            result = await jsonapi.get_resource("config", {"filter[name]": name})
-            return _ensure_dict(result)
+            result = await drush.run("config:get", [name])
+            if result.get("returncode") != 0:
+                return {
+                    "error": (
+                        f"drush config:get {name} failed: "
+                        f"{result.get('stderr', '')}".strip()
+                    )
+                }
+            return {"name": name, "config": result.get("data")}
         except Exception as e:
             return {"error": str(e)}
 
@@ -49,11 +61,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             return {"error": "Drush not available"}
         os.makedirs(export_path, exist_ok=True)
         result = await drush.run("config-export", ["--destination=" + export_path])
-        return {
-            "export_path": export_path,
-            "returncode": result.get("returncode"),
-            "stderr": result.get("stderr", "")[:500],
-        }
+        return _drush_result(result, export_path=export_path)
 
     @mcp.tool()
     async def import_config(
@@ -66,11 +74,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if skip_hash_check:
             args.append("--skip-hash-check")
         result = await drush.run("config-import", args)
-        return {
-            "import_path": import_path,
-            "returncode": result.get("returncode"),
-            "stderr": result.get("stderr", "")[:500],
-        }
+        return _drush_result(result, import_path=import_path)
 
     @mcp.tool()
     async def sync_config(source_env: str, target_env: str, dry_run: bool = False) -> dict[str, Any]:
@@ -94,7 +98,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                     "source_env": source_env,
                     "target_env": target_env,
                     "dry_run": True,
-                    "changes_preview": diff_result.get("stdout", "")[:2000],
+                    "changes_preview": _output(diff_result)[:2000],
                 }
 
             # Import config to target environment
@@ -103,7 +107,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 "source_env": source_env,
                 "target_env": target_env,
                 "returncode": import_result.get("returncode"),
-                "stdout": import_result.get("stdout", "")[:500],
+                "stdout": _output(import_result)[:500],
                 "stderr": import_result.get("stderr", "")[:500],
             }
         except Exception as e:
@@ -132,12 +136,12 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             )
 
             if diff_result.get("returncode") == 0:
-                has_changes = bool(diff_result.get("stdout", "").strip())
+                has_changes = bool(_output(diff_result).strip())
                 return {
                     "config": config_name,
                     "env1": env1,
                     "env2": env2,
-                    "diff": diff_result.get("stdout", "")[:5000],
+                    "diff": _output(diff_result)[:5000],
                     "has_changes": has_changes,
                 }
             else:

@@ -10,6 +10,7 @@ from typing import Any
 
 from fastmcp import FastMCP
 
+from ._utils import drush_result as _drush_result
 from ._utils import ensure_dict as _ensure_dict
 from ._utils import validate_pagination
 
@@ -443,21 +444,33 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
 
     @mcp.tool()
     async def bulk_update_aliases(bundle: str, pattern: str, action: str = "generate") -> dict[str, Any]:
-        """Regenerate URL aliases for a content type via Drush uuri.
+        """Regenerate URL aliases for a content type.
 
-        Args:
-            bundle: Bundle whose nodes should have aliases regenerated.
-            pattern: URL pattern to apply (e.g. ``/blog/[node:title]``).
-            action: Operation to perform; currently only ``generate``.
-
-        Returns:
-            Drush return code and parsed output.
+        Alias generation belongs to the Pathauto module, so this runs
+        ``drush pathauto:generate``. The previous implementation ran
+        ``drush uuri``, which is not a Drush command. ``pattern`` is not
+        applied here: patterns are pathauto_pattern config objects, which
+        pathauto_pattern_create / pathauto_pattern_update manage.
         """
         drush = deps.get("drush_client")
         if not drush:
             return {"error": "Drush not available"}
-        result = await drush.run("uuri", ["--bundle=" + bundle])
-        return {"returncode": result.get("returncode"), "output": result.get("data", {})}
+        if action != "generate":
+            return {"error": f"Only action='generate' is supported, got {action!r}."}
+
+        result = await drush.run("pathauto:generate", ["--bundle=" + bundle])
+        stderr = str(result.get("stderr", ""))
+        if "no commands defined in the" in stderr and "pathauto" in stderr:
+            return {
+                "error": (
+                    "Bulk alias generation is provided by the Pathauto module, "
+                    "which does not appear to be enabled on this site. Enable "
+                    "it, or define a pattern with pathauto_pattern_create, and "
+                    "run this again."
+                ),
+                "bundle": bundle,
+            }
+        return _drush_result(result, bundle=bundle, pattern=pattern)
 
     @mcp.tool()
     async def analyze_content_quality(node_ids: list[str] | None = None, content_type: str | None = None) -> dict[str, Any]:

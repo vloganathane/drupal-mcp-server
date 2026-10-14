@@ -21,12 +21,11 @@ class DrushClient:
         self._alias = str(getattr(settings, "DRUSH_ALIAS", "") or "")
         self._timeout = 120  # seconds
 
-    def _command(self, command: str, args: list[str] | None, with_format: bool = True) -> list[str]:
+    def _command(self, command: str, args: list[str], with_format: bool = True) -> list[str]:
         argv = list(self._drush)
         if self._alias:
             argv.append(self._alias)
         argv.append(command)
-        args = list(args or [])
         # Many tools already pass --format=json themselves; adding it twice is
         # sloppy, and commands like `drush cron` reject the option outright.
         if with_format and not any(a.startswith("--format") for a in args):
@@ -34,18 +33,62 @@ class DrushClient:
         argv += args
         return argv
 
-    async def run(
-        self, command: str, args: list[str] | None = None, cwd: str | None = None
-    ) -> dict[str, Any]:
-        cmd = self._command(command, args)
+    @staticmethod
+    def _flatten(parts: tuple[Any, ...]) -> list[str]:
+        """Turn whatever a tool passes into a list of argv tokens.
+
+        Call sites spell a command line every way there is: `run(*cmd)` with
+        eight separate tokens, `run("config:set", [a, b, c])`, and
+        `run("config:set", "a b c")`. Treating a string as a sequence turned
+        the last form into one argument per character, so it never worked.
+        """
+        tokens: list[str] = []
+        for part in parts:
+            if part is None:
+                continue
+            if isinstance(part, str):
+                tokens.extend(shlex.split(part) if part.split() else [part] if part else [])
+            elif isinstance(part, (list, tuple)):
+                for item in part:
+                    if item is None:
+                        continue
+                    text = str(item)
+                    tokens.extend(shlex.split(text) if text.split() else [text])
+            else:
+                tokens.append(str(part))
+        return tokens
+
+    async def run(self, *parts: Any, cwd: str | None = None) -> dict[str, Any]:
+        """Run a drush command line.
+
+        Accepts the command plus any number of argument tokens, in any
+        combination of strings and lists::
+
+            run("cron")
+            run("status", ["--format=json"])
+            run("config:set", "twig.config", "debug", "true")
+            run(*("user:role:add", "authenticated", "1"))
+        """
+        if not parts:
+            return {
+                "returncode": 1,
+                "data": {},
+                "stderr": "No drush command was given.",
+                "command": "",
+            }
+        command, rest = str(parts[0]), parts[1:]
+        argv = self._flatten(rest)
+        cmd = self._command(command, argv)
         result = await self._exec(cmd, cwd)
         # `drush cron` and friends have no --format option. Retry once without
         # it rather than failing a command that would otherwise succeed.
         if result["returncode"] != 0 and "--format" in result.get("stderr", ""):
-            retry = self._command(command, args, with_format=False)
-            retried = await self._exec(retry, cwd)
-            if retried["returncode"] == 0:
-                return retried
+            retried = await self._exec(self._command(command, argv, with_format=False), cwd)
+            # Report the run that actually executed. Returning the original
+            # made every failure read as "The --format option does not exist",
+            # which buries the real reason.
+            retried["format_flag_dropped"] = True
+            return retried
         return result
 
     async def _exec(self, cmd: list[str], cwd: str | None) -> dict[str, Any]:

@@ -31,6 +31,23 @@ async def _proc_run(cmd: list[str]) -> dict[str, Any]:
     }
 
 
+async def _phpstan_help(path: str) -> str:
+    """Ask this PHPStan build what it supports.
+
+    --exclude-path only exists from PHPStan 1.0 onwards; older builds accept
+    neither it nor --exclude and reject the whole run.
+    """
+    try:
+        result = await _proc_run([path, "analyse", "--help"])
+    except Exception:
+        return ""
+    return f"{result.get('stderr', '')}{result.get('data', {}).get('output', '')}"
+
+
+def _vendor_exclude_args(help_text: str) -> list[str]:
+    return ["--exclude-path=#/vendor/#"] if "--exclude-path" in help_text else []
+
+
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
     drush = deps.get("drush_client")
 
@@ -154,7 +171,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
 
             cmd = [phpstan_path, "analyse", path, "--level=8", "--error-format=json"]
             if not include_vendors:
-                cmd.extend(["--exclude=vendor"])
+                cmd.extend(_vendor_exclude_args(await _phpstan_help(phpstan_path)))
 
             result = await _proc_run(cmd)
             return _ensure_dict(result)

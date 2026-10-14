@@ -1,6 +1,40 @@
 """Shared utilities for tool modules."""
 
+import json
 from typing import Any
+
+
+def drush_output(result: dict[str, Any]) -> str:
+    """Human-readable output from a DrushClient result.
+
+    DrushClient parses stdout into ``data`` and has no ``stdout`` key, so
+    reading ``result["stdout"]`` always produced an empty string.
+    """
+    data = result.get("data")
+    if isinstance(data, dict):
+        if isinstance(data.get("output"), str):
+            return data["output"]
+        return json.dumps(data, indent=2, default=str) if data else ""
+    if isinstance(data, str):
+        return data
+    return str(result.get("stdout") or "")
+
+
+def drush_result(result: dict[str, Any], **extra: Any) -> dict[str, Any]:
+    """Report a DrushClient result, surfacing stderr when the command failed.
+
+    Ten tools returned just the exit code, so a typo in a command and a
+    permissions problem looked identical to the caller.
+    """
+    payload: dict[str, Any] = {"returncode": result.get("returncode")}
+    payload.update(extra)
+    payload["output"] = drush_output(result)
+    if result.get("returncode"):
+        reason = str(result.get("stderr", "")).strip() or "no error output"
+        payload["error"] = f"drush failed: {reason[:800]}"
+        if result.get("command"):
+            payload["command"] = result["command"]
+    return payload
 
 
 def ensure_dict(result: dict[str, Any] | list[Any] | None) -> dict[str, Any]:

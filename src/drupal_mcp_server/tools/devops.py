@@ -5,7 +5,19 @@ from typing import Any
 
 from fastmcp import FastMCP
 
+from ._utils import drush_result as _drush_result
 from ._utils import ensure_dict as _ensure_dict
+
+
+def _existing_config_guard(config_path: str, force: bool) -> str | None:
+    """Refuse to clobber a working site's config with a generated one."""
+    if os.path.exists(config_path) and not force:
+        return (
+            f"{config_path} already exists. Writing a generated config over it "
+            "would discard every setting you have. Edit the file directly, or "
+            "pass force=True to replace it."
+        )
+    return None
 
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
@@ -25,19 +37,46 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
 
     @mcp.tool()
     async def ddev_setup(
-        project_name: str = ".", drupal_version: str = "10", webroot: str = "web"
+        project_name: str = ".",
+        drupal_version: str = "10",
+        webroot: str = "web",
+        force: bool = False,
     ) -> dict[str, Any]:
-        """Generate .ddev/config.yaml for local Drupal env."""
+        """Generate .ddev/config.yaml for a local Drupal environment.
+
+        Refuses to overwrite an existing config: calling this with defaults on
+        a working project used to replace the whole file with `name: .`, which
+        takes the project down.
+        """
+        import re
+
         site_manager = deps.get("site_manager")
         if not site_manager:
             return {"error": "Site manager not available"}
-        import os
 
-        ddev_config = f"""name: {project_name}
-kind: drupal{drupal_version}
+        # Check for an existing config first: that is the message the caller
+        # needs, whatever else is wrong with the arguments.
+        config_path = os.path.join(project_name, ".ddev", "config.yaml")
+        guarded = _existing_config_guard(config_path, force)
+        if guarded:
+            return {"error": guarded, "path": config_path, "project": project_name}
+
+        name = os.path.basename(os.path.abspath(project_name))
+        if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", name):
+            return {
+                "error": (
+                    f"{project_name!r} is not a usable DDEV project name. It "
+                    "becomes the hostname, so it must be lowercase letters, "
+                    "digits and hyphens only. Pass the project directory, for "
+                    "example 'ddev_setup(\"my-site\")'."
+                )
+            }
+
+        # DDEV 1.24 rejects `kind:`; the key is `type:`.
+        ddev_config = f"""name: {name}
+type: drupal{drupal_version}
 webroot: {webroot}
 """
-        config_path = os.path.join(project_name, ".ddev", "config.yaml")
         try:
             os.makedirs(os.path.dirname(config_path) or ".", exist_ok=True)
             with open(config_path, "w") as f:
@@ -95,17 +134,25 @@ webroot: {webroot}
 
     @mcp.tool()
     async def lando_setup(
-        project_name: str = ".", drupal_version: str = "10", webroot: str = "web"
+        project_name: str = ".",
+        drupal_version: str = "10",
+        webroot: str = "web",
+        force: bool = False,
     ) -> dict[str, Any]:
-        """Generate .lando.yml for local Drupal env."""
+        """Generate .lando.yml for a local Drupal environment."""
         if not site_manager:
             return {"error": "Site manager not available"}
 
-        lando_config = f"""name: {project_name}
+        name = os.path.basename(os.path.abspath(project_name))
+        config_path = os.path.join(project_name, ".lando.yml")
+        guarded = _existing_config_guard(config_path, force)
+        if guarded:
+            return {"error": guarded, "path": config_path, "project": project_name}
+
+        lando_config = f"""name: {name}
 recipe: drupal{drupal_version}
 webroot: {webroot}
 """
-        config_path = os.path.join(project_name, ".lando.yml")
         try:
             with open(config_path, "w") as f:
                 f.write(lando_config)
@@ -282,10 +329,9 @@ webroot: {webroot}
         """Create database backup via Drush."""
         if not drush:
             return {"error": "Drush not available"}
-        result = await drush.run(
-            "sql-dump", ["--result-file=" + (backup_path or "/tmp/drupal-backup.sql")]
-        )
-        return {"returncode": result.get("returncode"), "path": backup_path}
+        destination = backup_path or "/tmp/drupal-backup.sql"
+        result = await drush.run("sql-dump", ["--result-file=" + destination])
+        return _drush_result(result, path=destination)
 
     @mcp.tool()
     async def cache_rebuild() -> dict[str, Any]:
@@ -293,7 +339,7 @@ webroot: {webroot}
         if not drush:
             return {"error": "Drush not available"}
         result = await drush.run("cache-rebuild", [])
-        return {"returncode": result.get("returncode"), "stdout": result.get("stdout"), "stderr": result.get("stderr")}
+        return _drush_result(result)
 
     @mcp.tool()
     async def composer_install(

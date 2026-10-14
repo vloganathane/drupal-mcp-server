@@ -7,6 +7,8 @@ from typing import Any
 
 from fastmcp import FastMCP
 
+from ._utils import drush_result as _drush_result
+
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
     drush = deps.get("drush_client")
@@ -194,7 +196,7 @@ function {module_name}_migrate_api() {{
         if not drush:
             return {"error": "Drush not available"}
         result = await drush.run("migrate-import", ["--limit=" + str(limit), migration_id])
-        return {"returncode": result.get("returncode"), "data": result.get("data", {})}
+        return _drush_result(result, migration_id=migration_id)
 
     @mcp.tool()
     async def validate_migration(migration_id: str) -> dict[str, Any]:
@@ -202,7 +204,7 @@ function {module_name}_migrate_api() {{
         if not drush:
             return {"error": "Drush not available"}
         result = await drush.run("migrate-status", [migration_id])
-        return {"returncode": result.get("returncode"), "status": result.get("data", {})}
+        return _drush_result(result, status=result.get("data", {}), migration_id=migration_id)
 
     @mcp.tool()
     async def rollback_migration(migration_id: str) -> dict[str, Any]:
@@ -210,10 +212,11 @@ function {module_name}_migrate_api() {{
         if not drush:
             return {"error": "Drush not available"}
         result = await drush.run("migrate-rollback", [migration_id])
-        return {
-            "returncode": result.get("returncode"),
-            "rolled_back": result.get("returncode") == 0,
-        }
+        return _drush_result(
+            result,
+            rolled_back=result.get("returncode") == 0,
+            migration_id=migration_id,
+        )
 
     @mcp.tool()
     async def sync_media_files(source_path: str, destination_path: str) -> dict[str, Any]:

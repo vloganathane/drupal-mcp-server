@@ -166,3 +166,253 @@ def test_no_drupal_org_tool_returns_raw_html():
 
     source = inspect.getsource(drupal_org)
     assert "e.response.text" not in source
+
+
+# --- Composer metadata ---------------------------------------------------
+#
+# updates.drupal.org stopped answering for Drupal 9+ ("No release history
+# available"), so releases, dependencies and core compatibility now come from
+# packages.drupal.org, whose metadata is delta-encoded.
+
+RAW_PACKAGES = [
+    {   # Newest: the complete document.
+        "name": "drupal/pathauto",
+        "version": "1.15.0",
+        "type": "drupal-module",
+        "conflict": {"drush/drush": "<12.5.1"},
+        "require": {"drupal/core": "^10.2 || ^11", "drupal/token": "*", "drupal/ctools": "*"},
+        "dist": {"url": "https://ftp.drupal.org/files/projects/pathauto-8.x-1.15.zip",
+                 "reference": "8.x-1.15"},
+        "extra": {"drupal": {"version": "8.x-1.15", "datestamp": "1778049296",
+                             "security-coverage": {"status": "covered"}}},
+    },
+    {   # Delta only: name/type inherited, `conflict` removed.
+        "version": "1.14.0",
+        "require": {"drupal/core": "^10 || ^11", "drupal/token": "^1.0"},
+        "dist": {"url": "https://ftp.drupal.org/files/projects/pathauto-8.x-1.14.zip",
+                 "reference": "8.x-1.14"},
+        "extra": {"drupal": {"version": "8.x-1.14", "datestamp": "1759838097"}},
+        "conflict": "__unset",
+    },
+    {   # `require` omitted: unchanged, so it must come from the previous entry.
+        "version": "1.13.0",
+        "dist": {"url": "https://ftp.drupal.org/files/projects/pathauto-8.x-1.13.zip",
+                 "reference": "8.x-1.13"},
+        "extra": {"drupal": {"version": "8.x-1.13"}},
+    },
+    {   # A release line that predates Drupal 10.
+        "version": "1.0.0",
+        "require": {"drupal/core": "^7 || ^8"},
+        "dist": {"url": "https://ftp.drupal.org/files/projects/pathauto-7.x-1.0.zip",
+                 "reference": "7.x-1.0"},
+        "extra": {"drupal": {"version": "7.x-1.0"}},
+    },
+]
+
+
+def test_minified_entries_inherit_omitted_keys():
+    """15 of pathauto's 24 releases omit `require`; reading them raw would
+    silently report most releases as having no dependencies."""
+    assert "require" not in RAW_PACKAGES[2]
+
+    expanded = drupal_org._expand_minified(RAW_PACKAGES)
+
+    assert expanded[2]["require"] == {"drupal/core": "^10 || ^11", "drupal/token": "^1.0"}
+    assert expanded[2]["name"] == "drupal/pathauto"
+    assert expanded[2]["type"] == "drupal-module"
+    assert "conflict" in expanded[0]
+    assert "conflict" not in expanded[1]
+
+
+def test_minified_expansion_does_not_mutate_the_source():
+    drupal_org._expand_minified(RAW_PACKAGES)
+
+    assert "require" not in RAW_PACKAGES[2]
+    assert RAW_PACKAGES[0]["conflict"] == {"drush/drush": "<12.5.1"}
+
+
+@pytest.mark.parametrize(
+    ("constraint", "expected"),
+    [
+        ("^10.2 || ^11", [10, 11]),
+        (">=8.3 <11", [8, 11]),
+        ("*", []),
+        (None, []),
+        ("", []),
+        ("10.x", [10]),
+    ],
+)
+def test_core_majors_reads_the_drupal_version(constraint, expected):
+    assert drupal_org._core_majors(constraint) == expected
+
+
+def test_composer_releases_are_filtered_by_core():
+    entries = drupal_org._expand_minified(RAW_PACKAGES)
+
+    history = drupal_org._parse_composer_packages(entries, "pathauto", "10.x")
+
+    assert history["source"] == "packages.drupal.org"
+    assert len(history["releases"]) == 3
+    assert all(r["version"] != "7.x-1.0" for r in history["releases"])
+    assert history["compatible_release_count"] == 3
+
+
+def test_composer_releases_finds_the_old_line_for_7x():
+    entries = drupal_org._expand_minified(RAW_PACKAGES)
+
+    history = drupal_org._parse_composer_packages(entries, "pathauto", "7.x")
+
+    assert [r["version"] for r in history["releases"]] == ["7.x-1.0"]
+    assert history["releases"][0]["core"] == "^7 || ^8"
+
+
+def test_composer_releases_carry_dependencies_and_security():
+    entries = drupal_org._expand_minified(RAW_PACKAGES)
+
+    history = drupal_org._parse_composer_packages(entries, "pathauto", "10.x")
+    newest = history["releases"][0]
+
+    assert newest["version"] == "8.x-1.15"
+    assert newest["composer_version"] == "1.15.0"
+    assert newest["created"] == "1778049296"
+    assert newest["core"] == "^10.2 || ^11"
+    assert newest["dependencies"] == {"drupal/token": "*", "drupal/ctools": "*"}
+    assert newest["security"] == "covered"
+    assert "drupal/core" not in newest["dependencies"]
+
+
+def test_composer_releases_reports_no_match_instead_of_nothing():
+    entries = drupal_org._expand_minified(RAW_PACKAGES)
+
+    with pytest.raises(drupal_org.NoCompatibleReleases, match="4 releases"):
+        drupal_org._parse_composer_packages(entries, "pathauto", "12.x")
+
+
+def _tool_functions() -> dict[str, Any]:
+    class FakeMCP:
+        def __init__(self) -> None:
+            self.fns: dict[str, Any] = {}
+
+        def tool(self, *args: Any, **kwargs: Any):
+            def decorate(fn):
+                self.fns[fn.__name__] = fn
+                return fn
+
+            return decorate
+
+    mcp = FakeMCP()
+    drupal_org.register_tools(mcp)  # type: ignore[arg-type]
+    return mcp.fns
+
+
+@pytest.mark.asyncio
+async def test_module_dependencies_returns_the_require_map(monkeypatch):
+    async def fake_entries(name: str):
+        assert name == "pathauto"
+        return drupal_org._expand_minified(RAW_PACKAGES)
+
+    monkeypatch.setattr(drupal_org, "_composer_entries", fake_entries)
+    fns = _tool_functions()
+
+    result = await fns["module_dependencies"]("pathauto")
+
+    assert result["version"] == "8.x-1.15"
+    assert result["drupal_core"] == "^10.2 || ^11"
+    assert result["dependencies"] == {"drupal/token": "*", "drupal/ctools": "*"}
+    assert "error" not in result
+
+
+@pytest.mark.asyncio
+async def test_module_dependencies_accepts_a_drupal_version_string(monkeypatch):
+    async def fake_entries(name: str):
+        return drupal_org._expand_minified(RAW_PACKAGES)
+
+    monkeypatch.setattr(drupal_org, "_composer_entries", fake_entries)
+    fns = _tool_functions()
+
+    result = await fns["module_dependencies"]("pathauto", "8.x-1.14")
+
+    assert result["composer_version"] == "1.14.0"
+    assert result["dependencies"] == {"drupal/token": "^1.0"}
+
+
+@pytest.mark.asyncio
+async def test_module_dependencies_names_the_known_releases_when_one_is_wrong(monkeypatch):
+    async def fake_entries(name: str):
+        return drupal_org._expand_minified(RAW_PACKAGES)
+
+    monkeypatch.setattr(drupal_org, "_composer_entries", fake_entries)
+    fns = _tool_functions()
+
+    result = await fns["module_dependencies"]("pathauto", "8.x-9.9")
+
+    assert "No release" in result["error"]
+    assert "8.x-1.15" in result["error"]
+
+
+@pytest.mark.asyncio
+async def test_release_history_falls_back_to_composer_when_xml_is_dead(monkeypatch):
+    """updates.drupal.org answers <error> for every 9.x+ project."""
+    called: list[str] = []
+
+    async def dead_xml(name: str, core: str):
+        raise RuntimeError(
+            f"drupal.org has no release history for {name!r} against core {core!r}: "
+            "No release history available"
+        )
+
+    async def fake_entries(name: str):
+        called.append(name)
+        return drupal_org._expand_minified(RAW_PACKAGES)
+
+    monkeypatch.setattr(drupal_org, "_release_history", dead_xml)
+    monkeypatch.setattr(drupal_org, "_composer_entries", fake_entries)
+    fns = _tool_functions()
+
+    result = await fns["release_history"]("pathauto", "10.x")
+
+    assert result["source"] == "packages.drupal.org"
+    assert called == ["pathauto"]
+    assert len(result["releases"]) == 3
+
+
+@pytest.mark.asyncio
+async def test_release_history_prefers_updates_drupal_org_when_it_answers(monkeypatch):
+    async def live_xml(name: str, core: str):
+        return {"project": name, "core": core, "releases": [{"version": "7.x-1.15"}]}
+
+    async def should_not_be_called(name: str):
+        raise AssertionError("composer fallback must not be consulted")
+
+    monkeypatch.setattr(drupal_org, "_release_history", live_xml)
+    monkeypatch.setattr(drupal_org, "_composer_entries", should_not_be_called)
+    fns = _tool_functions()
+
+    result = await fns["release_history"]("pathauto", "7.x")
+
+    assert result["source"] == "updates.drupal.org"
+    assert result["releases"] == [{"version": "7.x-1.15"}]
+
+
+@pytest.mark.asyncio
+async def test_module_compatibility_distinguishes_no_match_from_failure(monkeypatch):
+    async def dead_xml(name: str, core: str):
+        raise RuntimeError("No release history available")
+
+    async def fake_entries(name: str):
+        return drupal_org._expand_minified(RAW_PACKAGES)
+
+    monkeypatch.setattr(drupal_org, "_release_history", dead_xml)
+    monkeypatch.setattr(drupal_org, "_composer_entries", fake_entries)
+    fns = _tool_functions()
+
+    yes = await fns["module_compatibility"]("pathauto", "10.x")
+    no = await fns["module_compatibility"]("pathauto", "12.x")
+
+    assert yes["compatible"] is True
+    assert yes["release_count"] == 3
+    assert yes["core_constraints"] == ["^10.2 || ^11", "^10 || ^11", "^10 || ^11"]
+
+    assert no["compatible"] is False
+    assert no["release_count"] == 0
+    assert "error" not in no

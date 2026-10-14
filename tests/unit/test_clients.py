@@ -551,3 +551,95 @@ async def test_payload_keeps_an_already_structured_resource_object(monkeypatch: 
     assert seen["json"] == {
         "data": {"id": uuid, "type": "node--article", "attributes": {"title": "Hi"}}
     }
+
+
+def _capture_drush(monkeypatch: pytest.MonkeyPatch) -> list[list[str]]:
+    """Record the argv DrushClient builds, without running anything."""
+    from drupal_mcp_server.clients.drush import DrushClient
+
+    seen: list[list[str]] = []
+
+    async def fake_exec(self, cmd, cwd):
+        seen.append(cmd)
+        return {"returncode": 0, "data": {}, "stderr": "", "command": " ".join(cmd)}
+
+    monkeypatch.setattr(DrushClient, "_exec", fake_exec, raising=True)
+    return seen
+
+
+@pytest.mark.asyncio
+async def test_drush_accepts_a_splatted_command_line(monkeypatch: pytest.MonkeyPatch):
+    """10 tools passed 4-8 positional tokens and crashed with a TypeError."""
+    from drupal_mcp_server.clients.drush import DrushClient
+
+    seen = _capture_drush(monkeypatch)
+    cmd = ("feeds:import", "--feed-id", "1", "news", "--format=json")
+
+    await DrushClient(_settings()).run(*cmd)
+
+    assert seen[0] == ["drush", "@self", "feeds:import", "--feed-id", "1", "news", "--format=json"]
+
+
+@pytest.mark.asyncio
+async def test_drush_splits_a_quoted_argument_string(monkeypatch: pytest.MonkeyPatch):
+    """`run("config:set", "a b c")` used to become one argument per character."""
+    from drupal_mcp_server.clients.drush import DrushClient
+
+    seen = _capture_drush(monkeypatch)
+
+    await DrushClient(_settings()).run("config:set", "twig.config debug true")
+
+    assert seen[0] == ["drush", "@self", "config:set", "--format=json", "twig.config", "debug", "true"]
+
+
+@pytest.mark.asyncio
+async def test_drush_mixed_string_and_list_arguments(monkeypatch: pytest.MonkeyPatch):
+    from drupal_mcp_server.clients.drush import DrushClient
+
+    seen = _capture_drush(monkeypatch)
+
+    await DrushClient(_settings()).run("user:role:add", ["authenticated", "2"])
+    await DrushClient(_settings()).run("pm:list", "--status=enabled", ["--format=json"])
+
+    assert seen[0] == ["drush", "@self", "user:role:add", "--format=json", "authenticated", "2"]
+    assert seen[1] == ["drush", "@self", "pm:list", "--status=enabled", "--format=json"]
+
+
+@pytest.mark.asyncio
+async def test_drush_with_no_command_reports_it_instead_of_raising(monkeypatch: pytest.MonkeyPatch):
+    from drupal_mcp_server.clients.drush import DrushClient
+
+    result = await DrushClient(_settings()).run()
+
+    assert result["returncode"] == 1
+    assert "No drush command" in result["stderr"]
+
+
+@pytest.mark.asyncio
+async def test_drush_reports_the_retry_not_the_rejected_command(monkeypatch: pytest.MonkeyPatch):
+    """Returning the original made every failure read as a --format complaint,
+    burying the real reason the command failed."""
+    from drupal_mcp_server.clients.drush import DrushClient
+
+    seen: list[list[str]] = []
+
+    async def fake_exec(self, cmd, cwd):
+        seen.append(cmd)
+        if any(a.startswith("--format") for a in cmd):
+            return {"returncode": 1, "data": {},
+                    "stderr": 'The "--format" option does not exist.',
+                    "command": " ".join(cmd)}
+        return {"returncode": 1, "data": {},
+                "stderr": "The following modules are required: migrate",
+                "command": " ".join(cmd)}
+
+    monkeypatch.setattr(DrushClient, "_exec", fake_exec, raising=True)
+
+    result = await DrushClient(_settings()).run("migrate-status", ["d7_node_article"])
+
+    assert len(seen) == 2
+    assert result["returncode"] == 1
+    assert "required: migrate" in result["stderr"]
+    assert "--format" not in result["stderr"]
+    assert result["format_flag_dropped"] is True
+    assert "--format" not in result["command"]
