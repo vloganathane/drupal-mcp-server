@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     DRUPAL_OAUTH_CLIENT_ID: str | None = Field(default=None, description="OAuth client ID")
     DRUPAL_OAUTH_CLIENT_SECRET: str | None = Field(default=None, description="OAuth client secret")
     DRUPAL_OAUTH_TOKEN_URL: str | None = Field(default=None, description="OAuth token endpoint URL")
+    DRUPAL_VERIFY_SSL: bool = Field(
+        default=True,
+        description="Verify TLS certificates. Set false for self-signed dev certs (DDEV, Lando).",
+    )
 
     # Drush
     DRUSH_PATH: str = Field(default="drush", description="Path to drush executable")

@@ -4,6 +4,7 @@ from typing import Any
 
 from .basic import BasicAuth
 from .mcp_oauth import DrupalOAuthProvider
+from .session import SessionAuth
 from .token import TokenAuth
 
 
@@ -12,11 +13,34 @@ class AuthManager:
 
     def __init__(self, settings: Any):
         self._auth: Any | None = None
-        if settings.DRUPAL_USERNAME and settings.DRUPAL_PASSWORD:
-            self._auth = BasicAuth(settings.DRUPAL_USERNAME, settings.DRUPAL_PASSWORD)
-        elif settings.DRUPAL_OAUTH_TOKEN_URL:
-            # For token-based auth — fetch token from OAuth token URL
+        self._session: Any | None = None
+        self._basic: BasicAuth | None = None
+
+        if settings.DRUPAL_OAUTH_TOKEN_URL:
             self._auth = TokenAuth(self._fetch_oauth_token(settings))
+        elif settings.DRUPAL_USERNAME and settings.DRUPAL_PASSWORD:
+            # Session auth covers both reads and writes; basic auth alone is
+            # rejected with 403 on Drupal's mutating endpoints. Basic remains
+            # as a fallback for sites without /user/login so reads still work.
+            self._basic = BasicAuth(settings.DRUPAL_USERNAME, settings.DRUPAL_PASSWORD)
+            self._session = SessionAuth(
+                base_url=settings.DRUPAL_BASE_URL,
+                username=settings.DRUPAL_USERNAME,
+                password=settings.DRUPAL_PASSWORD,
+                verify_ssl=bool(getattr(settings, "DRUPAL_VERIFY_SSL", True)),
+            )
+            self._auth = self._session
+
+    async def ensure_session(self) -> None:
+        """Log in and cache a CSRF token. Safe to call more than once."""
+        if self._session is not None and not self._session.is_logged_in():
+            await self._session.login()
+
+    def get_session_cookies(self) -> dict[str, str]:
+        """Session cookies for mutating requests, or {} if not using session auth."""
+        if self._session is None:
+            return {}
+        return self._session.get_cookies()
 
     def _fetch_oauth_token(self, settings: Any) -> str:
         """Fetch OAuth token from the configured token URL."""
@@ -41,7 +65,14 @@ class AuthManager:
 
         Synchronous to match the underlying strategies and the sync call site in
         ``clients/base.py::_headers``.
+
+        When session auth is configured but not (yet) logged in, fall back to
+        basic auth rather than sending an unauthenticated request.
         """
+        if self._session is not None and not self._session.is_logged_in():
+            if self._basic is not None:
+                return self._basic.get_headers()
+            return {}
         if self._auth:
             return self._auth.get_headers()
         return {}

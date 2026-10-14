@@ -15,34 +15,64 @@ class FakeSettings:
     DRUPAL_BASE_URL = "https://example.test"
     DRUPAL_JSONAPI_PATH = "/jsonapi"
     DRUPAL_GRAPHQL_PATH = "/graphql"
+    DRUPAL_VERIFY_SSL = True
 
 
 class FakeResponse:
-    def __init__(self, status_code: int = 200, content: bytes = b'{"data": []}'):
+    def __init__(
+        self,
+        status_code: int = 200,
+        content: bytes = b'{"data": []}',
+    ):
         self.status_code = status_code
         self.content = content
+
+    @property
+    def text(self) -> str:
+        return self.content.decode() if self.content else ""
 
     def json(self) -> Any:
         return json.loads(self.content or b"{}")
 
     def raise_for_status(self) -> None:
         if self.status_code >= 400:
-            raise httpx.HTTPStatusError("boom", request=None, response=None)
+            raise httpx.HTTPStatusError(
+                f"{self.status_code} error",
+                request=httpx.Request("GET", "https://example.test/x"),
+                response=self,  # type: ignore[arg-type]
+            )
 
 
-def _capture(monkeypatch: pytest.MonkeyPatch, resp: FakeResponse) -> dict[str, Any]:
-    """Patch httpx at the transport boundary so real client code runs end to end."""
-    seen: dict[str, Any] = {}
+def _capture(
+    monkeypatch: pytest.MonkeyPatch,
+    responder: Any = None,
+    default: FakeResponse | None = None,
+) -> dict[str, Any]:
+    """Patch httpx at the transport boundary so real client code runs end to end.
 
-    async def fake_request(self: Any, url: str, **kwargs: Any) -> FakeResponse:
-        seen["url"] = url
-        seen["params"] = kwargs.get("params")
-        seen["headers"] = kwargs.get("headers")
-        seen["json"] = kwargs.get("json")
-        return resp
+    ``AsyncClient.request`` is the single funnel every verb goes through, so
+    patching it exercises the client's real URL building, header and payload
+    logic rather than a mock's permissive signature.
+    """
+    seen: dict[str, Any] = {"requests": []}
 
-    for verb in ("get", "post", "patch", "delete"):
-        monkeypatch.setattr(httpx.AsyncClient, verb, fake_request, raising=True)
+    async def fake_request(self: Any, method: str, url: str, **kwargs: Any) -> FakeResponse:
+        entry = {
+            "method": method,
+            "url": url,
+            "params": kwargs.get("params"),
+            "headers": kwargs.get("headers"),
+            "json": kwargs.get("json"),
+        }
+        seen["requests"].append(entry)
+        # Back-compat aliases pointing at the most recent request.
+        for key, value in entry.items():
+            seen[key] = value
+        if responder is not None:
+            return responder(entry)
+        return default or FakeResponse()
+
+    monkeypatch.setattr(httpx.AsyncClient, "request", fake_request, raising=True)
     return seen
 
 
@@ -56,20 +86,22 @@ def test_jsonapi_client_exists():
 async def test_get_by_id_accepts_params(monkeypatch: pytest.MonkeyPatch):
     """get_by_id must accept params, or every *_get tool raises TypeError."""
     client = JSONAPIClient(FakeSettings())
-    seen = _capture(monkeypatch, FakeResponse())
+    seen = _capture(monkeypatch, default=FakeResponse())
+    uuid = "4d9ecad4-49d5-481d-bf4e-8cfe9fde5471"
 
-    await client.get_by_id("node", "abc", params={"include": "uid"})
+    await client.get_by_id("node--article", uuid, params={"include": "uid"})
 
-    assert seen["url"] == "https://example.test/jsonapi/node/abc"
+    assert seen["url"] == f"https://example.test/jsonapi/node/article/{uuid}"
     assert seen["params"] == {"include": "uid"}
 
 
 @pytest.mark.asyncio
 async def test_get_by_id_without_params(monkeypatch: pytest.MonkeyPatch):
     client = JSONAPIClient(FakeSettings())
-    seen = _capture(monkeypatch, FakeResponse())
+    uuid = "4d9ecad4-49d5-481d-bf4e-8cfe9fde5471"
+    seen = _capture(monkeypatch, default=FakeResponse())
 
-    await client.get_by_id("node", "abc")
+    await client.get_by_id("node--article", uuid)
 
     assert seen["params"] is None
 
@@ -78,9 +110,10 @@ async def test_get_by_id_without_params(monkeypatch: pytest.MonkeyPatch):
 async def test_delete_tolerates_204_no_content(monkeypatch: pytest.MonkeyPatch):
     """Drupal DELETE returns 204 with an empty body; parsing it as JSON must not raise."""
     client = JSONAPIClient(FakeSettings())
-    _capture(monkeypatch, FakeResponse(status_code=204, content=b""))
+    _capture(monkeypatch, default=FakeResponse(status_code=204, content=b""))
+    uuid = "4d9ecad4-49d5-481d-bf4e-8cfe9fde5471"
 
-    result = await client.delete_resource("node", "abc")
+    result = await client.delete_resource("node--article", uuid)
 
     assert result["deleted"] is True
 
@@ -94,7 +127,7 @@ async def test_headers_include_auth(monkeypatch: pytest.MonkeyPatch):
             return {"Authorization": "Basic abc"}
 
     client = JSONAPIClient(FakeSettings(), SyncAuth())
-    seen = _capture(monkeypatch, FakeResponse())
+    seen = _capture(monkeypatch, default=FakeResponse())
 
     await client.get_resource("node--article")
 
@@ -115,3 +148,273 @@ def test_base_client_timeout_is_set():
     client = JSONAPIClient(FakeSettings())
     assert isinstance(client._timeout, int | float)
     assert client._timeout > 0
+
+
+# --- Regression tests: bugs found against a real Drupal (DDEV) site ----------
+
+
+@pytest.mark.asyncio
+async def test_bundle_resource_type_uses_slash_path(monkeypatch: pytest.MonkeyPatch):
+    """``node--article`` is a *type*, not a path. Drupal serves ``/jsonapi/node/article``.
+
+    Building the ``--`` form 404s on every collection call.
+    """
+    client = JSONAPIClient(FakeSettings())
+    seen = _capture(monkeypatch, default=FakeResponse())
+
+    await client.get_resource("node--article")
+
+    assert seen["url"] == "https://example.test/jsonapi/node/article"
+    assert "--" not in seen["url"]
+
+
+@pytest.mark.asyncio
+async def test_bare_entity_type_expands_via_index(monkeypatch: pytest.MonkeyPatch):
+    """``node`` alone has no path; the JSON:API index supplies the bundles."""
+    index = {
+        "links": {
+            "self": {"href": "https://example.test/jsonapi"},
+            "node--article": {"href": "https://example.test/jsonapi/node/article"},
+            "node--page": {"href": "https://example.test/jsonapi/node/page"},
+        }
+    }
+
+    def responder(entry: dict[str, Any]) -> FakeResponse:
+        if entry["url"].rstrip("/").endswith("/jsonapi"):
+            return FakeResponse(content=json.dumps(index).encode())
+        # One row per bundle so the merge is observable.
+        bundle = entry["url"].rsplit("/", 1)[-1]
+        return FakeResponse(
+            content=json.dumps({"data": [{"id": f"uuid-{bundle}", "type": "node--x"}]}).encode()
+        )
+
+    client = JSONAPIClient(FakeSettings())
+    _capture(monkeypatch, responder=responder)
+
+    result = await client.get_resource("node")
+
+    assert len(result["data"]) == 2  # both bundles merged
+    assert {row["id"] for row in result["data"]} == {"uuid-article", "uuid-page"}
+
+
+@pytest.mark.asyncio
+async def test_internal_id_resolves_to_uuid(monkeypatch: pytest.MonkeyPatch):
+    """Drupal addresses single resources by UUID; nid/uid/tid need a filter lookup."""
+    uuid = "4d9ecad4-49d5-481d-bf4e-8cfe9fde5471"
+
+    def responder(entry: dict[str, Any]) -> FakeResponse:
+        params = entry["params"] or {}
+        if any("drupal_internal__nid" in key for key in params):
+            return FakeResponse(content=json.dumps({"data": [{"id": uuid}]}).encode())
+        return FakeResponse()
+
+    client = JSONAPIClient(FakeSettings())
+    seen = _capture(monkeypatch, responder=responder)
+
+    await client.get_by_id("node--article", "10")
+
+    # The final request must be the UUID path, not /node/article/10.
+    assert seen["requests"][-1]["url"] == f"https://example.test/jsonapi/node/article/{uuid}"
+
+
+@pytest.mark.asyncio
+async def test_write_payload_is_wrapped_in_data(monkeypatch: pytest.MonkeyPatch):
+    """Flat tool payloads are rejected with 400 'must include a type'."""
+    client = JSONAPIClient(FakeSettings())
+    seen = _capture(monkeypatch, default=FakeResponse())
+
+    await client.create_resource("node--article", {"title": "Hi", "type": "node--article"})
+
+    assert seen["json"] == {
+        "data": {"type": "node--article", "attributes": {"title": "Hi"}}
+    }
+
+
+@pytest.mark.asyncio
+async def test_already_wrapped_payload_is_untouched(monkeypatch: pytest.MonkeyPatch):
+    client = JSONAPIClient(FakeSettings())
+    seen = _capture(monkeypatch, default=FakeResponse())
+    doc = {"data": {"type": "node--article", "attributes": {"title": "Hi"}}}
+
+    await client.create_resource("node--article", doc)
+
+    assert seen["json"] == doc
+
+
+@pytest.mark.asyncio
+async def test_jsonapi_media_type_is_vnd_api_json(monkeypatch: pytest.MonkeyPatch):
+    """``application/json`` gets 415 Unsupported Media Type from Drupal."""
+    client = JSONAPIClient(FakeSettings())
+    seen = _capture(monkeypatch, default=FakeResponse())
+
+    await client.create_resource("node--article", {"title": "Hi", "type": "node--article"})
+
+    assert seen["headers"]["Content-Type"] == "application/vnd.api+json"
+    assert seen["headers"]["Accept"] == "application/vnd.api+json"
+
+
+@pytest.mark.asyncio
+async def test_update_payload_uses_resolved_uuid(monkeypatch: pytest.MonkeyPatch):
+    """The body must carry the UUID even when the caller passed an nid."""
+    uuid = "4d9ecad4-49d5-481d-bf4e-8cfe9fde5471"
+
+    def responder(entry: dict[str, Any]) -> FakeResponse:
+        params = entry["params"] or {}
+        if any("drupal_internal__nid" in key for key in params):
+            return FakeResponse(content=json.dumps({"data": [{"id": uuid}]}).encode())
+        return FakeResponse()
+
+    client = JSONAPIClient(FakeSettings())
+    seen = _capture(monkeypatch, responder=responder)
+
+    await client.update_resource("node--article", "10", {"title": "Renamed"})
+
+    assert seen["json"]["data"]["id"] == uuid
+
+
+@pytest.mark.asyncio
+async def test_http_errors_include_drupal_detail(monkeypatch: pytest.MonkeyPatch):
+    """Discarding the body turns 'must include a type' into a bare '400 Bad Request'."""
+    body = json.dumps(
+        {"errors": [{"title": "Bad Request", "detail": "Resource object must include a type."}]}
+    ).encode()
+    client = JSONAPIClient(FakeSettings())
+    _capture(monkeypatch, default=FakeResponse(status_code=400, content=body))
+
+    with pytest.raises(httpx.HTTPStatusError, match="must include a type"):
+        await client.create_resource("node--article", {"title": "Hi"})
+
+
+def test_verify_ssl_false_reaches_httpx(monkeypatch: pytest.MonkeyPatch):
+    """Self-signed dev certs (DDEV/Lando) otherwise fail with no override."""
+    captured: dict[str, Any] = {}
+    original = httpx.AsyncClient.__init__
+
+    def spy(self: Any, *args: Any, **kwargs: Any) -> None:
+        captured.update(kwargs)
+        original(self, *args, **kwargs)
+
+    monkeypatch.setattr(httpx.AsyncClient, "__init__", spy)
+
+    class InsecureSettings(FakeSettings):
+        DRUPAL_VERIFY_SSL = False
+
+    client = JSONAPIClient(InsecureSettings())
+    assert client._verify_ssl is False
+
+    # And it must be passed to httpx, not merely stored on the client.
+    client._cookies = lambda: {}  # type: ignore[method-assign]
+    client._client()
+    assert captured["verify"] is False
+
+
+# --- GraphQL schema ----------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_graphql_get_schema_uses_introspection(monkeypatch: pytest.MonkeyPatch):
+    """graphql_schema_get called get_schema(), which did not exist."""
+    from drupal_mcp_server.clients.graphql import GraphQLClient
+
+    client = GraphQLClient(FakeSettings())
+    seen = _capture(monkeypatch, default=FakeResponse())
+
+    await client.get_schema()
+
+    assert "__schema" in seen["json"]["query"]
+
+
+@pytest.mark.asyncio
+async def test_graphql_schema_sdl_renders(monkeypatch: pytest.MonkeyPatch):
+    from drupal_mcp_server.clients.graphql import GraphQLClient
+
+    schema = {
+        "data": {
+            "__schema": {
+                "queryType": {"name": "QueryRoot"},
+                "types": [
+                    {"kind": "OBJECT", "name": "QueryRoot", "interfaces": [],
+                     "fields": [{"name": "node", "args": [],
+                                 "type": {"kind": "OBJECT", "name": "Node", "ofType": None}}]},
+                    {"kind": "SCALAR", "name": "DateTime"},
+                    {"kind": "ENUM", "name": "Status", "enumValues": [{"name": "ACTIVE"}]},
+                    {"kind": "OBJECT", "name": "__Schema", "fields": []},
+                ],
+            }
+        }
+    }
+    client = GraphQLClient(FakeSettings())
+    _capture(
+        monkeypatch,
+        default=FakeResponse(content=json.dumps(schema).encode()),
+    )
+
+    sdl = await client.get_schema_sdl()
+
+    assert "type QueryRoot" in sdl
+    assert "node: Node" in sdl
+    assert "scalar DateTime" in sdl
+    assert "enum Status" in sdl
+    assert "__Schema" not in sdl  # introspection types are not part of the API
+
+
+@pytest.mark.asyncio
+async def test_graphql_schema_sdl_reports_missing_introspection(monkeypatch: pytest.MonkeyPatch):
+    from drupal_mcp_server.clients.graphql import GraphQLClient
+
+    client = GraphQLClient(FakeSettings())
+    _capture(monkeypatch, default=FakeResponse(content=b'{"data": {}}'))
+
+    with pytest.raises(ValueError, match="GraphQL module"):
+        await client.get_schema_sdl()
+
+
+# --- Structural guard for the whole DEAD-tool bug class ----------------------
+
+
+def test_no_tool_calls_a_missing_client_method():
+    """Every ``jsonapi.foo()`` / ``graphql.foo()`` in a tool must exist.
+
+    graphql_schema_get called get_schema() and get_schema_sdl(), neither of
+    which existed, so the tool was dead on every call. This scans the tool
+    modules so the same mistake cannot land again.
+    """
+    import ast
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2] / "src" / "drupal_mcp_server"
+    clients = {
+        "jsonapi": ("clients/jsonapi.py", "JSONAPIClient"),
+        "graphql": ("clients/graphql.py", "GraphQLClient"),
+        "drush": ("clients/drush.py", "DrushClient"),
+        "ai": ("services/ai_service.py", "AIService"),
+        "site_manager": ("services/site_manager.py", "SiteManager"),
+    }
+
+    def members(rel: str, cls: str) -> set[str]:
+        tree = ast.parse((root / rel).read_text())
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef) and node.name == cls:
+                return {
+                    s.name
+                    for s in node.body
+                    if isinstance(s, (ast.FunctionDef, ast.AsyncFunctionDef))
+                }
+        raise AssertionError(f"class {cls} not found in {rel}")
+
+    available = {name: members(rel, cls) for name, (rel, cls) in clients.items()}
+
+    missing: dict[str, list[str]] = {}
+    for path in sorted((root / "tools").rglob("*.py")):
+        tree = ast.parse(path.read_text())
+        for node in ast.walk(tree):
+            if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)):
+                continue
+            base = node.func.value
+            if isinstance(base, ast.Name) and base.id in available:
+                if node.func.attr not in available[base.id]:
+                    missing.setdefault(f"{base.id}.{node.func.attr}", []).append(
+                        f"{path.name}:{node.lineno}"
+                    )
+
+    assert not missing, f"tools call methods that do not exist: {missing}"

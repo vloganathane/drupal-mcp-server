@@ -110,7 +110,9 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 params["include"] = include
             
             if fields:
-                params["fields[node--article]"] = ",".join(fields)
+                # The sparse fieldset key must name the actual bundle.
+                sparse_type = f"node--{bundle}" if bundle else "node"
+                params[f"fields[{sparse_type}]"] = ",".join(fields)
             
             resource_type = f"node--{bundle}" if bundle else "node"
             result = await jsonapi.get_resource(resource_type, params)

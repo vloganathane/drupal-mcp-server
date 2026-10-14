@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Drupal MCP Server - FastMCP server for Drupal operations."""
 
+import asyncio
+import logging
 import os
 import uuid
 
@@ -54,11 +56,14 @@ from drupal_mcp_server.tools import (
 )
 from drupal_mcp_server.tools import config as config_tools
 
+logger = logging.getLogger(__name__)
 
-def create_server() -> FastMCP:
+
+def create_server(auth_manager: AuthManager | None = None) -> FastMCP:
     """Create and configure the FastMCP server."""
     settings = get_settings()
-    auth_manager = AuthManager(settings)
+    if auth_manager is None:
+        auth_manager = AuthManager(settings)
     jsonapi_client = JSONAPIClient(settings, auth_manager)
     graphql_client = GraphQLClient(settings, auth_manager)
     drush_client = DrushClient(settings)
@@ -164,16 +169,31 @@ def create_server() -> FastMCP:
     return mcp
 
 
+async def _login_session(auth_manager: AuthManager) -> None:
+    """Log in to Drupal and cache a CSRF token before the server starts."""
+    await auth_manager.ensure_session()
+
+
 def run_server() -> None:
     settings = get_settings()
-    mcp = create_server()
+
+    # Establish a Drupal session up front so mutating tools carry a CSRF token.
+    # Basic auth alone is rejected with 403 on Drupal's write endpoints. The
+    # same AuthManager instance is handed to create_server() so the cookies and
+    # CSRF token are visible to every client.
+    auth_manager = AuthManager(settings)
+    try:
+        asyncio.run(_login_session(auth_manager))
+    except Exception as exc:  # noqa: BLE001 - login must not block server startup
+        logger.warning("Drupal session login failed: %s", exc)
+
+    mcp = create_server(auth_manager)
 
     # Determine transport
     transport = os.getenv("MCP_TRANSPORT", settings.MCP_TRANSPORT)
 
     if transport in ("http", "sse", "streamable-http"):
-        # HTTP transport with OAuth — auth manager already created in create_server()
-        auth_manager = AuthManager(settings)
+        # HTTP transport with OAuth
         oauth_provider = auth_manager.get_mcp_oauth_provider(settings)
         if oauth_provider:
             mcp._oauth_provider = oauth_provider  # type: ignore[attr-defined]
