@@ -68,3 +68,52 @@ def test_required_parameters_are_declared_in_properties() -> None:
             if name not in (schema.get("properties") or {}):
                 broken.append(f"{tool.name}.{name}")
     assert broken == []
+
+
+def test_http_transport_hands_auth_to_the_server_not_to_run(monkeypatch) -> None:
+    """`run(auth=...)` never bound a socket, so only stdio ever worked.
+
+    FastMCP forwards unknown keywords from `run()` straight into
+    `run_http_async()`, which has no `auth` parameter. Every http, sse and
+    streamable-http start therefore died with
+    ``TypeError: unexpected keyword argument 'auth'`` before uvicorn launched.
+    FastMCP reads the provider off ``self.auth`` when it builds the HTTP app.
+    """
+    import fastmcp
+
+    from drupal_mcp_server.auth import AuthManager
+    from drupal_mcp_server.config import get_settings
+    from drupal_mcp_server.server import run_server
+
+    captured: dict[str, Any] = {}
+
+    async def fake_ensure_session(self: Any) -> None:
+        return None
+
+    def fake_run(self: Any, **kwargs: Any) -> None:
+        captured.update(kwargs)
+        captured["_self_auth"] = getattr(self, "auth", None)
+
+    monkeypatch.setattr(AuthManager, "ensure_session", fake_ensure_session)
+    monkeypatch.setattr(fastmcp.FastMCP, "run", fake_run)
+
+    # get_settings() is lru_cached, and an earlier test in this file already
+    # built it before MCP_TRANSPORT was set - without clearing it the provider
+    # is decided from a stale stdio setting.
+    get_settings.cache_clear()
+    monkeypatch.setenv("MCP_TRANSPORT", "http")
+    try:
+        run_server()
+    finally:
+        get_settings.cache_clear()
+
+    assert "auth" not in captured, (
+        "run(auth=...) is forwarded to run_http_async() and raises TypeError, "
+        "so the HTTP transport never starts"
+    )
+    assert captured.get("_self_auth") is not None, (
+        "the OAuth provider was never installed on the server, so the HTTP "
+        "endpoint would serve without authentication"
+    )
+    # The path FastMCP actually mounts is derived, not the transport name.
+    assert captured.get("path") == "/mcp"

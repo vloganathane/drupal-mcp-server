@@ -210,16 +210,19 @@ def run_server() -> None:
     transport = os.getenv("MCP_TRANSPORT", settings.MCP_TRANSPORT)
 
     if transport in ("http", "sse", "streamable-http"):
-        # HTTP transport with OAuth
+        # FastMCP reads the provider off `self.auth` when it builds the HTTP
+        # app. It was being passed to run() instead, which forwards unknown
+        # keywords straight to run_http_async() and raised
+        # "unexpected keyword argument 'auth'" before binding a socket - so
+        # every HTTP transport died at startup and only stdio ever worked.
         oauth_provider = auth_manager.get_mcp_oauth_provider(settings)
         if oauth_provider:
-            mcp._oauth_provider = oauth_provider  # type: ignore[attr-defined]
+            mcp.auth = oauth_provider
         mcp.run(
             transport=transport,  # type: ignore[arg-type]
             host=settings.MCP_HOST,
             port=settings.MCP_PORT,
             path=f"/{transport}" if transport != "http" else "/mcp",
-            auth=oauth_provider,
         )
     else:
         # Stdio transport (default)
