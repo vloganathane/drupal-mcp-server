@@ -116,13 +116,22 @@ _OMIT = object()
 def synthesize(schema: dict, tool: str = "") -> dict:
     """Build plausible arguments from a tool's JSON schema."""
     props = schema.get("properties") or {}
+    required = set(schema.get("required") or [])
     out: dict = {}
     for name, spec in props.items():
         t, resolved = resolve_schema(spec)
         default = spec.get("default")
         value = default if default is not None else value_for(name, t, resolved, tool)
-        if value is not _OMIT:
-            out[name] = value
+        if value is _OMIT:
+            # Only a caller who could leave the argument out can have it left
+            # out. A required one still has to be filled, and "en" is a
+            # language Drupal accepts, where the junk value would have made
+            # the tool answer a permission error about the field instead of
+            # doing its job.
+            if name not in required:
+                continue
+            value = "en"
+        out[name] = value
     return out
 
 
@@ -379,6 +388,18 @@ async def main() -> int:
                     except Exception:
                         payload = text
                     verdict, detail = classify(payload, t.name, local)
+                    # A call the server refused is not a passing one. When the
+                    # arguments fail FastMCP's validation the answer is prose
+                    # rather than JSON, so no pattern in classify() matches it
+                    # and the fall-through says OK: translation_add,
+                    # translation_update, the three interface_translation_*
+                    # tools and config_translation_add were counted OK on every
+                    # run while never being called at all.
+                    if verdict == "OK" and (
+                        getattr(res, "isError", False)
+                        or getattr(res, "is_error", False)
+                    ):
+                        verdict, detail = "REJECTED", " ".join(text.split())[:200]
                 except TimeoutError:
                     verdict, detail = "BLOCKED", f"timeout >{timeout}s"
                 except Exception as e:
