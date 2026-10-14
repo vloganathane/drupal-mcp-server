@@ -8,6 +8,7 @@ from typing import Any
 from fastmcp import FastMCP
 
 from ._utils import ensure_dict as _ensure_dict
+from ._utils import run_composer as _run_composer
 
 
 async def _proc_run(cmd: list[str]) -> dict[str, Any]:
@@ -181,13 +182,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
     @mcp.tool()
     async def composer_audit() -> dict[str, Any]:
         """Run Composer security audit on dependencies."""
-        if not drush:
-            return {"error": "Drush not available"}
-        try:
-            result = await drush.run("composer", ["audit", "--format=json"])
-            return _ensure_dict(result)
-        except Exception as e:
-            return {"error": str(e)}
+        return await _run_composer(["audit"])
 
     @mcp.tool()
     async def code_quality_report(

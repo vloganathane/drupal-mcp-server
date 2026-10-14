@@ -153,7 +153,8 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 result = await jsonapi.get_resource("user_role", {"page[limit]": 100})
                 roles = _ensure_dict(result)
             else:
-                result = await drush.run("user:role:list", ["--format=json"])
+                # Drush 13 renamed this; `user:role:list` is not a command.
+                result = await drush.run("role:list")
                 roles = _ensure_dict(result)
             
             if role and jsonapi:

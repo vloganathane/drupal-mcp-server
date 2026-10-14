@@ -115,8 +115,21 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         try:
             # Save base64 to temp file and import via drush
             import tempfile
+
+            try:
+                payload = base64.b64decode(base64_data, validate=True)
+            except (ValueError, base64.binascii.Error) as e:
+                # binascii surfaces "Incorrect padding", which says nothing
+                # about what the caller got wrong.
+                return {
+                    "error": (
+                        f"{filename!r} is not valid base64 ({e}). Send the raw "
+                        "file bytes encoded with base64.b64encode, with no "
+                        "line breaks or data-URI prefix."
+                    )
+                }
             with tempfile.NamedTemporaryFile(delete=False, suffix=f"_{filename}") as tmp:
-                tmp.write(base64.b64decode(base64_data))
+                tmp.write(payload)
                 tmp_path = tmp.name
             
             result = await drush.run("media:import", [tmp_path, "--type", media_type])

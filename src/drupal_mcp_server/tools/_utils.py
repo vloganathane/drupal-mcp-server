@@ -1,7 +1,70 @@
 """Shared utilities for tool modules."""
 
+import asyncio
 import json
+import os
+import shutil
 from typing import Any
+
+_COMPOSER_TIMEOUT = 900
+
+
+async def run_composer(args: list[str]) -> dict[str, Any]:
+    """Run the composer binary and report what happened.
+
+    Drush has no ``composer`` command, so routing these tools through it made
+    all four fail with ``Command "composer" is not defined``. Composer is its
+    own executable; look for it rather than borrowing Drush.
+    """
+    binary = shutil.which("composer")
+    if binary is None:
+        for candidate in ("./vendor/bin/composer", "./bin/composer"):
+            if os.path.exists(candidate):
+                binary = candidate
+                break
+    if binary is None:
+        return {
+            "returncode": 127,
+            "output": "",
+            "error": (
+                "composer is not on PATH and no ./vendor/bin/composer was "
+                "found next to the working directory. Install Composer from "
+                "https://getcomposer.org, or start the MCP server from the "
+                "project root."
+            ),
+        }
+
+    argv = [binary, *args, "--no-interaction"]
+    command = " ".join(argv)
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            *argv,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await asyncio.wait_for(
+            proc.communicate(), timeout=_COMPOSER_TIMEOUT
+        )
+    except TimeoutError:
+        return {
+            "returncode": -1,
+            "output": "",
+            "error": f"composer timed out after {_COMPOSER_TIMEOUT}s",
+            "command": command,
+        }
+    except OSError as exc:
+        return {"returncode": 127, "output": "", "error": f"could not run {binary}: {exc}"}
+
+    text = stdout.decode(errors="replace")
+    payload: dict[str, Any] = {
+        "returncode": proc.returncode,
+        "output": text[-4000:],
+        "command": command,
+    }
+    if proc.returncode:
+        reason = stderr.decode(errors="replace").strip() or text.strip()
+        payload["error"] = (reason or "composer failed with no output")[:800]
+    return payload
 
 
 def drush_output(result: dict[str, Any]) -> str:

@@ -56,6 +56,36 @@ class DrupalBaseClient:
         return headers
 
     @staticmethod
+    def _decode(response: httpx.Response, method: str) -> Any:
+        """Parse a JSON body, and say what happened when there isn't one.
+
+        An empty body used to surface as ``Expecting value: line 1 column 1
+        (char 0)``, which reads like a client bug and gives no clue that
+        Drupal's own PHP died mid-request.
+        """
+        body = response.content
+        if not body.strip():
+            if response.status_code == 204 or method == "DELETE":
+                return {}
+            raise RuntimeError(
+                f"{method} {response.request.url} returned HTTP "
+                f"{response.status_code} with an empty body, so there is "
+                "nothing to parse. Drupal does this when PHP fails "
+                "mid-request - a vendor directory being rewritten by a "
+                "concurrent `composer install`, or a fatal error with output "
+                "buffering enabled. Check the site's watchdog or web server "
+                "log and retry."
+            )
+        try:
+            return response.json()
+        except ValueError as exc:
+            raise RuntimeError(
+                f"{method} {response.request.url} returned HTTP "
+                f"{response.status_code} with a body that is not JSON "
+                f"({exc}): {body[:160]!r}"
+            ) from None
+
+    @staticmethod
     def _raise(response: httpx.Response) -> None:
         """Raise for status, preserving Drupal's JSON:API error body.
 
@@ -103,8 +133,7 @@ class DrupalBaseClient:
         """Perform a GET request to the Drupal endpoint."""
         response = await self.request("GET", endpoint, params=params)
         self._raise(response)
-        data = response.json()
-        return data  # type: ignore[no-any-return]
+        return self._decode(response, "GET")  # type: ignore[no-any-return]
 
     async def post(
         self,
@@ -115,15 +144,13 @@ class DrupalBaseClient:
         """Perform a POST request to the Drupal endpoint."""
         response = await self.request("POST", endpoint, json_body=json_body or data)
         self._raise(response)
-        data = response.json()
-        return data
+        return self._decode(response, "POST")  # type: ignore[no-any-return]
 
     async def patch(self, endpoint: str, json_body: dict[str, Any]) -> dict[str, Any] | list[Any]:
         """Perform a PATCH request to the Drupal endpoint."""
         response = await self.request("PATCH", endpoint, json_body=json_body)
         self._raise(response)
-        data = response.json()
-        return data  # type: ignore[no-any-return]
+        return self._decode(response, "PATCH")  # type: ignore[no-any-return]
 
     async def delete(self, endpoint: str) -> dict[str, Any] | list[Any]:
         """Perform a DELETE request to the Drupal endpoint.

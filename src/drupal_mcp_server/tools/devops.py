@@ -7,6 +7,7 @@ from fastmcp import FastMCP
 
 from ._utils import drush_result as _drush_result
 from ._utils import ensure_dict as _ensure_dict
+from ._utils import run_composer as _run_composer
 
 
 def _existing_config_guard(config_path: str, force: bool) -> str | None:
@@ -39,7 +40,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
     async def ddev_setup(
         project_name: str = ".",
         drupal_version: str = "10",
-        webroot: str = "web",
+        docroot: str = "web",
         force: bool = False,
     ) -> dict[str, Any]:
         """Generate .ddev/config.yaml for a local Drupal environment.
@@ -72,10 +73,12 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 )
             }
 
-        # DDEV 1.24 rejects `kind:`; the key is `type:`.
+        # DDEV 1.24 accepts `type:`, not `kind:`, and reads `docroot:`, not
+        # `webroot:` - an unrecognised key is dropped, leaving an empty
+        # docroot, so nginx serves the project root and every request 404s.
         ddev_config = f"""name: {name}
 type: drupal{drupal_version}
-webroot: {webroot}
+docroot: {docroot}
 """
         try:
             os.makedirs(os.path.dirname(config_path) or ".", exist_ok=True)
@@ -348,17 +351,13 @@ webroot: {webroot}
         optimize: bool = True,
     ) -> dict[str, Any]:
         """Run composer install."""
-        if not drush:
-            return {"error": "Drush not available"}
         try:
-            args = ["install"]
+            args = ["install", "--working-dir=" + working_dir]
             if no_dev:
                 args.append("--no-dev")
             if optimize:
                 args.append("--optimize-autoloader")
-            args.append("--working-dir=" + working_dir)
-            result = await drush.run("composer", args)
-            return _ensure_dict(result)
+            return await _run_composer(args)
         except Exception as e:
             return {"error": str(e)}
 
@@ -370,17 +369,13 @@ webroot: {webroot}
         working_dir: str = ".",
     ) -> dict[str, Any]:
         """Require a package via composer."""
-        if not drush:
-            return {"error": "Drush not available"}
         try:
             pkg = f"{package}:{version}" if version else package
-            args = ["require"]
+            args = ["require", pkg]
             if dev:
                 args.append("--dev")
-            args.append(pkg)
             args.append("--working-dir=" + working_dir)
-            result = await drush.run("composer", args)
-            return _ensure_dict(result)
+            return await _run_composer(args)
         except Exception as e:
             return {"error": str(e)}
 
@@ -390,15 +385,12 @@ webroot: {webroot}
         no_dev: bool = False,
     ) -> dict[str, Any]:
         """Run composer update."""
-        if not drush:
-            return {"error": "Drush not available"}
         try:
             args = ["update"]
             if no_dev:
                 args.append("--no-dev")
             args.append("--working-dir=" + working_dir)
-            result = await drush.run("composer", args)
-            return _ensure_dict(result)
+            return await _run_composer(args)
         except Exception as e:
             return {"error": str(e)}
 

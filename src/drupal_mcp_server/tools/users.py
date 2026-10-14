@@ -168,8 +168,19 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not drush:
             return {"error": "Drush not available"}
         try:
-            result = await drush.run("user:role:list", [uid, "--format=json"])
-            return _ensure_dict(result)
+            # `user:role:list` does not exist in Drush 13; roles come back
+            # with the rest of the account from `user:information`.
+            result = await drush.run("user:information", [f"--uid={uid}"])
+            if result.get("returncode") != 0:
+                return _drush_result(result, uid=uid)
+            info = result.get("data") or {}
+            account = info.get(str(uid)) or next(iter(info.values()), {}) if isinstance(info, dict) else {}
+            return _ensure_dict({
+                "uid": uid,
+                "name": account.get("name"),
+                "roles": account.get("roles"),
+                "account": account,
+            })
         except Exception as e:
             return {"error": str(e)}
 

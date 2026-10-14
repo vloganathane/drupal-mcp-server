@@ -643,3 +643,44 @@ async def test_drush_reports_the_retry_not_the_rejected_command(monkeypatch: pyt
     assert "--format" not in result["stderr"]
     assert result["format_flag_dropped"] is True
     assert "--format" not in result["command"]
+
+
+class _FakeResponse:
+    def __init__(self, status_code: int, body: bytes, url: str = "https://x/jsonapi"):
+        self.status_code = status_code
+        self.content = body
+        self.text = body.decode(errors="replace")
+        self.request = type("R", (), {"url": url})()
+
+    def json(self):
+        import json as _json
+
+        return _json.loads(self.content)
+
+
+def test_empty_body_names_the_url_and_the_usual_cause():
+    """An empty response used to surface as `Expecting value: line 1 column 1
+    (char 0)`, which reads like a client bug rather than a dying site."""
+    from drupal_mcp_server.clients.base import DrupalBaseClient
+
+    with pytest.raises(RuntimeError) as excinfo:
+        DrupalBaseClient._decode(_FakeResponse(200, b""), "GET")
+
+    message = str(excinfo.value)
+    assert "https://x/jsonapi" in message
+    assert "empty body" in message
+    assert "composer install" in message
+
+
+def test_non_json_body_is_reported_with_what_arrived():
+    from drupal_mcp_server.clients.base import DrupalBaseClient
+
+    with pytest.raises(RuntimeError, match="not JSON"):
+        DrupalBaseClient._decode(_FakeResponse(500, b"<html>fatal error</html>"), "GET")
+
+
+def test_delete_and_204_are_allowed_to_be_empty():
+    from drupal_mcp_server.clients.base import DrupalBaseClient
+
+    assert DrupalBaseClient._decode(_FakeResponse(204, b""), "GET") == {}
+    assert DrupalBaseClient._decode(_FakeResponse(200, b""), "DELETE") == {}

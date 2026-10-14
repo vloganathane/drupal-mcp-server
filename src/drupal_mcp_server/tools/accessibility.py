@@ -112,21 +112,25 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         foreground: str,
         background: str,
     ) -> dict[str, Any]:
-        """Check color contrast ratio."""
-        if not drush:
-            return {"error": "Drush not available"}
-        try:
-            # Simple hex color parsing
-            def hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
-                hex_color = hex_color.lstrip('#')
-                if len(hex_color) == 3:
-                    hex_color = ''.join([c*2 for c in hex_color])
-                return (
-                    int(hex_color[0:2], 16),
-                    int(hex_color[2:4], 16),
-                    int(hex_color[4:6], 16),
+        """Check color contrast ratio.
+
+        Pure arithmetic: it deliberately does not touch the site, so it works
+        without Drush configured.
+        """
+
+        def hex_to_rgb(name: str, hex_color: str) -> tuple[int, int, int]:
+            value = hex_color.strip().lstrip('#')
+            if len(value) == 3:
+                value = ''.join(c * 2 for c in value)
+            if len(value) != 6 or any(c not in "0123456789abcdefABCDEF" for c in value):
+                raise ValueError(
+                    f"{name} must be a hex colour such as #1a2b3c or #abc, "
+                    f"got {hex_color!r}."
                 )
-            
+            return (int(value[0:2], 16), int(value[2:4], 16), int(value[4:6], 16))
+
+        try:
+
             def luminance(rgb: tuple[int, int, int]) -> float:
                 r, g, b = [c/255.0 for c in rgb]
                 r = r/12.92 if r <= 0.03928 else ((r+0.055)/1.055)**2.4
@@ -134,8 +138,8 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 b = b/12.92 if b <= 0.03928 else ((b+0.055)/1.055)**2.4
                 return 0.2126*r + 0.7152*g + 0.0722*b
             
-            fg_rgb = hex_to_rgb(foreground)
-            bg_rgb = hex_to_rgb(background)
+            fg_rgb = hex_to_rgb("foreground", foreground)
+            bg_rgb = hex_to_rgb("background", background)
             
             fg_lum = luminance(fg_rgb)
             bg_lum = luminance(bg_rgb)
@@ -151,6 +155,8 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 "aaa_normal": ratio >= 7.0,
                 "aaa_large": ratio >= 4.5,
             })
+        except ValueError as e:
+            return {"error": str(e)}
         except Exception as e:
             return {"error": str(e)}
 

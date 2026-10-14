@@ -49,8 +49,18 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not drush:
             return {"error": "Drush not available"}
         try:
-            result = await drush.run("queue:run", [queue_name, f"--limit={limit}"])
-            return _ensure_dict(result)
+            # Drush 13 offers neither --limit nor --count on queue:run; it
+            # always drains the whole queue. Claiming a limit we cannot honour
+            # would be worse than saying so.
+            result = await drush.run("queue:run", [queue_name])
+            payload = _ensure_dict(result)
+            if result.get("returncode") == 0:
+                payload["requested_limit"] = limit
+                payload["note"] = (
+                    "Drush drains the whole queue and offers no per-run limit, "
+                    f"so {limit!r} was not applied."
+                )
+            return payload
         except Exception as e:
             return {"error": str(e)}
 
@@ -76,7 +86,21 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not drush:
             return {"error": "Drush not available"}
         try:
-            result = await drush.run("queue:info", [queue_name, "--format=json"])
+            # There is no `queue:info`; `queue:list` carries the same data.
+            result = await drush.run("queue:list")
+            if result.get("returncode") != 0:
+                return _ensure_dict(result)
+            queues = result.get("data") or {}
+            detail = queues.get(queue_name) if isinstance(queues, dict) else None
+            if detail is None:
+                return _ensure_dict({
+                    "queue": queue_name,
+                    "error": (
+                        f"No queue named {queue_name!r}. Known queues: "
+                        + ", ".join(sorted(queues))[:400]
+                    ),
+                })
+            return _ensure_dict({"queue": queue_name, "info": detail})
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
