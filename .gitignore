@@ -26,6 +26,12 @@ ENV/
 env/
 .venv/
 
+# Local DDEV test site (see tests/live/README.md to rebuild it)
+drupal-live/
+
+# Live-test output
+tests/live/sweep-results.json
+
 # IDE
 .idea/
 .vscode/
