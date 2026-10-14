@@ -174,7 +174,9 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             if result.get("returncode") != 0:
                 return _drush_result(result, uid=uid)
             info = result.get("data") or {}
-            account = info.get(str(uid)) or next(iter(info.values()), {}) if isinstance(info, dict) else {}
+            account: dict[str, Any] = (
+                info.get(str(uid)) or next(iter(info.values()), {})
+            ) if isinstance(info, dict) else {}
             return _ensure_dict({
                 "uid": uid,
                 "name": account.get("name"),

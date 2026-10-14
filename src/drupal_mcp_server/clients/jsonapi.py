@@ -110,10 +110,13 @@ class JSONAPIClient(DrupalBaseClient):
                 if key in chunk and key not in merged:
                     merged[key] = chunk[key]
         seen: set[str] = set()
-        merged["included"] = [
-            item for item in merged["included"]
-            if not (item.get("id") in seen or seen.add(item.get("id")))
-        ]
+        unique: list[Any] = []
+        for item in merged["included"]:
+            item_id = item.get("id")
+            if item_id not in seen:
+                seen.add(item_id)
+                unique.append(item)
+        merged["included"] = unique
         return merged
 
     async def _resolve_uuid(self, resource_type: str, resource_id: str) -> tuple[str, str]:

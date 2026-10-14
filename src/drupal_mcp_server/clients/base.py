@@ -1,6 +1,6 @@
 """Base HTTP client for Drupal REST endpoints."""
 
-from typing import Any
+from typing import Any, cast
 
 import httpx
 
@@ -26,7 +26,7 @@ class DrupalBaseClient:
         getter = getattr(mgr, "get_session_cookies", None)
         if getter is None:
             return {}
-        return getter()
+        return cast("dict[str, str]", getter())
 
     def _client(self) -> httpx.AsyncClient:
         """Build an AsyncClient honouring the DRUPAL_VERIFY_SSL setting.

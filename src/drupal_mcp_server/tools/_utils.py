@@ -76,7 +76,7 @@ def drush_output(result: dict[str, Any]) -> str:
     data = result.get("data")
     if isinstance(data, dict):
         if isinstance(data.get("output"), str):
-            return data["output"]
+            return str(data["output"])
         return json.dumps(data, indent=2, default=str) if data else ""
     if isinstance(data, str):
         return data

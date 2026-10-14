@@ -1,6 +1,6 @@
 """Authentication managers for Drupal MCP Server."""
 
-from typing import Any
+from typing import Any, cast
 
 from .basic import BasicAuth
 from .mcp_oauth import DrupalOAuthProvider
@@ -44,7 +44,7 @@ class AuthManager:
         """Session cookies for mutating requests, or {} if not using session auth."""
         if self._session is None:
             return {}
-        return self._session.get_cookies()
+        return cast("dict[str, str]", self._session.get_cookies())
 
     def _fetch_oauth_token(self, settings: Any) -> str:
         """Fetch OAuth token from the configured token URL."""
@@ -60,7 +60,7 @@ class AuthManager:
                 timeout=30.0,
             )
             resp.raise_for_status()
-            return resp.json().get("access_token", "")
+            return cast("str", resp.json().get("access_token", ""))
         except Exception:
             return ""
 
@@ -78,7 +78,7 @@ class AuthManager:
                 return self._basic.get_headers()
             return {}
         if self._auth:
-            return self._auth.get_headers()
+            return cast("dict[str, str]", self._auth.get_headers())
         return {}
 
     def get_mcp_oauth_provider(self, settings: Any) -> DrupalOAuthProvider | None:

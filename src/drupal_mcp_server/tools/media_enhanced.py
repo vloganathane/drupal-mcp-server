@@ -1,6 +1,7 @@
 """Media enhancement tools for Drupal."""
 
 import base64
+import binascii
 import os
 from typing import Any
 
@@ -118,7 +119,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
 
             try:
                 payload = base64.b64decode(base64_data, validate=True)
-            except (ValueError, base64.binascii.Error) as e:
+            except (ValueError, binascii.Error) as e:
                 # binascii surfaces "Incorrect padding", which says nothing
                 # about what the caller got wrong.
                 return {
