@@ -117,20 +117,25 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         page_limit: int = 50,
         page_offset: int = 0,
     ) -> dict[str, Any]:
-        """List paragraph items, optionally filtered by type."""
+        """List paragraph items, optionally filtered by type.
+
+        A paragraph's type is its bundle, so filtering by type means addressing
+        the `paragraph--{type}` collection. `filter[paragraphs_type]` does not
+        exist -- it answered 400 "the field `paragraphs_type` does not exist" on
+        every call, because there is no such field; the type lives in the
+        resource type itself.
+        """
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:
             params = {"page[limit]": str(page_limit), "page[offset]": str(page_offset)}
             
-            if type_id:
-                params["filter[paragraphs_type]"] = type_id
-            
             if filters:
                 for key, value in filters.items():
                     params[f"filter[{key}]"] = str(value)
             
-            result = await jsonapi.get_resource("paragraph", params)
+            resource = f"paragraph--{type_id}" if type_id else "paragraph"
+            result = await jsonapi.get_resource(resource, params)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}

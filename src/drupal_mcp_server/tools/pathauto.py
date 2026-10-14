@@ -5,6 +5,7 @@ from typing import Any
 from fastmcp import FastMCP
 
 from ._utils import ensure_dict as _ensure_dict
+from ._utils import langcode_field as _langcode_field
 
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
@@ -18,16 +19,22 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         page_limit: int = 50,
         page_offset: int = 0,
     ) -> dict[str, Any]:
-        """List pathauto patterns."""
+        """List pathauto patterns.
+
+        A pattern's target entity type and bundle are encoded in its *id*, as
+        `{entity_type}--{bundle}`, rather than held in fields of their own.
+        `filter[entity_type]` and `filter[bundle]` therefore answered 400 "the
+        field ... does not exist" on every call. Both are needed to filter
+        server-side; with only one there is no field to match on, so every
+        pattern is returned and the caller narrows from the ids.
+        """
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:
             params = {"page[limit]": str(page_limit), "page[offset]": str(page_offset)}
             
-            if entity_type:
-                params["filter[entity_type]"] = entity_type
-            if bundle:
-                params["filter[bundle]"] = bundle
+            if entity_type and bundle:
+                params["filter[id]"] = f"{entity_type}--{bundle}"
             
             result = await jsonapi.get_resource("pathauto_pattern", params)
             return _ensure_dict(result)
@@ -59,7 +66,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         bundle: str,
         pattern: str,
         weight: int = 0,
-        langcode: str = "en",
+        langcode: str | None = None,
     ) -> dict[str, Any]:
         """Create a new pathauto pattern."""
         if not jsonapi:
@@ -73,7 +80,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 "bundle": bundle,
                 "pattern": pattern,
                 "weight": weight,
-                "langcode": langcode,
+                **_langcode_field(langcode),
             }
             
             result = await jsonapi.create_resource("pathauto_pattern", pattern_data)

@@ -5,6 +5,7 @@ from typing import Any
 from fastmcp import FastMCP
 
 from ._utils import ensure_dict as _ensure_dict
+from ._utils import langcode_field as _langcode_field
 
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
@@ -50,7 +51,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         menu_id: str,
         label: str,
         description: str = "",
-        langcode: str = "en",
+        langcode: str | None = None,
     ) -> dict[str, Any]:
         """Create a new menu."""
         if not jsonapi:
@@ -61,7 +62,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 "id": menu_id,
                 "label": label,
                 "description": description,
-                "langcode": langcode,
+                **_langcode_field(langcode),
             }
             
             result = await jsonapi.create_resource("menu", menu_data)

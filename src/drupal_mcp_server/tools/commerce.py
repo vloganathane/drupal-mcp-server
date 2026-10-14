@@ -116,7 +116,11 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             params = {"page[limit]": str(page_limit), "page[offset]": str(page_offset)}
             
             if store_id:
-                params["filter[store]"] = store_id
+                # The field is `stores` (a product is in several stores) and it
+                # is an entity reference, so JSON:API wants the `.id`
+                # specifier. `filter[store]` answered 400 "the field `store`,
+                # given in the path `store`, does not exist" on every call.
+                params["filter[stores.id]"] = store_id
             if filters:
                 for key, value in filters.items():
                     params[f"filter[{key}]"] = str(value)
@@ -221,7 +225,9 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             params = {"page[limit]": str(page_limit), "page[offset]": str(page_offset)}
             
             if store_id:
-                params["filter[store]"] = store_id
+                # `store_id` is exposed as the `store` relationship, and an
+                # entity reference needs the `.id` specifier.
+                params["filter[store.id]"] = store_id
             if filters:
                 for key, value in filters.items():
                     params[f"filter[{key}]"] = str(value)
@@ -350,7 +356,10 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             params = {"page[limit]": str(page_limit), "page[offset]": str(page_offset)}
             
             if store_id:
-                params["filter[store]"] = store_id
+                # The field is `stores`, plural: a promotion can apply to
+                # several stores, and JSON:API wants the `.id` specifier on a
+                # reference.
+                params["filter[stores.id]"] = store_id
             
             result = await jsonapi.get_resource("commerce_promotion", params)
             return _ensure_dict(result)
@@ -397,7 +406,9 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             params = {"page[limit]": str(page_limit), "page[offset]": str(page_offset)}
             
             if store_id:
-                params["filter[store]"] = store_id
+                # `stores`, plural, and an entity reference: `filter[store]`
+                # 400'd on every call.
+                params["filter[stores.id]"] = store_id
             
             result = await jsonapi.get_resource("commerce_shipping_method", params)
             return _ensure_dict(result)

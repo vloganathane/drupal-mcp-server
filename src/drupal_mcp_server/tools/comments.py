@@ -130,7 +130,16 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         entity_id: str,
         field_name: str = "comment",
     ) -> dict[str, Any]:
-        """List comment thread for an entity."""
+        """List comment thread for an entity.
+
+        Returns the whole thread, replies included. It used to add
+        `filter[pid] = 0` to get top-level comments only, but `pid` is an
+        entity reference to the parent comment, so JSON:API rejected it with
+        "must end with one of the following specifiers" -- and had it accepted
+        `pid.id = 0` it would have matched nothing, since no comment has id 0.
+        Each row carries its own `pid`, which is what a caller needs to build
+        the tree.
+        """
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:
@@ -138,7 +147,6 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 "filter[entity_type]": entity_type,
                 "filter[entity_id]": entity_id,
                 "filter[field_name]": field_name,
-                "filter[pid]": "0",
                 "page[limit]": "50",
             }
             result = await jsonapi.get_resource("comment", params)
