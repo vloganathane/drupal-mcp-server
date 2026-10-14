@@ -92,6 +92,15 @@ which of them landed, and prints the entity types JSON:API exposes before and
 after. Re-running is safe: composer resolves nothing new and installing an
 installed module is a quick no-op.
 
+Installing `graphql` is not enough to make `/graphql` exist. The module ships
+no default server, so the endpoint 404s until a `graphql_server` config entity
+is created, `basic_auth` is enabled for credentials to reach Drupal at all, and
+`execute default arbitrary graphql requests` is granted to `authenticated`.
+`python tests/live/install_modules.py graphql` does all three through the
+server's own tools. A site without them makes `graphql_query` and
+`graphql_schema_get` report a missing server, which is what those tools now say
+instead of returning a bare 404.
+
 ## Running
 
 ```bash

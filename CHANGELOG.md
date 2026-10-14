@@ -63,6 +63,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Make three tools answer with the reason instead of a bare error.
+  `views_execute` could never have run: it asked for a `views.views` service
+  that does not exist (the executable is built from the view's config entity by
+  `views.executable`), read the row's entity through a magic property that
+  `isset()` always reports as absent, and took no care over the display. It now
+  loads the view, checks the display against the ones the view actually has --
+  reporting the rest when the caller's is wrong -- and reads `_entity`.
+  `graphql_query` and `graphql_schema_get` returned a raw 404 whenever the site
+  had no GraphQL server, which is the state a plain install leaves it in, since
+  the module ships no default; they now say that, and name the config entity
+  and the permission that fix it. `paragraphs_item_list` returned a bare 404
+  for a bundle that does not exist, which reads as "paragraphs are missing"
+  rather than "that type is not configured here"; it now lists the types the
+  site does have
 - Fix eleven hard-coded JSON:API filters that Drupal rejected outright, each
   returning an empty result on every call on every site. `commerce_product`,
   `commerce_promotion` and `commerce_shipping_method` filtered on `store` where
