@@ -111,6 +111,16 @@ def probe(href: str, field: str) -> tuple[str, str]:
             detail = parsed["errors"][0].get("detail", detail)
         except Exception:
             pass
+        # A 4xx means the *field* was rejected. A 5xx saying the entity type or
+        # bundle "does not exist" means the opposite: the field was parsed and
+        # its value resolved, and the probe value is simply not a real entity
+        # type. `filter[entity_type]` on comment is one of these -- a real
+        # field that only answers 200 for a valid type. Counting it as broken
+        # would send someone hunting a bug in a filter that works.
+        if e.code >= 500 and "does not exist" in detail and (
+            "entity type" in detail or "bundle" in detail
+        ):
+            return "OK", f"HTTP {e.code} (probe value rejected, field parsed)"
         return f"HTTP {e.code}", detail
     except Exception as e:
         return "ERROR", f"{type(e).__name__}: {e}"
