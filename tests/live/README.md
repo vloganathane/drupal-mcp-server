@@ -13,6 +13,14 @@ they need a real Drupal. Found here, none of them offline:
 - two tools filtering on fields Drupal does not expose (`filter[name]` on
   `user_role`, `filter[menu]` on `menu_link_content`), which meant a 400 on
   every call on every site;
+- three scheduler tools that could never have worked: `cron_list` asked for
+  Drupal 7's `drupal_get_cron_jobs()` (gone since Drupal 8), `queue_create`
+  put a shell escape into PHP that never sees a shell and died with a
+  ParseError, and `queue_delete` passed Drush a second argument on all three
+  paths when `queue:delete` accepts exactly one — so every branch answered
+  "Too many arguments";
+- `queue:delete` resolving only *registered* queue services, answering "Queue
+  not found" for a queue this server had just created;
 - the `ddev_setup` docroot key, the empty-body parse error, and the six
   `layout_builder_*` tools requesting a JSON:API resource that has never
   existed.
@@ -50,13 +58,15 @@ ddev drush php-script /tmp/seed.php
 ## Running
 
 ```bash
-python tests/live/smoke_test.py         # 9 end-to-end cases, ~30s
+python tests/live/smoke_test.py           # 9 end-to-end cases, ~30s
 python tests/live/layout_builder_test.py  # 10 Layout Builder cases, ~60s
-python tests/live/sweep.py        # every tool, ~30 min
-python tests/live/sweep.py composer_  # only tools whose name contains that
+python tests/live/queue_test.py           # 18 cron/queue cases, ~60s
+python tests/live/filter_check.py         # every hard-coded filter, ~5s
+python tests/live/sweep.py                # every tool, ~30 min
+python tests/live/sweep.py composer_      # only tools whose name contains that
 ```
 
-Both need `venv/` with the package installed (`pip install -e ".[dev]" mcp`)
+These need `venv/` with the package installed (`pip install -e ".[dev]" mcp`)
 and `ddev` running. They start the MCP server from `drupal-live/`, because the
 `ddev_*`, `lando_*` and `composer_*` tools run in their own working directory
 and `ddev drush` only resolves inside the project.
@@ -69,6 +79,8 @@ and `ddev drush` only resolves inside the project.
 | `seed.php` | Idempotent fixtures: admin role, a sacrificial `sweeptarget` user, a `tags` vocabulary with a term, two article nodes |
 | `smoke_test.py` | Nine cases covering the operations a user actually reaches for |
 | `layout_builder_test.py` | Ten cases for the six `layout_builder_*` tools, including an override create/revert round trip |
+| `queue_test.py` | Eighteen cases for the six cron/queue tools, including a cross-queue `item_id` delete that core's own `deleteItem()` would get wrong |
+| `filter_check.py` | Sends every hard-coded JSON:API filter to the site and fails on a 400, which is what made two tools dead on every site |
 | `sweep.py` | Calls every registered tool and classifies the result |
 
 ## Verdicts

@@ -79,6 +79,15 @@ DEAD_PATTERNS = [
     # db_count, drush_php_eval and every `ev` tool failed this way once
     # DrushClient shlex-split their arguments into separate tokens.
     "too many arguments",
+    # The tool emitted PHP that PHP rejects. queue_create's `\$queue = ...`
+    # leaked a shell escape into a non-shell context and died with a ParseError
+    # on every call.
+    "parseerror",
+    "syntax error, unexpected",
+    # The tool called an API that does not exist. cron_list asked for
+    # Drupal 7's drupal_get_cron_jobs(), removed in Drupal 8.
+    "undefined function",
+    "undefined method",
 ]
 
 
