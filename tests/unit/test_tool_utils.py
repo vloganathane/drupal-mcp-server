@@ -284,20 +284,119 @@ def test_base64_media_rejects_payload_it_cannot_decode():
     assert drush.calls == []
 
 
-def test_layout_builder_tools_stop_pretending_jsonapi_exposes_layouts():
-    """`/jsonapi/layout_builder` never existed, so every one of these tools
-    only ever produced a 404 with no explanation."""
+def test_layout_builder_tools_call_php_eval_rather_than_a_missing_jsonapi_resource():
+    """These tools used to request `/jsonapi/layout_builder`, which has never
+    existed, and answer with a 404 whose only clue was the URL. They now talk
+    to the real API through Drush."""
     import asyncio
 
-    fns = _register("layout_builder", drush_client=object(), jsonapi_client=object())
+    drush = _Drush({"returncode": 0, "data": {
+        "display_id": "node.article.default", "enabled": True, "sections": [],
+    }})
+    fns = _register("layout_builder", drush_client=drush, jsonapi_client=None)
 
-    got = asyncio.run(fns["layout_builder_get"]("node", "article"))
-    added = asyncio.run(fns["layout_builder_section_add"]("node", "article", {}))
+    result = asyncio.run(fns["layout_builder_get"]("node", "article"))
 
-    for result in (got, added):
-        assert "does not expose a JSON:API resource" in result["error"]
-        assert result["entity_type"] == "node"
-        assert "entity_view_display" in result["error"]
+    command, args = drush.calls[0]
+    assert command == "php:eval"
+    php = args[0]
+    assert "entity_view_display" in php
+    # The display id is built from base64 parts, so a bundle with a quote or
+    # a non-ASCII character cannot break out of the PHP string.
+    assert _b64_text("node") in php and _b64_text("article") in php
+    assert result["enabled"] is True
+
+
+def _b64_text(value: str) -> str:
+    import base64
+
+    return base64.b64encode(value.encode()).decode()
+
+
+def test_layout_builder_surfaces_a_failed_drush_run():
+    """A failed drush command returns {returncode: 1, stderr} with no `error`
+    key, which is exactly how ten tools reported a broken command as a
+    success."""
+    import asyncio
+
+    drush = _Drush({
+        "returncode": 1,
+        "data": {},
+        "stderr": "Error: Undefined variable $d in eval()",
+    })
+    fns = _register("layout_builder", drush_client=drush, jsonapi_client=None)
+
+    result = asyncio.run(fns["layout_builder_get"]("node", "article"))
+
+    assert "error" in result
+    assert "Undefined variable" in result["error"]
+
+
+def test_layout_builder_reports_php_that_does_not_print_json():
+    """`data: {output: "..."}` means the script printed something that failed
+    to parse; returning it as success would hide the message entirely."""
+    import asyncio
+
+    drush = _Drush({"returncode": 0, "data": {"output": "Fatal error: boom"}})
+    fns = _register("layout_builder", drush_client=drush, jsonapi_client=None)
+
+    result = asyncio.run(fns["layout_builder_get"]("node", "article"))
+
+    assert "boom" in result["error"]
+
+
+def test_layout_builder_needs_a_drush_client():
+    import asyncio
+
+    fns = _register("layout_builder", drush_client=None, jsonapi_client=None)
+
+    result = asyncio.run(fns["layout_builder_get"]("node", "article"))
+
+    assert result == {"error": "Drush not available"}
+
+
+def test_section_add_embeds_the_spec_safely():
+    """The spec reaches PHP as base64, so quotes and non-ASCII labels in a
+    section survive the trip through the shell and the PHP parser."""
+    import asyncio
+
+    drush = _Drush({"returncode": 0, "data": {"section_count": 2}})
+    fns = _register("layout_builder", drush_client=drush, jsonapi_client=None)
+
+    spec = {"layout_id": "layout_onecol", "components": [
+        {"plugin": "system_main_block", "region": "content"}
+    ]}
+    result = asyncio.run(fns["layout_builder_section_add"]("node", "article", spec))
+
+    php = drush.calls[0][1][0]
+    import base64
+    import json as jsonlib
+
+    encoded = jsonlib.dumps(spec)
+    assert base64.b64encode(encoded.encode()).decode() in php
+    assert "SectionComponent" in php and "appendSection" in php
+    assert result["section_count"] == 2
+
+
+def test_override_remove_can_target_one_entity_or_list_them():
+    """Overrides live in the entity's `layout_builder__layout` field, not on
+    the display, so the tool has to name an entity - or say which entities
+    carry one."""
+    import asyncio
+
+    drush = _Drush({"returncode": 0, "data": {"overridden": ["3"]}})
+    fns = _register("layout_builder", drush_client=drush, jsonapi_client=None)
+
+    list_mode = asyncio.run(fns["layout_builder_override_remove"]("node", "article"))
+    one = asyncio.run(fns["layout_builder_override_remove"]("node", "article", "3"))
+
+    list_php = drush.calls[0][1][0]
+    single_php = drush.calls[1][1][0]
+    # Listing must not contain an entity id; targeting must.
+    assert _b64_text("3") in single_php
+    assert list_php != single_php
+    assert list_mode["overridden"] == ["3"]
+    assert one["overridden"] == ["3"]
 
 
 # --- Filters on fields that do not exist ----------------------------------

@@ -38,7 +38,8 @@ ddev drush php-script /tmp/seed.php
 ## Running
 
 ```bash
-python tests/live/smoke_test.py   # 9 end-to-end cases, ~30s
+python tests/live/smoke_test.py         # 9 end-to-end cases, ~30s
+python tests/live/layout_builder_test.py  # 10 Layout Builder cases, ~60s
 python tests/live/sweep.py        # every tool, ~30 min
 python tests/live/sweep.py composer_  # only tools whose name contains that
 ```
@@ -55,6 +56,7 @@ and `ddev drush` only resolves inside the project.
 | `bootstrap.py` | Bring the site up using MCP tools rather than hand-run `ddev`/`drush` |
 | `seed.php` | Idempotent fixtures: admin role, a sacrificial `sweeptarget` user, a `tags` vocabulary with a term, two article nodes |
 | `smoke_test.py` | Nine cases covering the operations a user actually reaches for |
+| `layout_builder_test.py` | Ten cases for the six `layout_builder_*` tools, including an override create/revert round trip |
 | `sweep.py` | Calls every registered tool and classifies the result |
 
 ## Verdicts

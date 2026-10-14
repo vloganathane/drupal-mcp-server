@@ -233,10 +233,14 @@ Set `MCP_TRANSPORT` to one of:
 - `layout_builder_sections_list`, `layout_builder_section_add`
 - `block_plugin_list`, `block_region_list`, `layout_builder_override_remove`
 
-The `block_*` tools work normally. Layout Builder itself has no JSON:API resource
-(see [Known limitations](#known-limitations)), so `layout_builder_list` reports which
-entity view displays have Layout Builder enabled, and the other `layout_builder_*`
-tools explain what to use instead.
+The `block_*` tools work normally. Layout Builder has no JSON:API resource, so
+the `layout_builder_*` tools go through Drush to the real API instead:
+`entity_view_display` holds the sections, and per-entity overrides live in the
+entity's `layout_builder__layout` field. `layout_builder_list` reports which
+displays have Layout Builder enabled; `layout_builder_get`,
+`layout_builder_sections_list`, `layout_builder_section_add`,
+`layout_builder_create` and `layout_builder_update` read and write the layout;
+`layout_builder_override_remove` reverts an entity's override.
 
 ### Media Enhanced (8)
 - `media_type_list`, `media_type_get`, `media_type_create`
@@ -361,11 +365,18 @@ These are real constraints of Drupal and its APIs, not TODOs. Each was confirmed
 against a live Drupal 10 site under DDEV, and the affected tools say so at runtime
 rather than returning an opaque error.
 
-- **Layout Builder has no JSON:API resource.** Layouts cannot be read or written
-  over JSON:API at all. `layout_builder_list` reports the entity view displays that
-  have Layout Builder enabled (that config *is* exposed); the create/update/remove
-  tools explain the alternatives — the Layout Builder REST resource from the `rest`
-  module, or drush against `core.entity_view_display.*`.
+- **Layout Builder has no JSON:API resource.** The six `layout_builder_*` tools
+  originally asked JSON:API for a resource that has never existed and returned an
+  opaque 404. They now go through Drush to the real API — sections are the
+  `layout_builder.sections` third-party setting on `entity_view_display`, and
+  per-entity overrides live in the entity's `layout_builder__layout` field — so
+  reading, writing and reverting layouts all work. Two details are load-bearing
+  and were only found against a live site: `enableLayoutBuilder()` does not
+  create the override field (that happens in `preSave()` when `isOverridable()`
+  changes, so `setOverridable(true)` must be saved too), and `SectionComponent`
+  takes `(uuid, region, configuration)` with the plugin id inside
+  `configuration['id']`. The API has no display-level lock, so the `lock`
+  argument marks components rather than the display.
 - **Revisions have no collection endpoint.** JSON:API addresses a single revision via
   `?resourceVersion=id:<vid>` but exposes no revision listing or deletion, so
   `revision_list` and `revision_delete` return an honest limitation error rather than
