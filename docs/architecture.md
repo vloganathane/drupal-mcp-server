@@ -76,18 +76,21 @@ Tool Function ← DrushClient.run() ← stdout/stderr ← Drush
 
 The `AuthManager` selects authentication based on environment variables:
 
-1. **Basic Auth** (`DRUPAL_USERNAME` + `DRUPAL_PASSWORD`)
-   - Base64-encoded credentials in `Authorization: Basic` header
-   - Simplest, suitable for development
-
-2. **OAuth2 Client Credentials** (`DRUPAL_OAUTH_TOKEN_URL`)
+1. **OAuth2 Client Credentials** (`DRUPAL_OAUTH_TOKEN_URL`)
    - Fetches access token via `httpx.post()`
    - Sends `Authorization: Bearer <token>` header
    - Token refresh handled by OAuth provider
 
+2. **Session Auth** (`DRUPAL_USERNAME` + `DRUPAL_PASSWORD`)
+   - Logs in to `/user/login`, keeps the session cookie, and fetches the
+     CSRF token that mutating JSON:API requests require. Drupal answers 403
+     on write endpoints when only `Authorization: Basic` is sent, so basic
+     headers are also attached as a fallback for reads on sites without
+     `/user/login`.
+
 3. **Bearer Token** (`DRUPAL_API_TOKEN`)
    - Pre-obtained token sent directly
-   - Suitable for external token management
+   - Used when neither of the above is configured
 
 ### HTTP Transport OAuth
 
