@@ -233,6 +233,11 @@ Set `MCP_TRANSPORT` to one of:
 - `layout_builder_sections_list`, `layout_builder_section_add`
 - `block_plugin_list`, `block_region_list`, `layout_builder_override_remove`
 
+The `block_*` tools work normally. Layout Builder itself has no JSON:API resource
+(see [Known limitations](#known-limitations)), so `layout_builder_list` reports which
+entity view displays have Layout Builder enabled, and the other `layout_builder_*`
+tools explain what to use instead.
+
 ### Media Enhanced (8)
 - `media_type_list`, `media_type_get`, `media_type_create`
 - `media_create_from_url`, `media_create_from_base64`, `media_derivative_generate`
@@ -349,6 +354,41 @@ Set `MCP_TRANSPORT` to one of:
 - [Architecture](docs/architecture.md)
 - [Migration Guide](docs/migration.md)
 - [Docstring Standard](docs/docstring_standard.md)
+
+## Known limitations
+
+These are real constraints of Drupal and its APIs, not TODOs. Each was confirmed
+against a live Drupal 10 site under DDEV, and the affected tools say so at runtime
+rather than returning an opaque error.
+
+- **Layout Builder has no JSON:API resource.** Layouts cannot be read or written
+  over JSON:API at all. `layout_builder_list` reports the entity view displays that
+  have Layout Builder enabled (that config *is* exposed); the create/update/remove
+  tools explain the alternatives — the Layout Builder REST resource from the `rest`
+  module, or drush against `core.entity_view_display.*`.
+- **Revisions have no collection endpoint.** JSON:API addresses a single revision via
+  `?resourceVersion=id:<vid>` but exposes no revision listing or deletion, so
+  `revision_list` and `revision_delete` return an honest limitation error rather than
+  a 404.
+- **Drush offers no per-run queue limit.** `queue:run` drains the whole queue and has
+  neither `--limit` nor `--count`. `queue_run` runs without one and reports that the
+  requested limit could not be applied.
+- **Composer is its own binary.** Drush ships no `composer` command, so
+  `composer_install` / `composer_require` / `composer_update` / `composer_audit` run
+  `composer` directly and need it on `PATH` (or at `./vendor/bin/composer`). They
+  also do not require Drush.
+- **Security scanning needs PHPStan 1.x.** Older PHPStan has no `--exclude-path`; the
+  tools probe for it and fall back rather than failing.
+- **`release_history` for Drupal 7 projects.** packages.drupal.org is the live source
+  for releases, dependencies, and core compatibility. D7-era projects fall back to
+  updates.drupal.org's XML feed, which has been frozen since Drupal 8.
+- **DDEV's key is `docroot`, not `webroot`.** DDEV 1.24 silently drops an
+  unrecognised key, so `ddev_setup` writes `docroot:` — an empty docroot makes nginx
+  serve the project root and every request 404s.
+
+Tools needing a module this site does not have (Commerce, Paragraphs, Webform,
+Search API, Feeds, Metatag, Pathauto patterns) return an upstream error naming the
+module to install; they are counted separately from failures.
 
 ## Development
 

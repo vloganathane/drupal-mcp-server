@@ -47,3 +47,14 @@
 | `cache_rebuild` | Clear and rebuild all caches |
 | `cache_clear` | Clear specific cache bins |
 | `backup_database` | Create database backup |
+
+## Notes
+
+- The `composer_*` tools run the `composer` binary directly — Drush ships no
+  `composer` command. Composer must be on `PATH` or at `./vendor/bin/composer`.
+  They do not require Drush, and `composer_audit` runs against the working
+  directory's dependencies.
+- `ddev_setup` writes `docroot:`, which is the key DDEV 1.24 reads. It refuses to
+  overwrite an existing `.ddev/config.yaml` unless `force` is set. An unrecognised
+  `webroot:` key would be dropped silently, leaving an empty docroot so that nginx
+  serves the project root and every request 404s.

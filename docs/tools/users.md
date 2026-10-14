@@ -26,3 +26,9 @@
 |------|-------------|
 | `block_user` | Block a user account |
 | `unblock_user` | Unblock a user account |
+
+## Notes
+
+- Drush 13 has no `user:role:list`. `list_roles` uses `role:list`, and
+  `get_user_roles` reads the account's roles out of `user:information --uid=N`,
+  which returns the whole account.
