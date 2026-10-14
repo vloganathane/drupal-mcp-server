@@ -31,7 +31,13 @@ class Settings(BaseSettings):
     )
 
     # Drush
-    DRUSH_PATH: str = Field(default="drush", description="Path to drush executable")
+    DRUSH_PATH: str = Field(
+        default="drush",
+        description=(
+            "Drush command. May include arguments, e.g. 'ddev drush' "
+            "(start the MCP server from the project directory)."
+        ),
+    )
     DRUSH_ALIAS: str = Field(default="@self", description="Drush site alias")
 
     # DDEV

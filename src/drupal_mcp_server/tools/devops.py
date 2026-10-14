@@ -377,7 +377,7 @@ webroot: {webroot}
         if not drush:
             return {"error": "Drush not available"}
         try:
-            args = ["watchdog:show", f"--count={count}", "--format=json"]
+            args = [f"--count={count}"]
             if type_filter:
                 args.append(f"--type={type_filter}")
             if severity:

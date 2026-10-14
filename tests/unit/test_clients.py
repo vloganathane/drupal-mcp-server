@@ -1,5 +1,6 @@
 """Unit tests for Drupal clients."""
 
+import asyncio
 import json
 from typing import Any
 
@@ -418,3 +419,120 @@ def test_no_tool_calls_a_missing_client_method():
                     )
 
     assert not missing, f"tools call methods that do not exist: {missing}"
+
+
+# --- Drush -------------------------------------------------------------------
+
+
+class _FakeProc:
+    def __init__(self, stdout: bytes = b"", stderr: bytes = b"", rc: int = 0):
+        self._stdout, self._stderr, self.returncode = stdout, stderr, rc
+
+    async def communicate(self):
+        return self._stdout, self._stderr
+
+
+def _fake_drush(monkeypatch, script, mod):
+    """Patch subprocess creation; ``script`` maps argv -> _FakeProc."""
+    calls: list[list[str]] = []
+
+    async def fake_exec(*argv, **kwargs):
+        calls.append(list(argv))
+        return script(list(argv))
+
+    mod._calls = calls
+    monkeypatch.setattr(asyncio, "create_subprocess_exec", fake_exec)
+    return calls
+
+
+def _settings(**over):
+    class S:
+        DRUSH_PATH = "drush"
+        DRUSH_ALIAS = "@self"
+    for k, v in over.items():
+        setattr(S, k, v)
+    return S()
+
+
+@pytest.mark.asyncio
+async def test_drush_path_may_contain_arguments(monkeypatch: pytest.MonkeyPatch):
+    """'ddev drush' must work for container-based local setups."""
+    import drupal_mcp_server.clients.drush as mod
+    from drupal_mcp_server.clients.drush import DrushClient
+
+    calls = _fake_drush(monkeypatch, lambda argv: _FakeProc(b'{"ok":1}'), mod)
+
+    await DrushClient(_settings(DRUSH_PATH="ddev drush")).run("status")
+
+    assert calls[0][:2] == ["ddev", "drush"]
+
+
+@pytest.mark.asyncio
+async def test_drush_does_not_duplicate_format_flag(monkeypatch: pytest.MonkeyPatch):
+    """Most tools already pass --format=json; appending it again is redundant."""
+    import drupal_mcp_server.clients.drush as mod
+    from drupal_mcp_server.clients.drush import DrushClient
+
+    calls = _fake_drush(monkeypatch, lambda argv: _FakeProc(b"{}"), mod)
+
+    await DrushClient(_settings()).run("status", ["--format=json"])
+
+    assert calls[0].count("--format=json") == 1
+
+
+@pytest.mark.asyncio
+async def test_drush_retries_without_format_when_unsupported(monkeypatch: pytest.MonkeyPatch):
+    """`drush cron` rejects --format entirely; the command should still run."""
+    import drupal_mcp_server.clients.drush as mod
+    from drupal_mcp_server.clients.drush import DrushClient
+
+    def script(argv):
+        if "--format=json" in argv:
+            return _FakeProc(rc=1, stderr=b'The "--format" option does not exist.')
+        return _FakeProc(b'{"ran": true}')
+
+    calls = _fake_drush(monkeypatch, script, mod)
+
+    result = await DrushClient(_settings()).run("cron")
+
+    assert result["returncode"] == 0
+    assert result["data"] == {"ran": True}
+    assert "--format=json" not in calls[1]
+
+
+@pytest.mark.asyncio
+async def test_drush_missing_binary_returns_actionable_error(monkeypatch: pytest.MonkeyPatch):
+    """A bare FileNotFoundError makes every drush tool look broken."""
+    from drupal_mcp_server.clients.drush import DrushClient
+
+    async def raise_not_found(*argv, **kwargs):
+        raise FileNotFoundError("drush")
+
+    monkeypatch.setattr(asyncio, "create_subprocess_exec", raise_not_found)
+
+    result = await DrushClient(_settings()).run("status")
+
+    assert result["returncode"] == 127
+    assert "DRUSH_PATH" in result["stderr"]
+
+
+@pytest.mark.asyncio
+async def test_watchdog_tool_does_not_repeat_the_command(monkeypatch: pytest.MonkeyPatch):
+    """It built 'watchdog:show --format=json watchdog:show --count=5 ...'."""
+    import ast
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2] / "src" / "drupal_mcp_server" / "tools"
+    offenders = []
+    for path in root.rglob("*.py"):
+        for node in ast.walk(ast.parse(path.read_text())):
+            if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)):
+                continue
+            if node.func.attr != "run" or len(node.args) < 2:
+                continue
+            first, second = node.args[0], node.args[1]
+            if isinstance(first, ast.Constant) and isinstance(second, (ast.List, ast.Tuple)):
+                if second.elts and isinstance(second.elts[0], ast.Constant) and second.elts[0].value == first.value:
+                    offenders.append(f"{path.name}:{node.lineno}")
+
+    assert not offenders, f"drush.run() called with the command repeated: {offenders}"
