@@ -909,3 +909,42 @@ def test_graphql_404_explains_a_missing_server():
 
     assert "500" in failed["error"]
     assert "admin/config/graphql" not in failed["error"]
+
+
+def test_config_translation_writes_a_language_override():
+    """A config entity is not a translatable entity: there is no
+    TranslatableInterface and no addTranslation() to call. Drupal keeps a
+    config translation as a language config override on the config object
+    the translation mapper resolves the entity to."""
+    import asyncio
+
+    drush = _Drush({
+        "returncode": 0,
+        "data": {"ok": True, "config": ["node.type.article"]},
+    })
+    fns = _register("multilingual", drush_client=drush, jsonapi_client=None)
+
+    out = asyncio.run(
+        fns["config_translation_add"]("node_type/article", "fr", {"name": "Article (fr)"})
+    )
+
+    php = drush.calls[0][1][0]
+    assert "plugin.manager.config_translation.mapper" in php
+    assert "getLanguageConfigOverride" in php
+    # Both mechanisms this tool has tried, and neither of which can work.
+    assert "addTranslation" not in php
+    assert "TranslatableInterface" not in php
+    assert out["ok"] is True
+    assert out["config"] == ["node.type.article"]
+
+
+def test_config_translation_rejects_a_bare_name_before_calling_drush():
+    import asyncio
+
+    drush = _Drush({"returncode": 0, "data": {}})
+    fns = _register("multilingual", drush_client=drush, jsonapi_client=None)
+
+    out = asyncio.run(fns["config_translation_add"]("sweep_name", "fr", {}))
+
+    assert "is not a config entity reference" in out["error"]
+    assert drush.calls == []

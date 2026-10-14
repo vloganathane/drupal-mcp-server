@@ -156,6 +156,11 @@ def value_for(name: str, t, spec: dict, tool: str = ""):
         return "access denied"
     if n == "severity":
         return "7"
+    if n in ("config_name",):
+        # `{entity_type}/{entity_id}` for a config entity every site with
+        # content types has. Without the slash the config translation tools
+        # stop at the reference format and never reach their own logic.
+        return "node_type/article"
     if n in ("queue_name", "queue") and EXISTING_QUEUE:
         # A queue that exists, so queue_run exercises the run rather than
         # stopping at "Queue not found" for a name nobody chose.

@@ -314,18 +314,18 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         """Translate a config entity.
 
         `config_name` is `{entity_type}/{entity_id}`, for example
-        `node_type/article` or `field_config/field.field.node.article.body`.
-        `config_translation_list` shows which entity types this site can
-        translate. `translation` is a flat map of property to translated value.
+        `node_type/article`. `config_translation_list` shows which entity
+        types this site can translate. `translation` is a flat map of
+        property to translated value.
 
-        The old version ran `config:translation:add`, which is not a Drush
-        command -- Drush has no translation command category at all -- so this
-        failed every time. Drupal stores a config entity's translation as an
-        entity translation, so that is what is written.
-
-        A config entity must be translated as a whole entity: its translation
-        lives on the entity, not in a standalone object, which is why the
-        single-name form this used to take cannot work.
+        A config entity is not a translatable entity. There is no
+        `TranslatableInterface` to call, no `addTranslation()`, and no
+        `config:translation:add` Drush command -- which is what this tool
+        tried, twice, both failing every time. Drupal keeps a config
+        translation as a *language config override*: the same config object,
+        overridden per language. So the entity type is resolved through the
+        config translation mapper to the config object it is stored as, and
+        that object's override for the target language is what gets written.
         """
         if not drush:
             return {"error": "Drush not available"}
@@ -350,18 +350,35 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 "$id = " + _json.dumps(entity_id) + ";"
                 "$lang = " + _json.dumps(langcode) + ";"
                 "$values = json_decode(" + _json.dumps(values_json) + ", TRUE);"
-                "$entity = \\Drupal::entityTypeManager()->getStorage($type)->load($id);"
-                "if (!$entity) {"
+                "$mgr = \\Drupal::service('plugin.manager.config_translation.mapper');"
+                "$plugin = NULL;"
+                "foreach ($mgr->getDefinitions() as $pid => $def) {"
+                "  if (($def['entity_type'] ?? '') === $type) { $plugin = $pid; break; }"
+                "}"
+                "$entity = NULL;"
+                "if (\\Drupal::entityTypeManager()->hasDefinition($type)) {"
+                "  $entity = \\Drupal::entityTypeManager()->getStorage($type)->load($id);"
+                "}"
+                "if (!$plugin) {"
+                "  print json_encode(['error' => 'No config translation mapper for '"
+                "    . $type . '. Call config_translation_list for what this site"
+                " can translate.']);"
+                "} elseif (!$entity) {"
                 "  print json_encode(['error' => 'No ' . $type . ' with id ' . $id]);"
-                "} elseif (!($entity instanceof \\Drupal\\Core\\Entity\\TranslatableInterface)) {"
-                "  print json_encode(['error' => $type . ' does not support translation']);"
                 "} else {"
-                "  $t = $entity->hasTranslation($lang) ? $entity->getTranslation($lang)"
-                "       : $entity->addTranslation($lang, []);"
-                "  foreach ((array) $values as $k => $v) { $t->set($k, $v); }"
-                "  $t->save();"
+                "  $mapper = $mgr->createInstance($plugin);"
+                "  $mapper->setEntity($entity);"
+                "  $written = [];"
+                "  foreach ($mapper->getConfigNames() as $name) {"
+                "    $override = \\Drupal::languageManager()"
+                "      ->getLanguageConfigOverride($lang, $name);"
+                "    foreach ((array) $values as $k => $v) { $override->set($k, $v); }"
+                "    $override->save();"
+                "    $written[] = $name;"
+                "  }"
                 "  print json_encode(['ok' => TRUE, 'entity_type' => $type,"
-                "                     'id' => $id, 'langcode' => $lang]);"
+                "                     'id' => $id, 'langcode' => $lang,"
+                "                     'config' => $written]);"
                 "}"
             )
             result = await drush.run("php:eval", [code])
