@@ -536,3 +536,18 @@ async def test_watchdog_tool_does_not_repeat_the_command(monkeypatch: pytest.Mon
                     offenders.append(f"{path.name}:{node.lineno}")
 
     assert not offenders, f"drush.run() called with the command repeated: {offenders}"
+
+
+@pytest.mark.asyncio
+async def test_payload_keeps_an_already_structured_resource_object(monkeypatch: pytest.MonkeyPatch):
+    """Otherwise a document with attributes becomes attributes.attributes."""
+    client = JSONAPIClient(FakeSettings())
+    seen = _capture(monkeypatch, default=FakeResponse())
+    uuid = "4d9ecad4-49d5-481d-bf4e-8cfe9fde5471"
+    doc = {"id": uuid, "type": "node--article", "attributes": {"title": "Hi"}}
+
+    await client.update_resource("node--article", uuid, doc)
+
+    assert seen["json"] == {
+        "data": {"id": uuid, "type": "node--article", "attributes": {"title": "Hi"}}
+    }

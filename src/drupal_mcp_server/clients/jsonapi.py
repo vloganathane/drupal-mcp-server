@@ -178,8 +178,12 @@ class JSONAPIClient(DrupalBaseClient):
         path, resource_id = await self._resolve_uuid(resource_type, uuid)
         return await self.get(self._jsonapi_url(f"{path}/{resource_id}"), params=params)
 
-    # Sibling keys of ``attributes`` in a JSON:API resource object.
-    _RESOURCE_KEYS = frozenset({"type", "id", "lid", "relationships", "links", "meta"})
+    # Sibling keys of ``attributes`` in a JSON:API resource object. Including
+    # ``attributes`` matters: a caller that passes an already-structured
+    # document must not have it nested as attributes.attributes.
+    _RESOURCE_KEYS = frozenset(
+        {"type", "id", "lid", "attributes", "relationships", "links", "meta"}
+    )
 
     @classmethod
     def _payload(cls, body: Any) -> Any:
@@ -202,6 +206,25 @@ class JSONAPIClient(DrupalBaseClient):
         if attributes:
             resource["attributes"] = attributes
         return {"data": resource}
+
+    async def get_revision(
+        self,
+        resource_type: str,
+        resource_id: str,
+        revision_id: str,
+        params: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | list[Any]:
+        """Fetch one specific revision of a resource.
+
+        JSON:API reads historical revisions through the ``resourceVersion``
+        relationship (``id:<vid>``). It has no revision *collection*
+        endpoint -- ``.../revisions`` answers 405 -- so this is the only
+        revision access the module offers.
+        """
+        path, uuid = await self._resolve_uuid(resource_type, resource_id)
+        query = dict(params or {})
+        query["resourceVersion"] = f"id:{revision_id}"
+        return await self.get(self._jsonapi_url(f"{path}/{uuid}"), params=query)
 
     async def create_resource(self, resource_type: str, data: dict[str, Any]) -> dict[str, Any] | list[Any]:
         # The payload keeps the ``node--article`` type; only the URL is a path.

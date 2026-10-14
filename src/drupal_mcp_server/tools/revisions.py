@@ -1,10 +1,47 @@
-"""Revisions management tools for Drupal."""
+"""Revision management tools for Drupal.
+
+Drupal's JSON:API can read one *specific* revision via ``?resourceVersion=id:<vid>``,
+but it exposes no revision collection: ``.../revisions`` answers 405 Method Not
+Allowed, and no core drush command enumerates them either. Only the REST module
+offers that. So list/delete report the limitation instead of building a URL that
+can never exist.
+"""
 
 from typing import Any
 
 from fastmcp import FastMCP
 
 from ._utils import ensure_dict as _ensure_dict
+
+# Server-managed attributes. Sending these back on a revert is rejected by
+# Drupal as read-only; excluding them is also what makes a revert a revert
+# rather than an attempt to rewrite the entity's identity.
+_READ_ONLY = frozenset({
+    "drupal_internal__nid", "drupal_internal__vid", "drupal_internal__uid",
+    "drupal_internal__tid", "drupal_internal__cid", "drupal_internal__mid",
+    "drupal_internal__fid", "drupal_internal__lid", "drupal_internal__pid",
+    "uuid", "vid", "hash", "created", "changed", "login", "init", "access",
+    "revision_timestamp", "revision_uid", "revision_log",
+    "revision_translation_affected", "default_langcode",
+    "content_translation_source", "content_translation_outdated",
+    "path", "links", "comment_count", "comment_count_new",
+    "last_comment_timestamp", "feed_nid", "feeds_item_guid", "feeds_item_url",
+    "is_new", "has_new_content", "search_api_id", "search_api_relevance",
+    "search_api_excerpt", "search_api_language",
+})
+
+_NO_COLLECTION = (
+    "Drupal's JSON:API has no revision collection endpoint "
+    "(.../revisions answers 405 Method Not Allowed) and no core drush command "
+    "enumerates revisions. Enable the REST module to list or delete individual "
+    "revisions, or use revision_get/revision_diff once you know a revision ID."
+)
+
+
+def _type(entity_type: str) -> str:
+    """Normalise the forms callers use: 'node', 'node/article', 'node--article'."""
+    cleaned = entity_type.strip().strip("/")
+    return cleaned.replace("/", "--") if "/" in cleaned else cleaned
 
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
@@ -17,17 +54,28 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         page_limit: int = 50,
         page_offset: int = 0,
     ) -> dict[str, Any]:
-        """List all revisions for an entity."""
+        """List revisions for an entity.
+
+        Only the *current* revision is enumerable over JSON:API; the tool
+        reports that honestly rather than inventing a collection URL.
+        """
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:
-            params = {"page[limit]": str(page_limit), "page[offset]": str(page_offset)}
-            
-            # Revisions are typically accessed via entity-specific endpoints
-            # e.g., /jsonapi/node/article/{uuid}/revisions
-            resource_type = f"{entity_type}--{entity_type}"
-            result = await jsonapi.get_resource(f"{resource_type}/{entity_id}/revisions", params)
-            return _ensure_dict(result)
+            current = await jsonapi.get_by_id(_type(entity_type), entity_id)
+            data = current.get("data", {}) if isinstance(current, dict) else {}
+            attrs = data.get("attributes", {})
+            return _ensure_dict({
+                "entity_type": entity_type,
+                "entity_id": entity_id,
+                "current": {
+                    "revision_id": attrs.get("drupal_internal__vid"),
+                    "revision_timestamp": attrs.get("revision_timestamp"),
+                    "type": data.get("type"),
+                },
+                "revisions": [],
+                "limitation": _NO_COLLECTION,
+            })
         except Exception as e:
             return {"error": str(e)}
 
@@ -42,12 +90,10 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:
-            params = {}
-            if include:
-                params["include"] = include
-            
-            resource_type = f"{entity_type}--{entity_type}"
-            result = await jsonapi.get_by_id(f"{resource_type}/{entity_id}/revisions", revision_id, params=params if params else None)
+            params = {"include": include} if include else None
+            result = await jsonapi.get_revision(
+                _type(entity_type), entity_id, revision_id, params=params
+            )
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -58,30 +104,51 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         entity_id: str,
         revision_id: str,
     ) -> dict[str, Any]:
-        """Revert an entity to a specific revision."""
+        """Revert an entity to a specific revision.
+
+        Applies the revision's field values to the current entity. A PATCH that
+        Drupal rejects is atomic, so a failure leaves the entity untouched.
+        """
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:
-            # Get the revision data
-            resource_type = f"{entity_type}--{entity_type}"
-            revision = await jsonapi.get_by_id(f"{resource_type}/{entity_id}/revisions", revision_id)
-            revision = _ensure_dict(revision)
-            if revision.get("error"):
-                return revision
-            
-            # Extract revision data and apply to entity
-            revision_data = revision.get("data", {})
-            attributes = revision_data.get("attributes", {})
-            
-            # Update entity with revision data
-            update_data = {
-                "id": entity_id,
-                "type": f"{entity_type}--{entity_type}",
+            normalized = _type(entity_type)
+            current = await jsonapi.get_by_id(normalized, entity_id)
+            revision = await jsonapi.get_revision(normalized, entity_id, revision_id)
+
+            current_data = current.get("data", {}) if isinstance(current, dict) else {}
+            revision_data = revision.get("data", {}) if isinstance(revision, dict) else {}
+
+            cur_attrs = current_data.get("attributes", {})
+            rev_attrs = revision_data.get("attributes", {})
+
+            # Only fields that actually differ and are safe to write.
+            changed = {
+                key: value
+                for key, value in rev_attrs.items()
+                if key not in _READ_ONLY and cur_attrs.get(key) != value
             }
-            update_data.update(attributes)
-            
-            result = await jsonapi.update_resource(f"{entity_type}--{entity_type}", entity_id, update_data)
-            return _ensure_dict(result)
+
+            if not changed:
+                return _ensure_dict({
+                    "entity_id": entity_id,
+                    "revision_id": revision_id,
+                    "reverted": True,
+                    "fields_changed": [],
+                    "detail": "Entity already matches this revision.",
+                })
+
+            await jsonapi.update_resource(normalized, entity_id, {
+                "id": revision_data.get("id"),
+                "type": revision_data.get("type"),
+                "attributes": changed,
+            })
+            return _ensure_dict({
+                "entity_id": entity_id,
+                "revision_id": revision_id,
+                "reverted": True,
+                "fields_changed": sorted(changed),
+            })
         except Exception as e:
             return {"error": str(e)}
 
@@ -92,14 +159,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         revision_id: str,
     ) -> dict[str, Any]:
         """Delete a specific revision of an entity."""
-        if not jsonapi:
-            return {"error": "JSON:API not available"}
-        try:
-            resource_type = f"{entity_type}--{entity_type}"
-            result = await jsonapi.delete_resource(f"{resource_type}/{entity_id}/revisions", revision_id)
-            return _ensure_dict(result)
-        except Exception as e:
-            return {"error": str(e)}
+        return _ensure_dict({"error": _NO_COLLECTION})
 
     @mcp.tool()
     async def revision_diff(
@@ -112,45 +172,25 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:
-            
-            resource_type = f"{entity_type}--{entity_type}"
-            
-            # Get both revisions
-            rev1 = await jsonapi.get_by_id(f"{resource_type}/{entity_id}/revisions", revision_id_1)
-            rev1 = _ensure_dict(rev1)
-            if rev1.get("error"):
-                return rev1
-            
-            rev2 = await jsonapi.get_by_id(f"{resource_type}/{entity_id}/revisions", revision_id_2)
-            rev2 = _ensure_dict(rev2)
-            if rev2.get("error"):
-                return rev2
-            
-            # Extract attributes
-            attrs1 = rev1.get("data", {}).get("attributes", {})
-            attrs2 = rev2.get("data", {}).get("attributes", {})
-            
-            # Simple diff
-            all_keys = set(attrs1.keys()) | set(attrs2.keys())
-            diff = []
-            
-            for key in sorted(all_keys):
-                val1 = attrs1.get(key)
-                val2 = attrs2.get(key)
-                if val1 != val2:
-                    diff.append({
-                        "field": key,
-                        "from": val1,
-                        "to": val2,
-                    })
-            
+            normalized = _type(entity_type)
+            rev1 = await jsonapi.get_revision(normalized, entity_id, revision_id_1)
+            rev2 = await jsonapi.get_revision(normalized, entity_id, revision_id_2)
+
+            attrs1 = (rev1.get("data", {}) or {}).get("attributes", {})
+            attrs2 = (rev2.get("data", {}) or {}).get("attributes", {})
+
+            differences = [
+                {"field": key, "from": attrs1.get(key), "to": attrs2.get(key)}
+                for key in sorted(set(attrs1) | set(attrs2))
+                if attrs1.get(key) != attrs2.get(key)
+            ]
             return {
                 "entity_type": entity_type,
                 "entity_id": entity_id,
                 "revision_1": revision_id_1,
                 "revision_2": revision_id_2,
-                "differences": diff,
-                "has_changes": len(diff) > 0,
+                "differences": differences,
+                "has_changes": bool(differences),
             }
         except Exception as e:
             return {"error": str(e)}
