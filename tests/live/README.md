@@ -149,6 +149,40 @@ so a missing module never hides a broken tool:
 | `DEAD` | the tool itself is broken |
 | `SKIPPED` | controls the environment the sweep runs against |
 
+## Where the sweep stands
+
+Against the provisioned site, on the run that follows the module install, the
+resource-name fixes and the filter fixes:
+
+| | before | after |
+|---|---|---|
+| OK | 156 | **181** |
+| BLOCKED | 71 | **5** |
+| DEAD | 0 | **0** |
+
+25 tools that could not be reached at all now run, and 41 reach Drupal and are
+turned away with a reason instead of stopping at a 404. No tool that used to
+work now fails, and nothing is dead.
+
+What is left is five, all explained:
+
+- `feeds_feed_list` / `feeds_feed_create` — JSON:API exposes no `feeds_feed`
+  resource until a feed type exists with a `feeds_item` field on its target
+  bundle, which needs field configuration on that bundle and so cannot be
+  provisioned by installing a module
+- `moderation_state_list` / `moderation_state_create` — `content_moderation_state`
+  is never exposed through JSON:API, by Drupal's design
+- `split_config` — needs a `./config/sync` directory, which the site does not have
+
+The one `UPSTREAM` is `revision_delete`: JSON:API has no revision collection
+endpoint, so there is nothing to delete through it.
+
+Three tools look like regressions and are not. `interface_translation_add`,
+`_update` and `_delete` used to report OK because the sweep counted a refused
+call as a pass; they now say what is actually true, which is that Drupal has no
+`interface_translation` entity type and the tools point at `locale:import` and
+`locale:export` instead.
+
 ## Things that will bite you
 
 - **The sweep calls `ddev_stop`.** It genuinely stops the project, which takes

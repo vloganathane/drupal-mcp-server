@@ -28,6 +28,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Re-sweep all 366 tools against the provisioned site. BLOCKED fell from 71 to
+  5, OK rose from 156 to 181, and nothing is dead. 25 tools that could not be
+  reached at all now run; 41 reach Drupal and are turned away with a reason
+  instead of stopping at a 404. The five still BLOCKED are two `feeds_feed`
+  tools needing a feed type with a `feeds_item` field, two `moderation_state`
+  tools for a resource Drupal never exposes, and `split_config` needing a
+  `./config/sync` directory. The one UPSTREAM is `revision_delete`, since
+  JSON:API has no revision collection endpoint
+- Correct the sweep's own accounting. Six tools — `translation_add`,
+  `translation_update`, the three `interface_translation_*` tools and
+  `config_translation_add` — were reported OK on every run while never being
+  called once. When arguments fail FastMCP's validation the answer is prose
+  rather than JSON, and nothing in the classifier matched it, so the
+  fall-through said pass; the server logged `missing_argument` for each and
+  the report showed a green result. A refused call now counts as refused,
+  through the SDK's own `isError` signal rather than a guess at wording. The
+  sweep also stopped filling `langcode` with a junk value (JSON:API
+  write-protects that field on a multilingual site whatever it says, so
+  `create_term` answered 403 about a permission instead of running),
+  started giving `ddev_exec` a command the container has, gave
+  `drush_watchdog` the enum and the number drush wants, and names a queue
+  that exists
 - Provision the live test site with the modules the tools assume are there:
   media, comment, contact, language, config_translation, workflows,
   content_moderation and commerce plus its submodules from core and contrib,
@@ -124,12 +146,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tools. The node *field* is still called `moderation_state` and is unchanged
 - Ask for `facets_facet`, not `search_api_facet`, in the facet tools
 - Rewrite `config_translation_list` and `config_translation_add`, which targeted
-  two mechanisms that do not exist: a `config_translation` JSON:API resource
-  (Drupal stores config translations on the entity, not as entities) and a
-  `config:translation:add` Drush command (Drush has no translation command
-  category at all). The list now reports the config entity types this site can
-  translate, and the add writes a real entity translation, naming
-  `{entity_type}/{entity_id}` rather than a bare config name that cannot resolve
+  three mechanisms that do not exist between them: a `config_translation`
+  JSON:API resource, a `config:translation:add` Drush command (Drush has no
+  translation command category at all), and `$entity->addTranslation()` on a
+  config entity, which implements no `TranslatableInterface`. The list reports
+  the mappers this site has. The add resolves `{entity_type}/{entity_id}`
+  through the config translation mapper to the config object the entity is
+  stored as -- `node_type` and `article` become `node.type.article` -- and
+  writes a language config override for the target language, which is where
+  Drupal keeps config translations. Verified live: the French `name` and
+  `description` land on the override while the base config keeps its own
 - Drop a dead `get_resource("jsonapi")` call from `nextjs_helpers_generate`. It
   requested `/jsonapi/jsonapi`, a path that does not exist, and the 404 aborted
   the whole tool for a value the generator never used
