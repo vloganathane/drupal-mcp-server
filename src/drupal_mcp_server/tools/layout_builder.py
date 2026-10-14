@@ -305,7 +305,6 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not drush:
             return {"error": "Drush not available"}
         try:
-            theme_arg = f"--theme={theme}" if theme else ""
             result = await drush.run("ev", [
                 "exec(\"\\$theme = \\Drupal::service('theme.registry')->get('" + (theme or "bartik") + "'); print_r(array_keys(\\$theme->getRegions()));\", \\$output); print_r(\\$output);"
             ])

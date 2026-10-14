@@ -56,7 +56,6 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             
             attributes = entity.get("data", {}).get("attributes", {})
             body = attributes.get("body", {}).get("value", "")
-            title = attributes.get("title", "")
             
             issues = []
             
@@ -118,42 +117,6 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             return {"error": "Drush not available"}
         try:
             # Simple hex color parsing
-            def hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
-                hex_color = hex_color.lstrip('#')
-                if len(hex_color) == 3:
-                    hex_color = ''.join([c*2 for c in hex_color])
-                return (
-                    int(hex_color[0:2], 16),
-                    int(hex_color[2:4], 16),
-                    int(hex_color[4:6], 16),
-                )
-            def hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
-                hex_color = hex_color.lstrip('#')
-                if len(hex_color) == 3:
-                    hex_color = ''.join([c*2 for c in hex_color])
-                return (
-                    int(hex_color[0:2], 16),
-                    int(hex_color[2:4], 16),
-                    int(hex_color[4:6], 16),
-                )
-            def hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
-                hex_color = hex_color.lstrip('#')
-                if len(hex_color) == 3:
-                    hex_color = ''.join([c*2 for c in hex_color])
-                return (
-                    int(hex_color[0:2], 16),
-                    int(hex_color[2:4], 16),
-                    int(hex_color[4:6], 16),
-                )
-            def hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
-                hex_color = hex_color.lstrip('#')
-                if len(hex_color) == 3:
-                    hex_color = ''.join([c*2 for c in hex_color])
-                return (
-                    int(hex_color[0:2], 16),
-                    int(hex_color[2:4], 16),
-                    int(hex_color[4:6], 16),
-                )
             def hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
                 hex_color = hex_color.lstrip('#')
                 if len(hex_color) == 3:

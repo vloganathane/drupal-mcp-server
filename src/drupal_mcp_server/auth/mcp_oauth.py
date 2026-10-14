@@ -203,7 +203,8 @@ class DrupalOAuthProvider(OAuthProvider):
         if refresh_token_str not in self._refresh_tokens:
             raise ValueError("Invalid refresh token")
         
-        token_data = self._refresh_tokens[refresh_token_str]
+        # Indexed for its KeyError side effect: it rejects unknown tokens.
+        _token_data = self._refresh_tokens[refresh_token_str]
         
         import secrets
         import time

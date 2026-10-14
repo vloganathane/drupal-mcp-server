@@ -9,7 +9,7 @@ from ._utils import ensure_dict as _ensure_dict
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
     jsonapi = deps.get("jsonapi_client")
-    drush = deps.get("drush_client")
+    _drush = deps.get("drush_client")
 
     @mcp.tool()
     async def redirect_list(

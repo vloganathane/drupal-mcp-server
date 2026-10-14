@@ -8,7 +8,7 @@ from ._utils import ensure_dict as _ensure_dict
 
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
-    drush = deps.get("drush_client")
+    _drush = deps.get("drush_client")
     jsonapi = deps.get("jsonapi_client")
 
     @mcp.tool()

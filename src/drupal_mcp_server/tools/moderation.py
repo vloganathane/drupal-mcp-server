@@ -10,7 +10,7 @@ from ._utils import validate_pagination
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
     jsonapi = deps.get("jsonapi_client")
-    drush = deps.get("drush_client")
+    _drush = deps.get("drush_client")
 
     @mcp.tool()
     async def moderation_state_list(

@@ -9,7 +9,7 @@ from ._utils import ensure_dict as _ensure_dict
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
     drush = deps.get("drush_client")
-    jsonapi = deps.get("jsonapi_client")
+    _jsonapi = deps.get("jsonapi_client")
 
     @mcp.tool()
     async def test_run_phpunit(
@@ -125,7 +125,7 @@ class {class_name} extends {base_class} {{
    */
   public function test{method.capitalize()}() {{
     // TODO: Implement test
-    \$this->assertTrue(TRUE);
+    \\$this->assertTrue(TRUE);
   }}
 """
             test_code += "}\n"

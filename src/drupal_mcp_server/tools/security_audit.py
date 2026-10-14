@@ -8,6 +8,8 @@ from typing import Any
 
 from fastmcp import FastMCP
 
+from ._utils import ensure_dict as _ensure_dict
+
 
 def _find_tool_path(tool_name: str) -> str | None:
     """Find the path to a tool executable."""
@@ -41,9 +43,6 @@ async def _proc_run(cmd: list[str]) -> dict[str, Any]:
         "stderr": stderr.decode(),
         "command": " ".join(cmd),
     }
-
-
-from ._utils import ensure_dict as _ensure_dict
 
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
@@ -204,7 +203,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             checks: dict[str, Any] = {}
             
             # Check CSP headers in settings.php
-            result = await drush.run("ev", ["\$config = include 'sites/default/settings.php'; print_r(isset(\$config['csp']) ? \$config['csp'] : 'not set');"])
+            result = await drush.run("ev", ["\\$config = include 'sites/default/settings.php'; print_r(isset(\\$config['csp']) ? \\$config['csp'] : 'not set');"])
             checks["csp_config"] = _ensure_dict(result)
             
             # Check for CSP module

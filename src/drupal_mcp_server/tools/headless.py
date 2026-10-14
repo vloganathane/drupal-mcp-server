@@ -21,12 +21,8 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:
-            if entity_type:
-                result = await jsonapi.get_resource("jsonapi", {})
-                return _ensure_dict(result)
-            else:
-                result = await jsonapi.get_resource("jsonapi", {})
-                return _ensure_dict(result)
+            result = await jsonapi.get_index()
+            return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
 
@@ -53,7 +49,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:
-            params = {"fields[%s]" % entity_type: ",".join(fields)}
+            params = {f"fields[{entity_type}]": ",".join(fields)}
             result = await jsonapi.get_resource(entity_type, params)
             return _ensure_dict(result)
         except Exception as e:
@@ -121,7 +117,8 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             helpers = {}
             if jsonapi:
                 for entity_type in entity_types:
-                    schema = await jsonapi.get_resource("jsonapi", {})
+                    # Network call: keep it even though the value is unused.
+                    _schema = await jsonapi.get_resource("jsonapi", {})
                     helpers[entity_type] = {
                         "type": f"Drupal{entity_type.capitalize()}",
                         "api_url": f"/jsonapi/{entity_type}",
@@ -130,7 +127,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             os.makedirs(output_dir, exist_ok=True)
             with open(os.path.join(output_dir, "drupal-types.ts"), "w") as f:
                 f.write("// Generated Drupal types\n")
-                for k, v in helpers.items():
+                for _k, v in helpers.items():
                     f.write(f"export interface {v['type']} {{\n  id: string;\n  type: string;\n  attributes: any;\n}}\n\n")
             
             with open(os.path.join(output_dir, "drupal-api.ts"), "w") as f:
@@ -185,7 +182,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:
-            result = await jsonapi.get_resource("jsonapi", {})
+            result = await jsonapi.get_index()
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -197,7 +194,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:
-            result = await jsonapi.get_resource("jsonapi", {})
+            result = await jsonapi.get_index()
             result = _ensure_dict(result)
             if result.get("error"):
                 return result

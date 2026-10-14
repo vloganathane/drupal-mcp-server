@@ -64,7 +64,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
 /**
  * Implements hook_help().
  */
-function {machine_name}_help($route_name, \Drupal\Core\Routing\RouteMatchInterface $route_match) {{
+function {machine_name}_help($route_name, \\Drupal\\Core\\Routing\\RouteMatchInterface $route_match) {{
   switch ($route_name) {{
     case 'help.page.{machine_name}':
       return '<p>' . t('{description or f"Custom module: {name}"}') . '</p>';
@@ -115,7 +115,7 @@ function {machine_name}_permissions() {{
 
 namespace Drupal\\{machine_name}\\Service;
 
-use Drupal\Core\Database\Connection;
+use Drupal\\Core\\Database\\Connection;
 
 class ExampleService {{
   protected $database;
@@ -190,7 +190,7 @@ class ExampleService {{
 
 namespace Drupal\\{machine_name}\\Controller;
 
-use Drupal\Core\Controller\ControllerBase;
+use Drupal\\Core\\Controller\\ControllerBase;
 
 class {machine_name.capitalize()}Controller extends ControllerBase {{
   public function content() {{
@@ -269,7 +269,7 @@ class {machine_name.capitalize()}Controller extends ControllerBase {{
         constructor_params = ""
         constructor_body = ""
         if arguments:
-            for i, arg in enumerate(arguments):
+            for _i, arg in enumerate(arguments):
                 param_name = f"${arg.replace('@', '')}"
                 constructor_params += f"{param_name}, "
                 constructor_body += f"        $this->{arg.replace('@', '')} = {param_name};\n"
@@ -859,9 +859,9 @@ use Drupal\\Core\\Form\\FormStateInterface;
 
 namespace Drupal\\{machine_name}\\Controller;
 
-use Drupal\Core\Controller\ControllerBase;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
+use Drupal\\Core\\Controller\\ControllerBase;
+use Symfony\\Component\\HttpFoundation\\JsonResponse;
+use Symfony\\Component\\HttpFoundation\\Response;
 """
         
         for method in methods:
@@ -896,7 +896,6 @@ use Symfony\Component\HttpFoundation\Response;
             method_name = method.get("name", "content")
             route_path = method.get("route", f"/{machine_name}/{method_name}")
             route_title = method.get("title", method_name.replace("_", " ").title())
-            route_name = f"{machine_name}.{method_name}"
             
             routing_yml[f"{machine_name}.{method_name}"] = {
                 "path": route_path,
@@ -1059,7 +1058,7 @@ class {class_name} implements EventSubscriberInterface {{
 /**
  * Implements hook_help().
  */
-function {machine_name}_help($route_name, \Drupal\Core\Routing\RouteMatchInterface $route_match) {{
+function {machine_name}_help($route_name, \\Drupal\\Core\\Routing\\RouteMatchInterface $route_match) {{
   switch ($route_name) {{
     case 'help.page.{machine_name}':
       return '<p>' . t('Help text for {machine_name}.') . '</p>';
@@ -1070,7 +1069,7 @@ function {machine_name}_help($route_name, \Drupal\Core\Routing\RouteMatchInterfa
 /**
  * Implements hook_form_alter().
  */
-function {machine_name}_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {{
+function {machine_name}_form_alter(&$form, \\Drupal\\Core\\Form\\FormStateInterface $form_state, $form_id) {{
   // Add your form alterations here
 }}
 """,
@@ -1078,7 +1077,7 @@ function {machine_name}_form_alter(&$form, \Drupal\Core\Form\FormStateInterface 
 /**
  * Implements hook_entity_presave().
  */
-function {machine_name}_entity_presave(\Drupal\Core\Entity\EntityInterface $entity) {{
+function {machine_name}_entity_presave(\\Drupal\\Core\\Entity\\EntityInterface $entity) {{
   // Add your presave logic here
 }}
 """,
@@ -1334,13 +1333,13 @@ function {machine_name}_config_import_create($config_name, $config_storage) {{
         # Build test directory
         if test_type == "KernelTest":
             test_dir = os.path.join(module_path, "tests", "src", "Kernel")
-            base_class = "Drupal\KernelTests\KernelTestBase"
+            base_class = "Drupal\\KernelTests\\KernelTestBase"
         elif test_type == "UnitTest":
             test_dir = os.path.join(module_path, "tests", "src", "Unit")
-            base_class = "PHPUnit\Framework\TestCase"
+            base_class = "PHPUnit\\Framework\\TestCase"
         elif test_type == "FunctionalTest":
             test_dir = os.path.join(module_path, "tests", "src", "Functional")
-            base_class = "Drupal\Tests\BrowserTestBase"
+            base_class = "Drupal\\Tests\\BrowserTestBase"
         else:
             return {"error": f"Unknown test type: {test_type}. Available: KernelTest, UnitTest, FunctionalTest"}
         
@@ -1370,20 +1369,20 @@ class {class_name} extends {base_class_name} {{
             test_class += f"""  /**
    * {{@inheritdoc}}
    */
-  protected static \$modules = ['{machine_name}'];
+  protected static \\$modules = ['{machine_name}'];
 """
         elif test_type == "FunctionalTest":
             test_class += """  /**
    * {@inheritdoc}
    */
-  protected \$defaultTheme = 'stark';
+  protected \\$defaultTheme = 'stark';
 """
         
         for method in test_methods:
             test_class += f"""
   public function test{method.replace('_', ' ').title().replace(' ', '')}() {{
     // TODO: Implement test
-    \$this->assertTrue(TRUE);
+    \\$this->assertTrue(TRUE);
   }}
 """
         

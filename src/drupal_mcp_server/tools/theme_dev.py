@@ -9,7 +9,7 @@ from fastmcp import FastMCP
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
     drush = deps.get("drush_client")
-    jsonapi = deps.get("jsonapi_client")
+    _jsonapi = deps.get("jsonapi_client")
 
     @mcp.tool()
     async def theme_create(
@@ -696,14 +696,12 @@ class ThemeSettingsForm extends ConfigFormBase {{
         if not drush:
             return {"error": "Drush not available"}
         
-        # Enable twig debug via services.yml
-        theme_path = path or f"themes/custom/{machine_name}"
-        
-        # Enable twig debug
+        # Enable twig debug. These calls have side effects even though the
+        # return values are unused, so they must not be dropped.
         if drush:
-            result = await drush.run("config:set", "twig.config debug true")
-            result2 = await drush.run("config:set", "twig.config auto_reload true")
-            result3 = await drush.run("config:set", "twig.config cache false")
+            _result = await drush.run("config:set", "twig.config debug true")
+            _result2 = await drush.run("config:set", "twig.config auto_reload true")
+            _result3 = await drush.run("config:set", "twig.config cache false")
         
         return {
             "success": True,
@@ -730,7 +728,7 @@ class ThemeSettingsForm extends ConfigFormBase {{
         
         # Find all twig files
         twig_files = []
-        for root, dirs, files in os.walk(templates_dir):
+        for root, _dirs, files in os.walk(templates_dir):
             for file in files:
                 if file.endswith(".twig"):
                     twig_files.append(os.path.join(root, file))
