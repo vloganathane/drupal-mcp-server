@@ -23,6 +23,10 @@ def setup_logging(level: str = "INFO") -> logging.Logger:
 
     root_logger = logging.getLogger("drupal_mcp_server")
     root_logger.setLevel(getattr(logging, level.upper(), logging.INFO))
+
+    # Replace rather than append. Appending meant a second call added a second
+    # handler, so reconfiguring the server logged every message once per call.
+    root_logger.handlers.clear()
     root_logger.addHandler(handler)
 
     return root_logger
