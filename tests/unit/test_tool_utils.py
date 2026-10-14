@@ -298,3 +298,67 @@ def test_layout_builder_tools_stop_pretending_jsonapi_exposes_layouts():
         assert "does not expose a JSON:API resource" in result["error"]
         assert result["entity_type"] == "node"
         assert "entity_view_display" in result["error"]
+
+
+# --- Filters on fields that do not exist ----------------------------------
+
+
+class _JSONAPI:
+    """Records the resource and params each tool asked for."""
+
+    def __init__(self, result: dict[str, Any] | None = None) -> None:
+        self.result: dict[str, Any] = result or {"data": []}
+        self.calls: list[tuple[str, dict[str, Any]]] = []
+
+    async def get_resource(self, resource: str, params: dict[str, Any] | None = None):
+        self.calls.append((resource, params or {}))
+        return self.result
+
+
+def test_menu_link_list_filters_on_menu_name():
+    """`menu_link_content` has no `menu` field. Filtering on it made Drupal
+    answer 400 "Invalid nested filtering ... the field `menu`, given in the
+    path `menu`, does not exist" on every call, on every site, so the tool
+    never listed a single link when asked to filter."""
+    import asyncio
+
+    api = _JSONAPI({"data": [{"id": "a", "attributes": {"title": "Home"}}]})
+    fns = _register("menus", jsonapi_client=api)
+
+    result = asyncio.run(fns["menu_link_list"](menu_id="admin"))
+
+    resource, params = api.calls[0]
+    assert resource == "menu_link_content"
+    assert "filter[menu]" not in params
+    assert params["filter[menu_name]"] == "admin"
+    assert "error" not in result
+
+
+def test_menu_link_list_still_passes_caller_supplied_filters_through():
+    """The `filters` argument is the caller's choice of field name."""
+    import asyncio
+
+    api = _JSONAPI()
+    fns = _register("menus", jsonapi_client=api)
+
+    asyncio.run(fns["menu_link_list"](filters={"title": "Home"}))
+
+    assert api.calls[0][1]["filter[title]"] == "Home"
+
+
+def test_permission_audit_filters_a_role_on_label():
+    """`user_role` exposes `label`, not `name`. The `name` filter returned
+    400 "Invalid nested filtering ... the field `name` ... does not exist"
+    every time, so the role-specific branch of this tool never worked."""
+    import asyncio
+
+    api = _JSONAPI({"data": [{"id": "administrator", "attributes": {"label": "administrator"}}]})
+    fns = _register("security_audit", jsonapi_client=api, drush_client=None)
+
+    result = asyncio.run(fns["permission_audit"](role="administrator"))
+
+    resource, params = api.calls[-1]
+    assert resource == "user_role"
+    assert "filter[name]" not in params
+    assert params["filter[label]"] == "administrator"
+    assert result["role"] == "administrator"

@@ -158,7 +158,10 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 roles = _ensure_dict(result)
             
             if role and jsonapi:
-                result = await jsonapi.get_resource("user_role", {"filter[name]": role})
+                # user_role exposes `label`, not `name`. Filtering on `name`
+                # returned 400 "Invalid nested filtering ... the field `name`
+                # does not exist" every time, so this branch never worked.
+                result = await jsonapi.get_resource("user_role", {"filter[label]": role})
                 role_data = _ensure_dict(result)
                 return {"role": role, "data": role_data}
             

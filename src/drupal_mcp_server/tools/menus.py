@@ -121,7 +121,11 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             params = {"page[limit]": str(page_limit), "page[offset]": str(page_offset)}
             
             if menu_id:
-                params["filter[menu]"] = menu_id
+                # `menu` is not a field on menu_link_content, so filtering on
+                # it made Drupal answer 400 "Invalid nested filtering ... the
+                # field `menu`, given in the path `menu`, does not exist" on
+                # every call, on every site. The field is `menu_name`.
+                params["filter[menu_name]"] = menu_id
             
             if filters:
                 for key, value in filters.items():

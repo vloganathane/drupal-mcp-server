@@ -4,6 +4,7 @@ from typing import Any
 
 from fastmcp import FastMCP
 
+from ..validation import validate_single_select, validate_table_name, validate_where_clause
 from ._utils import ensure_dict as _ensure_dict
 
 
@@ -12,22 +13,21 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
 
     @mcp.tool()
     async def db_query(query: str, args: list[str] | None = None) -> dict[str, Any]:
-        """Execute a SELECT query on the Drupal database.
-        
-        Only SELECT queries are allowed for safety.
+        """Execute a single read-only SELECT query on the Drupal database.
+
+        One statement only, no comments, and no write or file-access clauses.
         """
         if not drush:
             return {"error": "Drush not available"}
         try:
-            # Validate it's a SELECT query
-            query_stripped = query.strip().upper()
-            if not query_stripped.startswith("SELECT"):
-                return {"error": "Only SELECT queries are allowed for safety"}
-            
+            problem = validate_single_select(query)
+            if problem:
+                return {"error": problem}
+
             cmd_args = [query]
             if args:
                 cmd_args.extend(args)
-            
+
             result = await drush.run("sql:query", cmd_args)
             return _ensure_dict(result)
         except Exception as e:
@@ -50,10 +50,9 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not drush:
             return {"error": "Drush not available"}
         try:
-            # Validate table name to prevent SQL injection
-            import re
-            if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', table):
-                return {"error": f"Invalid table name: {table}"}
+            problem = validate_table_name(table)
+            if problem:
+                return {"error": problem}
             result = await drush.run("sql:query", [f"DESCRIBE {table}"])
             return _ensure_dict(result)
         except Exception as e:
@@ -65,16 +64,14 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not drush:
             return {"error": "Drush not available"}
         try:
-            # Validate table name to prevent SQL injection
-            import re
-            if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', table):
-                return {"error": f"Invalid table name: {table}"}
+            problem = validate_table_name(table)
+            if problem:
+                return {"error": problem}
             query = f"SELECT COUNT(*) as count FROM {table}"
             if where:
-                # Basic WHERE clause validation — only allow simple conditions
-                # Format: column=value, column>value, column<value, column LIKE 'value'
-                if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]+\s*(=|!=|>|<|>=|<=|LIKE)\s*('[^']*'|[\w.]+)$", where.strip()):
-                    return {"error": f"Invalid WHERE clause: {where}"}
+                problem = validate_where_clause(where)
+                if problem:
+                    return {"error": problem}
                 query += f" WHERE {where}"
             result = await drush.run("sql:query", [query])
             return _ensure_dict(result)
