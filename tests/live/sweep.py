@@ -75,6 +75,10 @@ DEAD_PATTERNS = [
     "AttributeError",
     "NameError",
     "ImportError",
+    # The tool built a command line drush itself refuses. Db_tables, db_query,
+    # db_count, drush_php_eval and every `ev` tool failed this way once
+    # DrushClient shlex-split their arguments into separate tokens.
+    "too many arguments",
 ]
 
 
@@ -193,20 +197,34 @@ def value_for(name: str, t, spec: dict):
     return "sweep_value"
 
 
+def _verdict_for(detail: str) -> str:
+    low = detail.lower()
+    if re.search(r"\b(module|plugins are not enabled|unknown option)\b", low):
+        return "UPSTREAM"
+    if "not available" in low or "not found" in low or "command not found" in low:
+        return "BLOCKED"
+    if any(pattern.lower() in low for pattern in DEAD_PATTERNS):
+        return "DEAD"
+    return "REJECTED"
+
+
 def classify(payload, tool_name: str, local: bool):
     """Decide what a tool's answer means."""
-    if isinstance(payload, dict) and payload.get("error"):
-        detail = str(payload["error"])
-        low = detail.lower()
-        if re.search(r"\b(module|plugins are not enabled|unknown option)\b", low):
-            return "UPSTREAM", detail[:200]
-        if "not available" in low or "not found" in low or "command not found" in low:
-            return "BLOCKED", detail[:200]
-        if any(p in detail for p in DEAD_PATTERNS):
-            return "DEAD", detail[:200]
-        return "REJECTED", detail[:200]
+    if isinstance(payload, dict):
+        if payload.get("error"):
+            detail = str(payload["error"])
+            return _verdict_for(detail), detail[:200]
+        # A failed drush run returns {returncode: 1, stderr: "..."} with no
+        # `error` key at all. Before this branch every such tool was counted
+        # OK, so db_tables, db_query, db_count, drush_php_eval and every `ev`
+        # tool reported as passing while drush answered "Too many arguments".
+        rc = payload.get("returncode")
+        if rc not in (None, 0):
+            detail = str(payload.get("stderr") or "").strip() or f"command exited {rc}"
+            detail = " ".join(detail.split())
+            return _verdict_for(detail), detail[:200]
     if isinstance(payload, str) and "Error calling tool" in payload:
-        if any(p in payload for p in DEAD_PATTERNS):
+        if any(pattern.lower() in payload.lower() for pattern in DEAD_PATTERNS):
             return "DEAD", payload[:200]
         return "REJECTED", payload[:200]
     return "OK", ""
@@ -290,7 +308,10 @@ async def main() -> int:
                         "elapsed": 0,
                     })
                     continue
-                args = synthesize(t.inputSchema or {})
+                # The MCP SDK renamed `inputSchema` to `input_schema`. Read
+                # either so a client upgrade does not abort the whole sweep.
+                schema = getattr(t, "inputSchema", None) or getattr(t, "input_schema", None) or {}
+                args = synthesize(schema)
                 local = bool(LOCAL_TOOL.match(t.name))
                 timeout = 150 if local else 45
                 start = time.time()
