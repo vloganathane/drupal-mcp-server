@@ -18,6 +18,7 @@ import os
 import sys
 from pathlib import Path
 
+from bootstrap import live_nid
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
@@ -46,6 +47,11 @@ def check(label: str, payload: dict, ok: bool, note: str = "") -> bool:
 
 
 async def main() -> int:
+    # The sweep deletes what it touches, so a hardcoded node id made this suite
+    # fail depending on what ran before it: the tool answered correctly with
+    # "No node with id 3" and the fixture was the thing that was wrong.
+    nid = live_nid()
+
     env = dict(os.environ)
     env.update({
         "DRUPAL_BASE_URL": BASE,
@@ -148,7 +154,7 @@ async def main() -> int:
             #    drush_php_eval is used for the setup because it was one of the
             #    tools broken by the shlex-splitting bug - this proves it too.
             create_php = (
-                "$n = \\Drupal\\node\\Entity\\Node::load(3);"
+                "$n = \\Drupal\\node\\Entity\\Node::load(" + str(nid) + ");"
                 "$d = \\Drupal::entityTypeManager()->getStorage('entity_view_display')"
                 "->load('node.article.default');"
                 "$ov = $d->getOverridesSectionStorageForEntity($n);"
@@ -170,14 +176,14 @@ async def main() -> int:
             listed2 = await call(session, "layout_builder_override_remove",
                                 {"entity_type": "node", "bundle": "article"})
             now_listed = listed2.get("overridden") or []
-            saw_it = "3" in [str(x) for x in now_listed]
+            saw_it = str(nid) in [str(x) for x in now_listed]
             passed += check("override_remove sees the override", listed2, saw_it,
                             f"overridden={now_listed}")
             failed += 0 if saw_it else 1
 
             undone = await call(session, "layout_builder_override_remove",
                                 {"entity_type": "node", "bundle": "article",
-                                 "entity_id": "3"})
+                                 "entity_id": str(nid)})
             real = undone.get("reverted") is True
             passed += check("override_remove reverts it", undone, real,
                             f"reverted={undone.get('reverted')} "

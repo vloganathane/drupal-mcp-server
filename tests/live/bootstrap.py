@@ -24,8 +24,12 @@ Then run this from the repository root.
 from __future__ import annotations
 
 import asyncio
+import json
 import os
+import ssl
+import subprocess
 import time
+import urllib.request
 from pathlib import Path
 
 from mcp import ClientSession, StdioServerParameters
@@ -35,6 +39,56 @@ HERE = Path(__file__).resolve().parents[2]
 PROJECT = HERE / "drupal-live"
 VENV = HERE / "venv"
 BASE = os.environ.get("DRUPAL_BASE_URL", "https://drupal-live.ddev.site")
+
+
+def live_nid() -> str:
+    """Return a real node id from the site, creating one if it has none.
+
+    Hardcoding an id produced false failures: the sweep deletes what it
+    touches, so a test naming node 3 fails once node 3 is gone even though the
+    tool under test answered correctly - and it did, "No node with id 3". The
+    id is read instead so that cannot recur, and a node is created when the
+    collection comes back empty so a suite run after an emptying sweep fails on
+    something real rather than on the absence of a fixture.
+    """
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    req = urllib.request.Request(
+        f"{BASE}/jsonapi/node/article",
+        headers={"Accept": "application/vnd.api+json"},
+    )
+    doc = json.load(urllib.request.urlopen(req, context=ctx))
+    if "data" not in doc:
+        # An error document is a site problem, not a missing fixture; creating
+        # a node here would hide it behind a confusing later failure.
+        raise RuntimeError(f"JSON:API returned no collection: {json.dumps(doc)[:300]}")
+    rows = doc["data"] or []
+    if rows:
+        return str(rows[0]["attributes"]["drupal_internal__nid"])
+    return _provision_node()
+
+
+def _provision_node() -> str:
+    """Create an article through Drush and return its id."""
+    php = (
+        "$n = \\Drupal\\node\\Entity\\Node::create(["
+        "'type' => 'article', 'title' => 'live test fixture', 'status' => 1]); "
+        "$n->save(); print json_encode(['nid' => (int) $n->id()]);"
+    )
+    proc = subprocess.run(
+        ["ddev", "drush", "php:eval", php],
+        cwd=PROJECT,
+        capture_output=True,
+        text=True,
+        timeout=300,
+    )
+    if proc.returncode != 0:
+        raise RuntimeError(
+            "no article to test against and could not create one: "
+            + (proc.stderr or proc.stdout).strip()[:300]
+        )
+    return str(json.loads(proc.stdout.strip())["nid"])
 
 # Steps in the order a real user would run them. Each is (label, tool, args,
 # install_only). `install_only` steps are skipped when Drupal is already

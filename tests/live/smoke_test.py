@@ -16,34 +16,16 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-import ssl
 import time
-import urllib.request
 from pathlib import Path
 
+from bootstrap import live_nid
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
 HERE = Path(__file__).resolve().parents[2]
 BASE = os.environ.get("DRUPAL_BASE_URL", "https://drupal-live.ddev.site")
 VENV = HERE / "venv"
-
-
-def live_nid() -> str:
-    """Read a real node id from the live site rather than hardcoding one.
-
-    Hardcoding produced two false failures after a sweep deleted the node the
-    test happened to name; the tool was correct and the fixture was not.
-    """
-    ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
-    req = urllib.request.Request(
-        f"{BASE}/jsonapi/node/article",
-        headers={"Accept": "application/vnd.api+json"},
-    )
-    data = json.load(urllib.request.urlopen(req, context=ctx))
-    return str(data["data"][0]["attributes"]["drupal_internal__nid"])
 
 
 async def main() -> int:
