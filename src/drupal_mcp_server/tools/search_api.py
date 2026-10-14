@@ -232,16 +232,21 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         index_id: str | None = None,
         page_limit: int = 50,
     ) -> dict[str, Any]:
-        """List Search API facets."""
+        """List Search API facets.
+
+        `index_id` is no longer applied. A facet is attached to a *facet
+        source*, not to the index, and the only field it carries is
+        `facet_source_id` -- so `filter[index]` answered 400 "the field `index`
+        does not exist" on every call, and there is no field to filter on
+        instead. Each returned facet carries its `facet_source_id`, which is
+        what a caller needs to match facets to an index.
+        """
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:
             params: dict[str, Any] = {"page[limit]": "50"}
             
-            if index_id:
-                params["filter[index]"] = index_id
-            
-            result = await jsonapi.get_resource("search_api_facet", params)
+            result = await jsonapi.get_resource("facets_facet", params)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -252,7 +257,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         label: str,
         index_id: str,
         field: str,
-        facet_type: str = "search_api_facet",
+        facet_type: str = "facets_facet",
         settings: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Create a Search API facet."""
@@ -260,7 +265,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             return {"error": "JSON:API not available"}
         try:
             facet_data: dict[str, Any] = {
-                "type": "search_api_facet",
+                "type": "facets_facet--facets_facet",
                 "id": id,
                 "label": label,
                 "index": index_id,
@@ -269,7 +274,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             if settings:
                 facet_data["settings"] = settings
             
-            result = await jsonapi.create_resource("search_api_facet", facet_data)
+            result = await jsonapi.create_resource("facets_facet", facet_data)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}

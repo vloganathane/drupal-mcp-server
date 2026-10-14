@@ -4,6 +4,7 @@ from typing import Any
 
 from fastmcp import FastMCP
 
+from ._utils import absent_entity as _absent_entity
 from ._utils import ensure_dict as _ensure_dict
 from ._utils import validate_pagination
 
@@ -11,6 +12,9 @@ from ._utils import validate_pagination
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
     jsonapi = deps.get("jsonapi_client")
     _drush = deps.get("drush_client")
+    # The transition tools below read and write the `workflow` entity, since
+    # transitions are configuration inside it rather than entities themselves.
+    drush = _drush
 
     @mcp.tool()
     async def moderation_state_list(
@@ -31,7 +35,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 for key, value in filters.items():
                     params[f"filter[{key}]"] = str(value)
             
-            result = await jsonapi.get_resource("moderation_state", params)
+            result = await jsonapi.get_resource("content_moderation_state", params)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -45,7 +49,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             params = {}
             if include:
                 params["include"] = include
-            result = await jsonapi.get_by_id("moderation_state", state_id, params=params if params else None)
+            result = await jsonapi.get_by_id("content_moderation_state", state_id, params=params if params else None)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -63,7 +67,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             return {"error": "JSON:API not available"}
         try:
             state_data = {
-                "type": "moderation_state",
+                "type": "content_moderation_state--content_moderation_state",
                 "id": state_id,
                 "workflow": workflow_id,
                 "label": label,
@@ -71,7 +75,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 "is_default": is_default,
             }
             
-            result = await jsonapi.create_resource("moderation_state", state_data)
+            result = await jsonapi.create_resource("content_moderation_state", state_data)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -87,12 +91,12 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:
-            current = await jsonapi.get_by_id("moderation_state", state_id)
+            current = await jsonapi.get_by_id("content_moderation_state", state_id)
             current = _ensure_dict(current)
             if current.get("error"):
                 return current
             
-            update_data: dict[str, Any] = {"id": state_id, "type": "moderation_state"}
+            update_data: dict[str, Any] = {"id": state_id, "type": "content_moderation_state--content_moderation_state"}
             if label is not None:
                 update_data["label"] = label
             if weight is not None:
@@ -100,7 +104,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             if is_default is not None:
                 update_data["is_default"] = is_default
             
-            result = await jsonapi.update_resource("moderation_state", state_id, update_data)
+            result = await jsonapi.update_resource("content_moderation_state", state_id, update_data)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -111,7 +115,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:
-            result = await jsonapi.delete_resource("moderation_state", state_id)
+            result = await jsonapi.delete_resource("content_moderation_state", state_id)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -122,34 +126,85 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         page_limit: int = 50,
         page_offset: int = 0,
     ) -> dict[str, Any]:
-        """List moderation transitions."""
-        if not jsonapi:
-            return {"error": "JSON:API not available"}
+        """List a workflow's moderation transitions.
+
+        Transitions are configuration *inside* the `workflow` entity, not
+        entities of their own, so there is no `workflow_transition` resource
+        for JSON:API to list. This reads them off the workflow instead, which
+        is where they are defined.
+        """
+        if not drush:
+            return {"error": "Drush not available"}
         pag_err = validate_pagination(page_limit, page_offset)
         if pag_err:
             return pag_err
         try:
-            params = {"page[limit]": str(page_limit), "page[offset]": str(page_offset)}
-            
-            if workflow_id:
-                params["filter[workflow]"] = workflow_id
-            
-            result = await jsonapi.get_resource("workflow_transition", params)
-            return _ensure_dict(result)
+            import json as _json
+
+            ids = [workflow_id] if workflow_id else None
+            code = (
+                "$tm = \\Drupal::entityTypeManager();"
+                "$ids = " + _json.dumps(ids) + ";"
+                "$workflows = $ids ? $tm->getStorage('workflow')->loadMultiple($ids)"
+                "                  : $tm->getStorage('workflow')->loadMultiple();"
+                "$out = [];"
+                "foreach ($workflows as $wf) {"
+                "  foreach ((array) $wf->get('transitions') as $tid => $t) {"
+                "    $out[] = ['id' => (string) $tid, 'workflow' => $wf->id(),"
+                "      'label' => (string) ($t['label'] ?? ''),"
+                "      'from' => (array) ($t['from'] ?? []),"
+                "      'to' => (string) ($t['to'] ?? ''),"
+                "      'weight' => (int) ($t['weight'] ?? 0)];"
+                "  }"
+                "}"
+                "print json_encode(array_values($out));"
+            )
+            result = await drush.run("php:eval", [code])
+            payload = _ensure_dict(result)
+            if payload.get("error"):
+                return payload
+            rows = payload.get("data") or []
+            start = int(page_offset)
+            window = rows[start:start + int(page_limit)]
+            return {"count": len(rows), "transitions": window}
         except Exception as e:
             return {"error": str(e)}
 
     @mcp.tool()
     async def moderation_transition_get(transition_id: str, include: str = "") -> dict[str, Any]:
-        """Get a single moderation transition by ID."""
-        if not jsonapi:
-            return {"error": "JSON:API not available"}
+        """Get a single moderation transition by ID.
+
+        Transitions belong to a workflow rather than being entities, so this
+        searches every workflow for the named transition.
+        """
+        if not drush:
+            return {"error": "Drush not available"}
         try:
-            params = {}
-            if include:
-                params["include"] = include
-            result = await jsonapi.get_by_id("workflow_transition", transition_id, params=params if params else None)
-            return _ensure_dict(result)
+            import json as _json
+
+            code = (
+                "$tid = " + _json.dumps(transition_id) + ";"
+                "foreach (\\Drupal::entityTypeManager()->getStorage('workflow')->loadMultiple() as $wf) {"
+                "  $t = $wf->get('transitions')[$tid] ?? NULL;"
+                "  if ($t) {"
+                "    print json_encode(['id' => $tid, 'workflow' => $wf->id(),"
+                "      'label' => (string) ($t['label'] ?? ''),"
+                "      'from' => (array) ($t['from'] ?? []),"
+                "      'to' => (string) ($t['to'] ?? ''),"
+                "      'weight' => (int) ($t['weight'] ?? 0)]);"
+                "    return;"
+                "  }"
+                "}"
+                "print json_encode(['error' => 'No transition with id ' . $tid]);"
+            )
+            result = await drush.run("php:eval", [code])
+            payload = _ensure_dict(result)
+            if payload.get("error"):
+                return payload
+            data = payload.get("data")
+            if isinstance(data, dict) and data.get("error"):
+                return {"error": data["error"], "transition_id": transition_id}
+            return data if isinstance(data, dict) else {}
         except Exception as e:
             return {"error": str(e)}
 
@@ -162,24 +217,19 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         to_state: str,
         weight: int = 0,
     ) -> dict[str, Any]:
-        """Create a new moderation transition."""
-        if not jsonapi:
-            return {"error": "JSON:API not available"}
-        try:
-            transition_data = {
-                "type": "workflow_transition",
-                "id": transition_id,
-                "workflow": workflow_id,
-                "label": label,
-                "from": from_states,
-                "to": to_state,
-                "weight": weight,
-            }
-            
-            result = await jsonapi.create_resource("workflow_transition", transition_data)
-            return _ensure_dict(result)
-        except Exception as e:
-            return {"error": str(e)}
+        """Create a new moderation transition.
+
+        Not implemented: a transition is configuration inside its workflow, not
+        an entity, so it is edited on the workflow and cannot be POSTed as a
+        JSON:API resource. `moderation_transition_list` and `workflow_get` read
+        the transitions a workflow defines.
+        """
+        return _absent_entity(
+            "workflow_transition",
+            "Transitions are configuration inside the `workflow` entity and are "
+            "edited on the workflow itself. Read them with "
+            "moderation_transition_list.",
+        )
 
     @mcp.tool()
     async def moderation_transition_execute(
@@ -188,43 +238,59 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         transition_id: str,
         user_id: int | None = None,
     ) -> dict[str, Any]:
-        """Execute a moderation transition on an entity."""
-        if not jsonapi:
-            return {"error": "JSON:API not available"}
+        """Execute a moderation transition on an entity.
+
+        Looks the transition up on its workflow and applies its target state to
+        the entity, refusing when the entity's current state is not one the
+        transition starts from. The old version fetched the transition through
+        JSON:API, which has no such resource, so this never ran.
+        """
+        if not drush:
+            return {"error": "Drush not available"}
         try:
-            # Get current entity to find its current state
-            entity_resource = f"{entity_type}--{entity_type}"
-            entity = await jsonapi.get_by_id(entity_resource, entity_id)
-            entity = _ensure_dict(entity)
-            if entity.get("error"):
-                return entity
-            
-            # Get the transition to verify it's valid
-            transition = await jsonapi.get_by_id("workflow_transition", transition_id)
-            transition = _ensure_dict(transition)
-            if transition.get("error"):
-                return transition
-            
-            # Apply the transition
-            current_state = entity.get("data", {}).get("attributes", {}).get("moderation_state", "")
-            transition_data = transition.get("data", {}).get("attributes", {})
-            from_states = transition_data.get("from", [])
-            to_state = transition_data.get("to", "")
-            
-            if current_state not in from_states:
-                return {"error": f"Entity is in state '{current_state}', but transition requires one of: {from_states}"}
-            
-            # Update entity with new moderation state
-            update_data = {
-                "id": entity_id,
-                "type": f"{entity_type}--{entity_type}",
-                "moderation_state": to_state,
-            }
-            if user_id:
-                update_data["uid"] = user_id
-            
-            result = await jsonapi.update_resource(entity_resource, entity_id, update_data)
-            return _ensure_dict(result)
+            import json as _json
+
+            uid = int(user_id) if user_id else None
+            code = (
+                "$type = " + _json.dumps(entity_type) + ";"
+                "$eid = " + _json.dumps(entity_id) + ";"
+                "$tid = " + _json.dumps(transition_id) + ";"
+                "$entity = \\Drupal::entityTypeManager()->getStorage($type)->load($eid);"
+                "if (!$entity) { print json_encode(['error' => 'No ' . $type . ' with id ' . $eid]); }"
+                "elseif (!$entity->hasField('moderation_state')) {"
+                "  print json_encode(['error' => $type . ' has no moderation_state field']);"
+                "} else {"
+                "  $t = NULL;"
+                "  foreach (\\Drupal::entityTypeManager()->getStorage('workflow')->loadMultiple() as $wf) {"
+                "    $c = $wf->get('transitions')[$tid] ?? NULL;"
+                "    if ($c) { $t = $c; break; }"
+                "  }"
+                "  if (!$t) { print json_encode(['error' => 'No transition with id ' . $tid]); }"
+                "  else {"
+                "    $current = (string) $entity->get('moderation_state')->value;"
+                "    $from = (array) ($t['from'] ?? []);"
+                "    if (!in_array('*', $from, TRUE) && !in_array($current, $from, TRUE)) {"
+                "      print json_encode(['error' => 'Entity is in state ' . $current"
+                "        . ', but transition ' . $tid . ' starts from one of: ' . implode(', ', $from)]);"
+                "    } else {"
+                "      $to = (string) ($t['to'] ?? '');"
+                "      $entity->set('moderation_state', $to);"
+                "      " + ("$entity->set('uid', " + str(uid) + ");" if uid else "") + ""
+                "      $entity->save();"
+                "      print json_encode(['ok' => TRUE, 'transition' => $tid,"
+                "        'from' => $current, 'to' => $to]);"
+                "    }"
+                "  }"
+                "}"
+            )
+            result = await drush.run("php:eval", [code])
+            payload = _ensure_dict(result)
+            if payload.get("error"):
+                return payload
+            data = payload.get("data")
+            if isinstance(data, dict) and data.get("error"):
+                return {"error": data["error"], "transition_id": transition_id}
+            return data if isinstance(data, dict) else {}
         except Exception as e:
             return {"error": str(e)}
 

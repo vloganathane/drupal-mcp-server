@@ -5,6 +5,7 @@ from typing import Any
 from fastmcp import FastMCP
 
 from ._utils import ensure_dict as _ensure_dict
+from ._utils import langcode_field as _langcode_field
 from ._utils import validate_pagination
 
 
@@ -16,7 +17,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         vid: str,
         name: str,
         description: str = "",
-        langcode: str = "en",
+        langcode: str | None = None,
     ) -> dict[str, Any]:
         """Create a taxonomy vocabulary."""
         if not jsonapi:
@@ -27,7 +28,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 "vid": vid,
                 "name": name,
                 "description": description,
-                "langcode": langcode,
+                **_langcode_field(langcode),
             }
             result = await jsonapi.create_resource("taxonomy_vocabulary", vocab_data)
             return _ensure_dict(result)
@@ -85,7 +86,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         description: str = "",
         parent: list[dict[str, str]] | None = None,
         weight: int = 0,
-        langcode: str = "en",
+        langcode: str | None = None,
     ) -> dict[str, Any]:
         """Create a taxonomy term in a vocabulary."""
         if not jsonapi:
@@ -95,8 +96,8 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 "type": f"taxonomy_term--{vid}",
                 "name": name,
                 "description": description,
-                "langcode": langcode,
                 "weight": weight,
+                **_langcode_field(langcode),
             }
             if parent:
                 term_data["parent"] = parent

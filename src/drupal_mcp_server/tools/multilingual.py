@@ -4,6 +4,7 @@ from typing import Any
 
 from fastmcp import FastMCP
 
+from ._utils import absent_entity as _absent_entity
 from ._utils import ensure_dict as _ensure_dict
 
 
@@ -27,7 +28,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 for key, value in filters.items():
                     params[f"filter[{key}]"] = str(value)
             
-            result = await jsonapi.get_resource("language", params)
+            result = await jsonapi.get_resource("configurable_language", params)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -44,7 +45,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             params = {}
             if include:
                 params["include"] = include
-            result = await jsonapi.get_by_id("language", langcode, params=params if params else None)
+            result = await jsonapi.get_by_id("configurable_language", langcode, params=params if params else None)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -194,22 +195,19 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         page_limit: int = 50,
         page_offset: int = 0,
     ) -> dict[str, Any]:
-        """List interface translations."""
-        if not jsonapi:
-            return {"error": "JSON:API not available"}
-        try:
-            params = {"page[limit]": str(page_limit), "page[offset]": str(page_offset)}
-            
-            if langcode:
-                params["filter[langcode]"] = langcode
-            if filters:
-                for key, value in filters.items():
-                    params[f"filter[{key}]"] = str(value)
-            
-            result = await jsonapi.get_resource("interface_translation", params)
-            return _ensure_dict(result)
-        except Exception as e:
-            return {"error": str(e)}
+        """List interface translations.
+
+        Not implemented: Drupal keeps interface translations in Locale's own
+        storage rather than as a JSON:API entity, so there is no
+        `interface_translation` resource to page through. `drush locale:export`
+        writes them out as a .po file, which is the supported way to read them.
+        """
+        return _absent_entity(
+            "interface_translation",
+            "Locale stores interface translations in its own storage, not as an "
+            "entity. Use drush locale:export to read them, or locale:import to "
+            "load a .po file.",
+        )
 
     @mcp.tool()
     async def interface_translation_add(
@@ -218,17 +216,18 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         translation: str,
         context: str = "",
     ) -> dict[str, Any]:
-        """Add interface translation."""
-        if not drush:
-            return {"error": "Drush not available"}
-        try:
-            cmd = ["locale:translate:add", source, langcode, translation]
-            if context:
-                cmd.extend(["--context", context])
-            result = await drush.run(*cmd)
-            return _ensure_dict({"result": result})
-        except Exception as e:
-            return {"error": str(e)}
+        """Add an interface translation.
+
+        Not implemented. The `locale:translate:add` command this used to run
+        does not exist -- Drush offers `locale:import` and `locale:export`, and
+        a single string is translated through Locale's own API rather than a
+        command.
+        """
+        return _absent_entity(
+            "interface_translation",
+            "There is no locale:translate:add command. Use drush locale:import "
+            "with a .po file to add translations.",
+        )
 
     @mcp.tool()
     async def interface_translation_update(
@@ -237,17 +236,16 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         translation: str,
         context: str = "",
     ) -> dict[str, Any]:
-        """Update interface translation."""
-        if not drush:
-            return {"error": "Drush not available"}
-        try:
-            cmd = ["locale:translate:update", source, langcode, translation]
-            if context:
-                cmd.extend(["--context", context])
-            result = await drush.run(*cmd)
-            return _ensure_dict({"result": result})
-        except Exception as e:
-            return {"error": str(e)}
+        """Update an interface translation.
+
+        Not implemented; `locale:translate:update` does not exist. See
+        `interface_translation_add`.
+        """
+        return _absent_entity(
+            "interface_translation",
+            "There is no locale:translate:update command. Use drush locale:import "
+            "with a .po file to update translations.",
+        )
 
     @mcp.tool()
     async def interface_translation_delete(
@@ -255,29 +253,55 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         langcode: str,
         context: str = "",
     ) -> dict[str, Any]:
-        """Delete interface translation."""
-        if not drush:
-            return {"error": "Drush not available"}
-        try:
-            cmd = ["locale:translate:delete", source, langcode]
-            if context:
-                cmd.extend(["--context", context])
-            result = await drush.run(*cmd)
-            return _ensure_dict({"result": result})
-        except Exception as e:
-            return {"error": str(e)}
+        """Delete an interface translation.
+
+        Not implemented; `locale:translate:delete` does not exist. See
+        `interface_translation_add`.
+        """
+        return _absent_entity(
+            "interface_translation",
+            "There is no locale:translate:delete command. Translations are "
+            "removed by re-importing a .po file without them.",
+        )
 
     @mcp.tool()
     async def config_translation_list(
         page_limit: int = 50,
     ) -> dict[str, Any]:
-        """List config translation entries."""
-        if not jsonapi:
-            return {"error": "JSON:API not available"}
+        """List the config objects that support translation.
+
+        There is no `config_translation` resource in JSON:API, because Drupal
+        does not store config translations as entities: a translation belongs to
+        the config object that declares a translation mapping. Asking JSON:API
+        for a resource that cannot exist returned a 404 that read exactly like
+        a missing module, so the tool looked uninstalled rather than wrong.
+
+        Each mapping is returned with the entity type it translates. The
+        mapping's own config-name list is empty until Drupal builds it inside
+        the translation form, so it is not reported here -- the id and the
+        entity type are what `config_translation_add` needs.
+        """
+        if not drush:
+            return {"error": "Drush not available"}
         try:
-            params = {"page[limit]": "50"}
-            result = await jsonapi.get_resource("config_translation", params)
-            return _ensure_dict(result)
+            limit = max(1, int(page_limit))
+            code = (
+                "$m = \\Drupal::service('plugin.manager.config_translation.mapper');"
+                "$ids = array_slice(array_keys($m->getDefinitions()), 0, " + str(limit) + ");"
+                "$out = [];"
+                "foreach ($ids as $id) {"
+                "  $d = $m->getDefinition($id);"
+                "  $out[$id] = ['entity_type' => $d['entity_type'] ?? '',"
+                "               'base_entity_type' => $d['base_entity_type'] ?? ''];"
+                "}"
+                "print json_encode($out);"
+            )
+            result = await drush.run("php:eval", [code])
+            payload = _ensure_dict(result)
+            if payload.get("error"):
+                return payload
+            data = payload.get("data") or {}
+            return {"mappings": data, "count": len(data)}
         except Exception as e:
             return {"error": str(e)}
 
@@ -287,14 +311,67 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         langcode: str,
         translation: dict[str, Any],
     ) -> dict[str, Any]:
-        """Add config translation."""
+        """Translate a config entity.
+
+        `config_name` is `{entity_type}/{entity_id}`, for example
+        `node_type/article` or `field_config/field.field.node.article.body`.
+        `config_translation_list` shows which entity types this site can
+        translate. `translation` is a flat map of property to translated value.
+
+        The old version ran `config:translation:add`, which is not a Drush
+        command -- Drush has no translation command category at all -- so this
+        failed every time. Drupal stores a config entity's translation as an
+        entity translation, so that is what is written.
+
+        A config entity must be translated as a whole entity: its translation
+        lives on the entity, not in a standalone object, which is why the
+        single-name form this used to take cannot work.
+        """
         if not drush:
             return {"error": "Drush not available"}
         try:
-            import json
-            translation_json = json.dumps(translation)
-            result = await drush.run("config:translation:add", [config_name, langcode, translation_json])
-            return _ensure_dict({"result": result})
+            import json as _json
+
+            if "/" not in config_name:
+                return {
+                    "error": (
+                        f"{config_name!r} is not a config entity reference. Use "
+                        "'{entity_type}/{entity_id}', for example "
+                        "'node_type/article'. Call config_translation_list to "
+                        "see what this site can translate."
+                    )
+                }
+            entity_type, _, entity_id = config_name.partition("/")
+            values_json = _json.dumps(translation)
+            # No shell is involved: the code reaches drush as one argv token,
+            # so PHP quotes are literal and nothing needs escaping.
+            code = (
+                "$type = " + _json.dumps(entity_type) + ";"
+                "$id = " + _json.dumps(entity_id) + ";"
+                "$lang = " + _json.dumps(langcode) + ";"
+                "$values = json_decode(" + _json.dumps(values_json) + ", TRUE);"
+                "$entity = \\Drupal::entityTypeManager()->getStorage($type)->load($id);"
+                "if (!$entity) {"
+                "  print json_encode(['error' => 'No ' . $type . ' with id ' . $id]);"
+                "} elseif (!($entity instanceof \\Drupal\\Core\\Entity\\TranslatableInterface)) {"
+                "  print json_encode(['error' => $type . ' does not support translation']);"
+                "} else {"
+                "  $t = $entity->hasTranslation($lang) ? $entity->getTranslation($lang)"
+                "       : $entity->addTranslation($lang, []);"
+                "  foreach ((array) $values as $k => $v) { $t->set($k, $v); }"
+                "  $t->save();"
+                "  print json_encode(['ok' => TRUE, 'entity_type' => $type,"
+                "                     'id' => $id, 'langcode' => $lang]);"
+                "}"
+            )
+            result = await drush.run("php:eval", [code])
+            payload = _ensure_dict(result)
+            if payload.get("error"):
+                return payload
+            data = payload.get("data")
+            if isinstance(data, dict) and data.get("error"):
+                return {"error": data["error"], "config_name": config_name}
+            return {"config_name": config_name, "langcode": langcode, **(data or {})}
         except Exception as e:
             return {"error": str(e)}
 

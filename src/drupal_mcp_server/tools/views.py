@@ -1,4 +1,16 @@
-"""Views management tools for Drupal."""
+"""Views management tools for Drupal.
+
+The entity type is ``view``, not ``views_view``. Drupal's config files are
+called ``views.view.*.yml`` and the old pre-Drupal-8 entity was `views_view`,
+so the longer name is the one that looks right -- and it 404s. JSON:API
+exposes the resource as ``view--view`` (the bundle of a config entity is the
+entity type itself), which is why every payload below carries that string
+while the calls take ``"view"``.
+
+Reading and writing go through JSON:API; executing a view does not, because
+there is no JSON:API resource for view *results* -- it runs the view through
+the Views API instead.
+"""
 
 import json
 from typing import Any
@@ -10,7 +22,7 @@ from ._utils import ensure_dict as _ensure_dict
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
     jsonapi = deps.get("jsonapi_client")
-    graphql = deps.get("graphql_client")
+    drush = deps.get("drush_client")
 
     @mcp.tool()
     async def views_list(
@@ -28,7 +40,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 for key, value in filters.items():
                     params[f"filter[{key}]"] = str(value)
             
-            result = await jsonapi.get_resource("views_view", params)
+            result = await jsonapi.get_resource("view", params)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -42,7 +54,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             params = {}
             if include:
                 params["include"] = include
-            result = await jsonapi.get_by_id("views_view", view_id, params=params if params else None)
+            result = await jsonapi.get_by_id("view", view_id, params=params if params else None)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -75,7 +87,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             return {"error": "JSON:API not available"}
         try:
             view_data: dict[str, Any] = {
-                "type": "views_view",
+                "type": "view--view",
                 "id": view_id,
                 "label": label,
                 "description": description,
@@ -114,7 +126,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             if row:
                 view_data["row"] = row
             
-            result = await jsonapi.create_resource("views_view", view_data)
+            result = await jsonapi.create_resource("view", view_data)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -145,12 +157,12 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             return {"error": "JSON:API not available"}
         try:
             # Get current view to preserve existing config
-            current = await jsonapi.get_by_id("views_view", view_id)
+            current = await jsonapi.get_by_id("view", view_id)
             current = _ensure_dict(current)
             if current.get("error"):
                 return current
             
-            update_data: dict[str, Any] = {"id": view_id, "type": "views_view"}
+            update_data: dict[str, Any] = {"id": view_id, "type": "view--view"}
             if label is not None:
                 update_data["label"] = label
             if description is not None:
@@ -186,7 +198,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             if row is not None:
                 update_data["row"] = row
             
-            result = await jsonapi.update_resource("views_view", view_id, update_data)
+            result = await jsonapi.update_resource("view", view_id, update_data)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -197,7 +209,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:
-            result = await jsonapi.delete_resource("views_view", view_id)
+            result = await jsonapi.delete_resource("view", view_id)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -211,36 +223,65 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         limit: int = 50,
         offset: int = 0,
     ) -> dict[str, Any]:
-        """Execute a view and return results."""
-        if not jsonapi:
-            return {"error": "JSON:API not available"}
+        """Execute a view and return its rows.
+
+        Runs the view through the Views API rather than guessing at a GraphQL
+        schema. The graphql module ships no `view(view_id:...)` root field, so
+        the query this used to send could never resolve, and the fallback asked
+        JSON:API for `views/{id}/{display}`, which is not a resource either.
+        Neither path was reachable, so the tool failed wherever Views was
+        installed and healthy.
+
+        `args` are the view's contextual filters, in order. `filters` are set
+        on the view's exposed input, which is what a visitor filling in the
+        view's own filter form sets.
+        """
+        if not drush:
+            return {"error": "Drush not available"}
         try:
-            # Execute view via GraphQL if available, otherwise use REST endpoint
-            if graphql:
-                query = f"""
-                query {{
-                    view(view_id: "{view_id}", display_id: "{display_id}") {{
-                        result {{
-                            rows
-                        }}
-                    }}
-                }}
-                """
-                # Note: Actual GraphQL query would need proper args/filters
-                result = await graphql.execute(query)
-                return _ensure_dict(result)
-            
-            # Fallback: Try JSON:API endpoint for view results
-            params = {"page[limit]": str(limit), "page[offset]": str(offset)}
-            if args:
-                params["args"] = ",".join(args)
-            if filters:
-                for key, value in filters.items():
-                    params[f"filter[{key}]"] = str(value)
-            
-            # Views results often come from a custom endpoint
-            result = await jsonapi.get_resource(f"views/{view_id}/{display_id}", params)
-            return _ensure_dict(result)
+            import json as _json
+
+            args_json = _json.dumps(args or [])
+            filters_json = _json.dumps(filters or {})
+            # No shell is involved: the code reaches drush as one argv token,
+            # so PHP quotes are literal and nothing needs escaping.
+            code = (
+                "$id = " + _json.dumps(view_id) + ";"
+                "$display = " + _json.dumps(display_id) + ";"
+                "$args = json_decode(" + _json.dumps(args_json) + ", TRUE);"
+                "$filters = json_decode(" + _json.dumps(filters_json) + ", TRUE);"
+                "$view = \\Drupal::service('views.views')->getView($id);"
+                "if (!$view) {"
+                "  print json_encode(['error' => 'No view with id ' . $id]);"
+                "} else {"
+                "  $view->setDisplay($display);"
+                "  if ($args) { $view->setArguments($args); }"
+                "  if ($filters) { $view->setExposedInput($filters); }"
+                "  $view->execute();"
+                "  $rows = [];"
+                "  foreach ($view->result as $row) {"
+                "    $e = isset($row->entity) ? $row->entity : NULL;"
+                "    $rows[] = ['entity_type' => $e ? $e->getEntityTypeId() : NULL,"
+                "               'id' => $e ? (string) $e->id() : NULL];"
+                "  }"
+                "  print json_encode(['view_id' => $id, 'display_id' => $display,"
+                "    'total' => count($rows), 'rows' => $rows]);"
+                "}"
+            )
+            result = await drush.run("php:eval", [code])
+            payload = _ensure_dict(result)
+            if payload.get("error"):
+                return payload
+            data = payload.get("data")
+            if isinstance(data, dict) and data.get("error"):
+                return {"error": data["error"], "view_id": view_id}
+            data = data if isinstance(data, dict) else {}
+            rows = data.get("rows") or []
+            # Truncate in PHP or here? Here: the view may legitimately produce
+            # more rows than the caller asked for, and slicing the reported set
+            # keeps the answer honest about what came back.
+            window = rows[int(offset):int(offset) + int(limit)] if rows else []
+            return {**data, "rows": window, "returned": len(window)}
         except Exception as e:
             return {"error": str(e)}
 
@@ -254,7 +295,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             return {"error": "JSON:API not available"}
         try:
             # Get full view configuration
-            result = await jsonapi.get_by_id("views_view", view_id)
+            result = await jsonapi.get_by_id("view", view_id)
             result = _ensure_dict(result)
             
             if result.get("error"):

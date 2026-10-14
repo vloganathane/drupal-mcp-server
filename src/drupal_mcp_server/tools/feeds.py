@@ -4,6 +4,7 @@ from typing import Any
 
 from fastmcp import FastMCP
 
+from ._utils import absent_entity as _absent_entity
 from ._utils import ensure_dict as _ensure_dict
 
 
@@ -148,19 +149,17 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         page_limit: int = 50,
         page_offset: int = 0,
     ) -> dict[str, Any]:
-        """List feed import logs."""
-        if not jsonapi:
-            return {"error": "JSON:API not available"}
-        try:
-            params = {"page[limit]": str(page_limit), "page[offset]": str(page_offset)}
-            
-            if feed_id:
-                params["filter[feed]"] = feed_id
-            
-            result = await jsonapi.get_resource("feeds_log", params)
-            return _ensure_dict(result)
-        except Exception as e:
-            return {"error": str(e)}
+        """List feed import logs.
+
+        Superseded by `feeds_import_status`, which reports the outcome of the
+        current import. Feeds 3.x removed the log entity, so there is nothing
+        of this shape to list on any site.
+        """
+        return _absent_entity(
+            "feeds_log",
+            "Feeds 3.x removed the log entity; an import's outcome is reported "
+            "on the feed itself. Use feeds_import_status.",
+        )
 
     @mcp.tool()
     async def feeds_tamper_list(

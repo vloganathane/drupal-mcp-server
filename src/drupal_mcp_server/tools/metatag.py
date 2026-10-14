@@ -21,7 +21,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             return {"error": "JSON:API not available"}
         try:
             params = {"page[limit]": str(page_limit), "page[offset]": str(page_offset)}
-            result = await jsonapi.get_resource("metatag_config", params)
+            result = await jsonapi.get_resource("metatag_defaults", params)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -38,7 +38,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             params = {}
             if include:
                 params["include"] = include
-            result = await jsonapi.get_by_id("metatag_config", config_id, params=params if params else None)
+            result = await jsonapi.get_by_id("metatag_defaults", config_id, params=params if params else None)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -56,7 +56,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             return {"error": "JSON:API not available"}
         try:
             config_data: dict[str, Any] = {
-                "type": "metatag_config",
+                "type": "metatag_defaults--metatag_defaults",
                 "id": id,
                 "label": label,
                 "entity_type": entity_type,
@@ -66,7 +66,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             if tags:
                 config_data["tags"] = tags
             
-            result = await jsonapi.create_resource("metatag_config", config_data)
+            result = await jsonapi.create_resource("metatag_defaults", config_data)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
@@ -81,18 +81,18 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not jsonapi:
             return {"error": "JSON:API not available"}
         try:
-            current = await jsonapi.get_by_id("metatag_config", config_id)
+            current = await jsonapi.get_by_id("metatag_defaults", config_id)
             current = _ensure_dict(current)
             if current.get("error"):
                 return current
             
-            update_data: dict[str, Any] = {"id": config_id, "type": "metatag_config"}
+            update_data: dict[str, Any] = {"id": config_id, "type": "metatag_defaults--metatag_defaults"}
             if label is not None:
                 update_data["label"] = label
             if tags is not None:
                 update_data["tags"] = tags
             
-            result = await jsonapi.update_resource("metatag_config", config_id, update_data)
+            result = await jsonapi.update_resource("metatag_defaults", config_id, update_data)
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}

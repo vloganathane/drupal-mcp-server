@@ -4,6 +4,7 @@ from typing import Any
 
 from fastmcp import FastMCP
 
+from ._utils import absent_entity as _absent_entity
 from ._utils import ensure_dict as _ensure_dict
 
 
@@ -135,7 +136,10 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             params = {"page[limit]": str(page_limit), "page[offset]": str(page_offset)}
             
             if webform_id:
-                params["filter[webform]"] = webform_id
+                # The field is `webform_id` (not `webform`) and it is a
+                # reference to the webform, so JSON:API wants the `.id`
+                # specifier.
+                params["filter[webform_id.id]"] = webform_id
             if filters:
                 for key, value in filters.items():
                     params[f"filter[{key}]"] = str(value)
@@ -227,17 +231,47 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         webform_id: str | None = None,
         page_limit: int = 50,
     ) -> dict[str, Any]:
-        """List webform handlers."""
-        if not jsonapi:
-            return {"error": "JSON:API not available"}
+        """List the handlers attached to a webform.
+
+        Handlers are plugins configured on the webform, not entities, so there
+        is no `webform_handler` resource for JSON:API to list. This reads them
+        off the webform instead, which is where they live.
+        """
+        if not drush:
+            return {"error": "Drush not available"}
+        if not webform_id:
+            return {
+                "error": (
+                    "webform_id is required: handlers belong to a webform, so "
+                    "there is no site-wide list to return."
+                )
+            }
         try:
-            params = {"page[limit]": str(page_limit)}
-            
-            if webform_id:
-                params["filter[webform]"] = webform_id
-            
-            result = await jsonapi.get_resource("webform_handler", params)
-            return _ensure_dict(result)
+            import json as _json
+
+            code = (
+                "$wf = \\Drupal::entityTypeManager()->getStorage('webform')"
+                "->load(" + _json.dumps(webform_id) + ");"
+                "if (!$wf) {"
+                "  print json_encode(['error' => 'No webform with id " + _json.dumps(webform_id) + "']);"
+                "} else {"
+                "  $out = [];"
+                "  foreach ($wf->getHandlers() as $h) {"
+                "    $out[] = ['id' => $h->getHandlerId(), 'label' => (string) $h->label(),"
+                "              'type' => $h->getPluginId()];"
+                "  }"
+                "  print json_encode(['webform_id' => " + _json.dumps(webform_id) + ","
+                "    'count' => count($out), 'handlers' => array_slice($out, 0, " + str(max(1, int(page_limit))) + ")]);"
+                "}"
+            )
+            result = await drush.run("php:eval", [code])
+            payload = _ensure_dict(result)
+            if payload.get("error"):
+                return payload
+            data = payload.get("data")
+            if isinstance(data, dict) and data.get("error"):
+                return {"error": data["error"], "webform_id": webform_id}
+            return data if isinstance(data, dict) else {}
         except Exception as e:
             return {"error": str(e)}
 
@@ -249,24 +283,19 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         label: str,
         configuration: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        """Create a webform handler (email, remote post, etc.)."""
-        if not jsonapi:
-            return {"error": "JSON:API not available"}
-        try:
-            handler_data: dict[str, Any] = {
-                "type": "webform_handler",
-                "id": id,
-                "webform": webform_id,
-                "handler_type": handler_type,
-                "label": label,
-            }
-            if configuration:
-                handler_data["configuration"] = configuration
-            
-            result = await jsonapi.create_resource("webform_handler", handler_data)
-            return _ensure_dict(result)
-        except Exception as e:
-            return {"error": str(e)}
+        """Create a webform handler (email, remote post, etc.).
+
+        Not implemented: a handler is a plugin held inside the webform's own
+        configuration and is written through the webform form, not as an
+        entity. JSON:API has no `webform_handler` resource, so the POST this
+        used to send could never succeed.
+        """
+        return _absent_entity(
+            "webform_handler",
+            "Handlers are plugins stored inside the webform's configuration and "
+            "are added through the webform form. Read them with "
+            "webform_handler_list.",
+        )
 
     @mcp.tool()
     async def webform_handler_update(
@@ -274,38 +303,30 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         label: str | None = None,
         configuration: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        """Update a webform handler."""
-        if not jsonapi:
-            return {"error": "JSON:API not available"}
-        try:
-            current = await jsonapi.get_by_id("webform_handler", handler_id)
-            current = _ensure_dict(current)
-            if current.get("error"):
-                return current
-            
-            update_data: dict[str, Any] = {"id": handler_id, "type": "webform_handler"}
-            if label is not None:
-                update_data["label"] = label
-            if configuration is not None:
-                update_data["configuration"] = configuration
-            
-            result = await jsonapi.update_resource("webform_handler", handler_id, update_data)
-            return _ensure_dict(result)
-        except Exception as e:
-            return {"error": str(e)}
+        """Update a webform handler.
+
+        Not implemented; see `webform_handler_create`. A handler has no entity
+        id of its own to address.
+        """
+        return _absent_entity(
+            "webform_handler",
+            "Handlers live inside the webform's configuration, so there is no "
+            "entity to update. Read them with webform_handler_list.",
+        )
 
     @mcp.tool()
     async def webform_handler_delete(
         handler_id: str,
     ) -> dict[str, Any]:
-        """Delete a webform handler."""
-        if not jsonapi:
-            return {"error": "JSON:API not available"}
-        try:
-            result = await jsonapi.delete_resource("webform_handler", handler_id)
-            return _ensure_dict(result)
-        except Exception as e:
-            return {"error": str(e)}
+        """Delete a webform handler.
+
+        Not implemented; see `webform_handler_create`.
+        """
+        return _absent_entity(
+            "webform_handler",
+            "Handlers live inside the webform's configuration, so there is no "
+            "entity to delete. Read them with webform_handler_list.",
+        )
 
     @mcp.tool()
     async def webform_token_list(

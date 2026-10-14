@@ -117,8 +117,10 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             helpers = {}
             if jsonapi:
                 for entity_type in entity_types:
-                    # Network call: keep it even though the value is unused.
-                    _schema = await jsonapi.get_resource("jsonapi", {})
+                    # This used to call get_resource("jsonapi") here, which
+                    # asks for /jsonapi/jsonapi -- a path that does not exist.
+                    # The 404 escaped the loop and failed the whole tool, for a
+                    # value the generator never used.
                     helpers[entity_type] = {
                         "type": f"Drupal{entity_type.capitalize()}",
                         "api_url": f"/jsonapi/{entity_type}",
