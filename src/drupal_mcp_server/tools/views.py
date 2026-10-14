@@ -234,7 +234,10 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
 
         `args` are the view's contextual filters, in order. `filters` are set
         on the view's exposed input, which is what a visitor filling in the
-        view's own filter form sets.
+        view's own filter form sets. A display that does not exist is reported
+        along with the displays the view does have: `ViewExecutable::setDisplay`
+        would otherwise fail later, with a message naming neither the view nor
+        the display the caller asked for.
         """
         if not drush:
             return {"error": "Drush not available"}
@@ -250,17 +253,27 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 "$display = " + _json.dumps(display_id) + ";"
                 "$args = json_decode(" + _json.dumps(args_json) + ", TRUE);"
                 "$filters = json_decode(" + _json.dumps(filters_json) + ", TRUE);"
-                "$view = \\Drupal::service('views.views')->getView($id);"
-                "if (!$view) {"
+                # There is no `views.views` service: the executable is built
+                # from the view's config entity by `views.executable`.
+                "$ve = \\Drupal::entityTypeManager()->getStorage('view')->load($id);"
+                "$displays = $ve ? $ve->get('display') : [];"
+                "if (!$ve) {"
                 "  print json_encode(['error' => 'No view with id ' . $id]);"
+                "} elseif (!isset($displays[$display])) {"
+                "  print json_encode(['error' => 'View ' . $id . ' has no display '"
+                "    . $display, 'available' => array_keys($displays)]);"
                 "} else {"
+                "  $view = \\Drupal::service('views.executable')->get($ve);"
                 "  $view->setDisplay($display);"
                 "  if ($args) { $view->setArguments($args); }"
                 "  if ($filters) { $view->setExposedInput($filters); }"
                 "  $view->execute();"
                 "  $rows = [];"
                 "  foreach ($view->result as $row) {"
-                "    $e = isset($row->entity) ? $row->entity : NULL;"
+                # ResultRow exposes the entity as a magic property, so
+                # isset($row->entity) is false even when it is there; _entity
+                # is the real property.
+                "    $e = $row->_entity ?? NULL;"
                 "    $rows[] = ['entity_type' => $e ? $e->getEntityTypeId() : NULL,"
                 "               'id' => $e ? (string) $e->id() : NULL];"
                 "  }"
@@ -274,7 +287,12 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 return payload
             data = payload.get("data")
             if isinstance(data, dict) and data.get("error"):
-                return {"error": data["error"], "view_id": view_id}
+                out = {"error": data["error"], "view_id": view_id}
+                # A wrong display comes back with the ones that exist; keeping
+                # them is the difference between one round trip and a guess.
+                if data.get("available"):
+                    out["available"] = data["available"]
+                return out
             data = data if isinstance(data, dict) else {}
             rows = data.get("rows") or []
             # Truncate in PHP or here? Here: the view may legitimately produce

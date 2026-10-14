@@ -767,3 +767,145 @@ def test_create_term_omits_langcode_unless_asked():
 
     assert "langcode" not in api.payloads[0]
     assert api.payloads[1]["langcode"] == "fr"
+
+
+def test_views_execute_builds_the_executable_from_the_view_entity():
+    """There is no `views.views` service. The executable is built by
+    `views.executable` from the view's config entity, so the old id failed on
+    every view on every site -- which is what made the tool dead rather than
+    merely unhelpful."""
+    import asyncio
+
+    drush = _Drush({
+        "returncode": 0,
+        "data": {"view_id": "content", "display_id": "page_1",
+                 "rows": [{"entity_type": "node", "id": "7"}], "total": 1},
+    })
+    fns = _register("views", drush_client=drush, jsonapi_client=None)
+
+    result = asyncio.run(fns["views_execute"]("content", "page_1", limit=3))
+
+    php = drush.calls[0][1][0]
+    assert "views.executable" in php
+    assert "views.views" not in php
+    assert "getStorage('view')->load" in php
+    # The display is checked against the view's own displays before the
+    # executable is built, so the answer can name what does exist.
+    assert "array_keys($displays)" in php
+    # ResultRow exposes the entity as a magic property, so isset($row->entity)
+    # is false even when it is populated; that is why the live call returned
+    # three rows of nulls.
+    assert "$row->_entity" in php
+    assert "$row->entity" not in php
+    assert result["returned"] == 1
+
+
+def test_views_execute_reports_the_displays_that_do_exist():
+    """A wrong display used to reach ViewExecutable::setDisplay, which fails
+    later and names neither the view nor the display that was asked for."""
+    import asyncio
+
+    drush = _Drush({
+        "returncode": 0,
+        "data": {"error": "View content has no display nope",
+                 "available": ["default", "page_1"]},
+    })
+    fns = _register("views", drush_client=drush, jsonapi_client=None)
+
+    result = asyncio.run(fns["views_execute"]("content", "nope"))
+
+    assert result["error"] == "View content has no display nope"
+    assert result["available"] == ["default", "page_1"]
+    assert result["view_id"] == "content"
+
+
+def test_views_execute_windows_the_rows_it_returns():
+    import asyncio
+
+    rows = [{"entity_type": "node", "id": str(i)} for i in range(10)]
+    drush = _Drush({"returncode": 0, "data": {"rows": rows, "total": 10}})
+    fns = _register("views", drush_client=drush, jsonapi_client=None)
+
+    out = asyncio.run(fns["views_execute"]("content", "page_1", limit=3, offset=4))
+
+    assert [row["id"] for row in out["rows"]] == ["4", "5", "6"]
+    assert out["returned"] == 3
+
+
+def test_paragraphs_list_names_the_types_that_do_exist():
+    """A bundle collection that does not exist is a bare 404 naming no
+    alternatives, which reads as "paragraphs are missing" rather than "that
+    type is not configured here"."""
+    import asyncio
+
+    class _API:
+        def __init__(self) -> None:
+            self.requests: list[str] = []
+
+        async def get_resource(self, resource: str, params: Any = None):
+            self.requests.append(resource)
+            if resource == "paragraph--4":
+                raise Exception(
+                    "Client error '404 Not Found' for url 'https://x/jsonapi"
+                    + resource.replace("--", "/")
+                    + "'"
+                )
+            return {"data": [{"attributes": {"drupal_internal__id": "basic"}}]}
+
+    api = _API()
+    fns = _register("paragraphs", jsonapi_client=api)
+
+    missing = asyncio.run(fns["paragraphs_item_list"](type_id="4"))
+    present = asyncio.run(fns["paragraphs_item_list"](type_id="basic"))
+
+    assert missing["error"] == "This site has no paragraph type `4`."
+    assert missing["available"] == ["basic"]
+    assert "available" not in present
+    assert api.requests[-1] == "paragraph--basic"
+
+
+def test_graphql_404_explains_a_missing_server():
+    """The graphql module installs no default server, so /graphql answers 404
+    on every call until somebody creates one -- a reason that has nothing to
+    do with the query being asked."""
+    import asyncio
+
+    class _GQL:
+        def __init__(self, message: str):
+            self.message = message
+
+        async def execute(self, query: str, variables: Any = None):
+            raise Exception(self.message)
+
+        async def get_schema(self):
+            raise Exception(self.message)
+
+    fns = _register(
+        "headless",
+        graphql_client=_GQL(
+            "Client error '404 Not Found' for url 'https://x/graphql'"
+        ),
+        jsonapi_client=None,
+        drush_client=None,
+    )
+
+    q = asyncio.run(fns["graphql_query"]("{ __typename }"))
+    s = asyncio.run(fns["graphql_schema_get"]())
+
+    assert "/admin/config/graphql" in q["error"]
+    assert "graphql_server" in q["error"]
+    assert q["cause"].startswith("Client error '404")
+    assert "/admin/config/graphql" in s["error"]
+
+    # A server that answers 500 is a different problem, and must not be
+    # reported as "no server configured".
+    boom = _register(
+        "headless",
+        graphql_client=_GQL("Server error '500 Internal Server Error'"),
+        jsonapi_client=None,
+        drush_client=None,
+    )
+    failed = asyncio.run(boom["graphql_query"]("{ __typename }"))
+
+    assert "500" in failed["error"]
+    assert "admin/config/graphql" not in failed["error"]

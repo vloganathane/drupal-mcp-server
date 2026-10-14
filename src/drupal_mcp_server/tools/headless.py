@@ -13,6 +13,29 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
     jsonapi = deps.get("jsonapi_client")
     graphql = deps.get("graphql_client")
 
+    def graphql_error(e: Exception) -> dict[str, Any]:
+        """A 404 from /graphql is a missing server, not a missing module.
+
+        The graphql module ships no default server: until somebody creates
+        one at /admin/config/graphql, `/graphql` does not exist and every
+        call answers 404 for a reason that has nothing to do with the query
+        being asked.
+        """
+        text = str(e)
+        if "404" in text and "/graphql" in text:
+            return {
+                "error": (
+                    "This site has no GraphQL server, so /graphql does not "
+                    "exist. The graphql module installs no default: create one "
+                    "at /admin/config/graphql (config entity `graphql_server`, "
+                    "with a `schema` such as `composable`) and grant "
+                    "'execute default arbitrary graphql requests'. Nothing can "
+                    "be queried until that exists."
+                ),
+                "cause": text[:300],
+            }
+        return {"error": text[:500]}
+
     @mcp.tool()
     async def jsonapi_schema_get(
         entity_type: str | None = None,
@@ -70,7 +93,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 result = await graphql.get_schema_sdl()
                 return _ensure_dict({"schema": result})
         except Exception as e:
-            return {"error": str(e)}
+            return graphql_error(e)
 
     @mcp.tool()
     async def graphql_query(
@@ -84,7 +107,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             result = await graphql.execute(query, variables)
             return _ensure_dict(result)
         except Exception as e:
-            return {"error": str(e)}
+            return graphql_error(e)
 
     @mcp.tool()
     async def graphql_schema_extend(

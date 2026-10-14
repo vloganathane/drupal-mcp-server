@@ -138,6 +138,33 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             result = await jsonapi.get_resource(resource, params)
             return _ensure_dict(result)
         except Exception as e:
+            # `paragraph--{type}` addresses a bundle collection, and a bundle
+            # that does not exist answers a bare 404 that names no
+            # alternatives -- which reads as "paragraphs are missing" rather
+            # than "that type is not configured here". Say which types there
+            # are. The old `filter[paragraphs_type]` never got this far: there
+            # is no such field, so it 400'd on every call.
+            if type_id and "404" in str(e):
+                available: list[str] = []
+                try:
+                    listed = await jsonapi.get_resource(
+                        "paragraphs_type", {"page[limit]": "50"}
+                    )
+                    rows = _ensure_dict(listed).get("data") or []
+                    if isinstance(rows, list):
+                        for row in rows:
+                            if not isinstance(row, dict):
+                                continue
+                            attrs = row.get("attributes") or {}
+                            found = attrs.get("drupal_internal__id") or row.get("id")
+                            if found:
+                                available.append(str(found))
+                except Exception:
+                    pass
+                return {
+                    "error": f"This site has no paragraph type `{type_id}`.",
+                    "available": available,
+                }
             return {"error": str(e)}
 
     @mcp.tool()
