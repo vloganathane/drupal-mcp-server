@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import Any
 
-from drupal_mcp_server.tools._utils import drush_output, drush_result, ensure_dict
+from drupal_mcp_server.tools._utils import b64_text, drush_output, drush_result, ensure_dict
 
 
 def test_drush_result_reports_stderr_when_a_command_fails():
@@ -56,6 +56,30 @@ def test_ensure_dict_is_silent_when_the_command_succeeded():
     assert ensure_dict({"data": [{"id": "1"}]}) == {"data": [{"id": "1"}]}
     assert ensure_dict(None) == {"error": "No response"}
     assert ensure_dict([1, 2]) == {"data": [1, 2]}
+
+
+def test_b64_text_survives_a_php_string_intact():
+    """PHP has no `\\uXXXX` escape, so non-ASCII text must not be interpolated.
+
+    `Ünïcode "quoted" $var \\path` is exactly the string that either breaks the
+    statement or mangles silently when dropped into PHP source; base64 makes it
+    inert to PHP, the shell and Drush alike.
+    """
+    import base64
+    import json
+
+    original = 'Ünïcode "quoted" $var \\path'
+    encoded = b64_text(original)
+
+    # It is plain ASCII, so nothing along the way can reinterpret it.
+    assert encoded.isascii()
+    assert "\"" not in encoded and "$" not in encoded and "\\" not in encoded
+    # And PHP's base64_decode() - reproduced here - returns it byte for byte.
+    assert base64.b64decode(encoded).decode("utf-8") == original
+
+    # Structured values are stringified rather than JSON-encoded, which is what
+    # the PHP side expects from base64_decode() alone.
+    assert base64.b64decode(b64_text(json.dumps({"a": 1}))).decode() == '{"a": 1}'
 
 
 def test_drush_result_keeps_extra_fields():

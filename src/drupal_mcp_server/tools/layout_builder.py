@@ -17,23 +17,13 @@ details that are easy to get wrong and fail silently:
 * `appendComponent()` wants a `SectionComponent` object, not a plugin id.
 """
 
-import base64
 import json
 from typing import Any
 
 from fastmcp import FastMCP
 
+from ._utils import b64_text as _b64
 from ._utils import ensure_dict as _ensure_dict
-
-
-def _b64(value: Any) -> str:
-    """Encode a value for safe embedding in PHP.
-
-    PHP string escaping is not JSON escaping: `\\uXXXX` has no meaning in a
-    PHP double-quoted string, so a non-ASCII label would silently mangle.
-    Base64 sidesteps quoting entirely.
-    """
-    return base64.b64encode(str(value).encode("utf-8")).decode("ascii")
 
 
 def _wrap(body: str) -> str:

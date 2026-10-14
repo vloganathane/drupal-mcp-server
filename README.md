@@ -362,7 +362,7 @@ displays have Layout Builder enabled; `layout_builder_get`,
 ## Known limitations
 
 These are real constraints of Drupal and its APIs, not TODOs. Each was confirmed
-against a live Drupal 10 site under DDEV, and the affected tools say so at runtime
+against a live Drupal 11 site under DDEV, and the affected tools say so at runtime
 rather than returning an opaque error.
 
 - **Layout Builder has no JSON:API resource.** The six `layout_builder_*` tools
@@ -379,6 +379,11 @@ rather than returning an opaque error.
 - **Drush offers no per-run queue limit.** `queue:run` drains the whole queue and has
   neither `--limit` nor `--count`. `queue_run` runs without one and reports that the
   requested limit could not be applied.
+- **Drush only knows registered queues.** `queue:list` and `queue:run` resolve queue
+  *workers* that a module registered as a service, so `queue_list` and `queue_info`
+  cannot see a queue nothing has registered, and `queue_run` answers "Queue not found"
+  for one — including a queue `queue_create` just made. `queue_create` and
+  `queue_delete` deliberately go around this and work on any queue name.
 - **Composer is its own binary.** Drush ships no `composer` command, so
   `composer_install` / `composer_require` / `composer_update` / `composer_audit` run
   `composer` directly and need it on `PATH` (or at `./vendor/bin/composer`). They

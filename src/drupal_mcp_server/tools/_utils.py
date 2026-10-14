@@ -1,12 +1,26 @@
 """Shared utilities for tool modules."""
 
 import asyncio
+import base64
 import json
 import os
 import shutil
 from typing import Any
 
 _COMPOSER_TIMEOUT = 900
+
+
+def b64_text(value: Any) -> str:
+    """Encode a value for safe transport into a PHP double-quoted context.
+
+    PHP has no ``\\uXXXX`` escape - it is an error there, not an unknown
+    sequence - so a non-ASCII label interpolated into a PHP string mangles
+    silently, and a quote or backslash breaks the statement outright. Base64
+    sidesteps both: PHP reads it back with ``base64_decode()`` and the text
+    survives exactly. The value is also then inert to the shell and to Drush's
+    own argument parsing, so no escaping is needed anywhere along the path.
+    """
+    return base64.b64encode(str(value).encode("utf-8")).decode("ascii")
 
 
 async def run_composer(args: list[str]) -> dict[str, Any]:
