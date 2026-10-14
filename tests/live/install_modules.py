@@ -84,11 +84,37 @@ DEVTOOLS = [
     "drupal/coder",
 ]
 
+# Installing the graphql module does not make /graphql exist: the module ships
+# no default server, credentials never reach Drupal without basic_auth, and the
+# endpoint refuses every query without the execute permission. All three are
+# needed before graphql_query and graphql_schema_get can return anything. The
+# block is idempotent so re-running a wave is still a no-op.
+GRAPHQL_SETUP = r"""
+$s = \Drupal::entityTypeManager()->getStorage('graphql_server');
+if (!$s->load('default')) {
+  $s->create([
+    'id' => 'default', 'name' => 'default', 'label' => 'Default',
+    'endpoint' => 'graphql', 'schema' => 'composable',
+    'caching' => TRUE, 'batching' => TRUE, 'debug_flag' => 0,
+    'disable_introspection' => FALSE,
+    'query_depth' => 0, 'query_complexity' => 0,
+    'schema_configuration' => ['composable' => ['extensions' => []]],
+  ])->save();
+}
+$role = \Drupal\user\Entity\Role::load('authenticated');
+if ($role && !$role->hasPermission('execute default arbitrary graphql requests')) {
+  $role->grantPermission('execute default arbitrary graphql requests');
+  $role->save();
+}
+print 'graphql server configured';
+"""
+
 WAVES: dict[str, dict[str, list[str]]] = {
     "core": {"install": CORE},
     "contrib": {"require": CONTRIB, "install": CONTRIB},
     "commerce": {"require": ["drupal/commerce"], "install": COMMERCE},
     "devtools": {"require": DEVTOOLS},
+    "graphql": {"install": ["basic_auth"], "eval": [GRAPHQL_SETUP]},
 }
 
 
@@ -121,6 +147,10 @@ def steps_for(wave: str) -> list[tuple[str, str, dict]]:
                 "args": [mod],
                 "options": {"yes": True},
             }))
+    # Configuration steps come after the modules they configure and before the
+    # cache rebuild, which is what registers a newly created route.
+    for code in spec.get("eval", []):
+        out.append((f"{wave}: configure", "drush_php_eval", {"code": code}))
     out.append((f"{wave}: rebuild cache", "cache_rebuild", {}))
     return out
 
