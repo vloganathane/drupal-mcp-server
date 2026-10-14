@@ -5,6 +5,7 @@ import asyncio
 import logging
 import os
 import uuid
+from typing import Any
 
 from fastmcp import FastMCP
 from starlette.requests import Request
@@ -59,6 +60,22 @@ from drupal_mcp_server.tools import config as config_tools
 logger = logging.getLogger(__name__)
 
 
+def _input_schema_of(tool: Any) -> dict[str, Any]:
+    """Read a tool's input schema across the names the SDKs have used.
+
+    FastMCP's own ``FunctionTool`` calls it ``parameters``, while the
+    client-side ``Tool`` has shipped as both ``inputSchema`` and
+    ``input_schema``. Probing only the latter two meant ``/mcp/tools/list``
+    answered with an empty schema for all 366 tools, so a client using that
+    endpoint could not build a single request.
+    """
+    for attr in ("input_schema", "inputSchema", "parameters"):
+        value = getattr(tool, attr, None)
+        if isinstance(value, dict) and value:
+            return value
+    return {}
+
+
 def create_server(auth_manager: AuthManager | None = None) -> FastMCP:
     """Create and configure the FastMCP server."""
     settings = get_settings()
@@ -97,7 +114,7 @@ def create_server(auth_manager: AuthManager | None = None) -> FastMCP:
                 {
                     "name": tool.name,
                     "description": tool.description or "",
-                    "input_schema": getattr(tool, "inputSchema", getattr(tool, "input_schema", {})),
+                    "input_schema": _input_schema_of(tool),
                 }
                 for tool in tools
             ]
