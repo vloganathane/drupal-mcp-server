@@ -370,13 +370,8 @@ rather than returning an opaque error.
   opaque 404. They now go through Drush to the real API — sections are the
   `layout_builder.sections` third-party setting on `entity_view_display`, and
   per-entity overrides live in the entity's `layout_builder__layout` field — so
-  reading, writing and reverting layouts all work. Two details are load-bearing
-  and were only found against a live site: `enableLayoutBuilder()` does not
-  create the override field (that happens in `preSave()` when `isOverridable()`
-  changes, so `setOverridable(true)` must be saved too), and `SectionComponent`
-  takes `(uuid, region, configuration)` with the plugin id inside
-  `configuration['id']`. The API has no display-level lock, so the `lock`
-  argument marks components rather than the display.
+  reading, writing and reverting layouts all work. The API has no display-level
+  lock, so the `lock` argument marks components rather than the display.
 - **Revisions have no collection endpoint.** JSON:API addresses a single revision via
   `?resourceVersion=id:<vid>` but exposes no revision listing or deletion, so
   `revision_list` and `revision_delete` return an honest limitation error rather than

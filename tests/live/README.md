@@ -1,9 +1,21 @@
 # Live tests
 
 Offline unit tests cannot catch the bugs that matter most in this package —
-they need a real Drupal. Six dead tools, the `ddev_setup` docroot bug, the
-empty-body parse error, and the layout_builder tools requesting a resource
-that has never existed were all found here and none were caught offline.
+they need a real Drupal. Found here, none of them offline:
+
+- a SQL injection in `db_query`, proved by a `SELECT 1; DROP TABLE x` that
+  passed the `startswith("SELECT")` guard and actually dropped the probe table;
+- Drush arguments being shlex-split, so `db_tables`, `db_query`, `db_count`,
+  `drush_php_eval` and every `ev` tool failed with "Too many arguments";
+- those same failures being reported as **OK**, because a failed Drush run
+  carries no `error` key and the harness — and any real MCP client — read
+  `data: {}` as an empty success;
+- two tools filtering on fields Drupal does not expose (`filter[name]` on
+  `user_role`, `filter[menu]` on `menu_link_content`), which meant a 400 on
+  every call on every site;
+- the `ddev_setup` docroot key, the empty-body parse error, and the six
+  `layout_builder_*` tools requesting a JSON:API resource that has never
+  existed.
 
 ## Setup
 
@@ -86,6 +98,12 @@ so a missing module never hides a broken tool:
   `list[str] | None` as `{"anyOf": [...]}` with no top-level `type`. Reading
   only `type` sends `"sweep_value"` where a list is required and FastMCP
   rejects the call. `resolve_schema` handles it.
+- **A failure may arrive as `returncode`, never as `error`.** Drush results
+  carry their reason in `stderr` and no `error` key. `classify` checks
+  `returncode != 0` for this reason: without it, the first full sweep reported
+  `db_tables`, `db_query`, `db_count` and `drush_php_eval` as **OK** while
+  Drush was answering "Too many arguments" on every one of them, and the
+  headline was "0 dead tools" when there were at least five.
 - **A fresh install leaves JSON:API read-only.** Every create and update then
   returns 405 Method Not Allowed. `bootstrap.py` sets `read_only: 0`.
 - **DDEV's key is `docroot`, not `webroot`.** DDEV 1.24 silently drops an
