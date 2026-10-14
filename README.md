@@ -421,6 +421,21 @@ ruff check src/ tests/
 mypy src/drupal_mcp_server/
 ```
 
+The offline suite cannot catch most of the bugs that matter in this package —
+they need a real Drupal. Live runs do, and `tests/live/README.md` lists what
+each one has found so far:
+
+```bash
+python tests/live/smoke_test.py           # 9 end-to-end cases, ~30s
+python tests/live/layout_builder_test.py  # 10 Layout Builder cases, ~60s
+python tests/live/queue_test.py           # 18 cron/queue cases, ~60s
+python tests/live/filter_check.py         # every hard-coded JSON:API filter
+python tests/live/sweep.py                # all 366 tools, ~30 min
+```
+
+They need `ddev` running and the site in `drupal-live/`; `tests/live/README.md`
+covers setup.
+
 ## License
 
 MIT
