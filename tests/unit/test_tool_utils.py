@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import Any
 
-from drupal_mcp_server.tools._utils import drush_output, drush_result
+from drupal_mcp_server.tools._utils import drush_output, drush_result, ensure_dict
 
 
 def test_drush_result_reports_stderr_when_a_command_fails():
@@ -25,6 +25,37 @@ def test_drush_result_omits_error_on_success():
 
     assert "error" not in payload
     assert payload["returncode"] == 0
+
+
+def test_ensure_dict_surfaces_a_failed_drush_command():
+    """224 call sites pipe Drush straight through ``ensure_dict``.
+
+    A failed run arrives as ``{returncode: 1, data: {}, stderr: ...}`` with no
+    ``error`` key - byte for byte what an empty successful result looks like -
+    so an MCP client reading ``data`` saw a broken command as "no rows", and
+    the live sweep counted those tools as passing.
+    """
+    payload = ensure_dict({
+        "returncode": 1,
+        "data": {},
+        "stderr": '  Too many arguments to "sql:query" command  ',
+        "command": "ddev drush sql:query SHOW TABLES",
+    })
+
+    assert "Too many arguments" in payload["error"]
+    # Everything else survives: this adds a key rather than replacing the shape.
+    assert payload["returncode"] == 1
+    assert payload["data"] == {}
+    assert payload["command"] == "ddev drush sql:query SHOW TABLES"
+
+
+def test_ensure_dict_is_silent_when_the_command_succeeded():
+    # A drush run that worked.
+    assert "error" not in ensure_dict({"returncode": 0, "data": {"rows": [1]}})
+    # JSON:API payloads carry no returncode at all and must be untouched.
+    assert ensure_dict({"data": [{"id": "1"}]}) == {"data": [{"id": "1"}]}
+    assert ensure_dict(None) == {"error": "No response"}
+    assert ensure_dict([1, 2]) == {"data": [1, 2]}
 
 
 def test_drush_result_keeps_extra_fields():

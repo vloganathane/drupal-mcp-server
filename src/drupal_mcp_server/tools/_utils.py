@@ -105,11 +105,21 @@ def ensure_dict(result: dict[str, Any] | list[Any] | None) -> dict[str, Any]:
 
     JSON:API list endpoints return a dict with a 'data' key containing a list.
     This helper passes through valid dict responses and wraps None as an error.
+
+    A failed Drush run also used to pass through untouched: it arrives as
+    ``{returncode: 1, data: {}, stderr: "..."}`` with no ``error`` key, which
+    is exactly what an empty successful result looks like. Callers and MCP
+    clients reading ``data`` therefore saw a broken command as "no rows", and
+    the live sweep counted those tools as passing. The keys are all kept so
+    nothing is lost; ``error`` is added alongside them.
     """
     if result is None:
         return {"error": "No response"}
     if isinstance(result, list):
         return {"data": result}
+    if isinstance(result, dict) and result.get("returncode") not in (None, 0):
+        reason = " ".join(str(result.get("stderr") or "").split()) or "no error output"
+        return {**result, "error": f"drush failed: {reason[:800]}"}
     return result
 
 
