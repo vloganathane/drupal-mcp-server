@@ -108,28 +108,53 @@ def resolve_schema(spec: dict):
     return None, spec
 
 
-def synthesize(schema: dict) -> dict:
+# A parameter the harness deliberately leaves out of the call instead of
+# sending a value Drupal will refuse for reasons unrelated to the tool.
+_OMIT = object()
+
+
+def synthesize(schema: dict, tool: str = "") -> dict:
     """Build plausible arguments from a tool's JSON schema."""
     props = schema.get("properties") or {}
-    required = set(schema.get("required") or [])
     out: dict = {}
     for name, spec in props.items():
         t, resolved = resolve_schema(spec)
         default = spec.get("default")
-        if name in required and default is None:
-            out[name] = value_for(name, t, resolved)
-        elif default is not None:
-            out[name] = default
-        else:
-            out[name] = value_for(name, t, resolved)
+        value = default if default is not None else value_for(name, t, resolved, tool)
+        if value is not _OMIT:
+            out[name] = value
     return out
 
 
-def value_for(name: str, t, spec: dict):
+def value_for(name: str, t, spec: dict, tool: str = ""):
     n = name.lower()
     enum = spec.get("enum")
     if enum:
         return enum[0]
+
+    # JSON:API write-protects `langcode` on a site that has content_translation
+    # installed but no bundle configured for translation, so sending a value
+    # answers 403 "the current user is not allowed to POST the selected field
+    # (langcode)" whatever that value is -- "en" as much as "sweep_value". A
+    # careful client omits it, and the create then succeeds; sending one here
+    # tested nothing but Drupal's permission message and cost create_term a
+    # clean verdict.
+    if n == "langcode":
+        return _OMIT
+    # Drush's watchdog filters are an enumerated type and a severity number;
+    # "sweep_value" is neither, so the command is refused before it runs.
+    if n == "type_filter":
+        return "access denied"
+    if n == "severity":
+        return "7"
+    if n in ("queue_name", "queue") and EXISTING_QUEUE:
+        # A queue that exists, so queue_run exercises the run rather than
+        # stopping at "Queue not found" for a name nobody chose.
+        return EXISTING_QUEUE
+    if "command" in n and tool in ("ddev_exec", "lando_exec"):
+        # These run the argument inside the container, where `status` -- the
+        # right answer for drush_command -- is not a command at all.
+        return "php -v"
     if isinstance(t, list):
         t = next((x for x in t if x and x != "null"), None)
     if t == "boolean":
@@ -268,6 +293,25 @@ def pick_live_nid() -> str:
 
 
 EXISTING_NID = "1"
+# Filled in from queue_list before the sweep starts, so queue_run exercises a
+# queue the site actually has.
+EXISTING_QUEUE = ""
+
+
+async def find_queue(session) -> str:
+    """Return the name of a queue that exists on this site, or ""."""
+    try:
+        res = await session.call_tool("queue_list", {}, read_timeout_seconds=30)
+        text = "".join(getattr(c, "text", "") for c in res.content)
+        payload = json.loads(text)
+        data = payload.get("data") if isinstance(payload, dict) else None
+        if isinstance(data, dict) and data:
+            return str(next(iter(data)))
+        if isinstance(data, list) and data:
+            return str(data[0])
+    except Exception:
+        pass
+    return ""
 
 
 async def main() -> int:
@@ -301,9 +345,12 @@ async def main() -> int:
             # JSON:API returns drupal_internal__nid as an int; tools declare
             # `nid: str`, so pydantic rejects it with string_type before the
             # body ever runs. Coerce it.
-            global EXISTING_NID
+            global EXISTING_NID, EXISTING_QUEUE
             EXISTING_NID = str(pick_live_nid())
+            EXISTING_QUEUE = await find_queue(session)
             print(f"using node {EXISTING_NID} for id arguments", flush=True)
+            if EXISTING_QUEUE:
+                print(f"using queue {EXISTING_QUEUE} for queue arguments", flush=True)
             if only:
                 tools = [t for t in tools if only in t.name]
             print(f"sweeping {len(tools)} tools against {BASE}\n", flush=True)
@@ -320,7 +367,7 @@ async def main() -> int:
                 # The MCP SDK renamed `inputSchema` to `input_schema`. Read
                 # either so a client upgrade does not abort the whole sweep.
                 schema = getattr(t, "inputSchema", None) or getattr(t, "input_schema", None) or {}
-                args = synthesize(schema)
+                args = synthesize(schema, t.name)
                 local = bool(LOCAL_TOOL.match(t.name))
                 timeout = 150 if local else 45
                 start = time.time()
@@ -335,7 +382,16 @@ async def main() -> int:
                 except TimeoutError:
                     verdict, detail = "BLOCKED", f"timeout >{timeout}s"
                 except Exception as e:
-                    verdict, detail = "DEAD", f"{type(e).__name__}: {str(e)[:200]}"
+                    # The MCP SDK raises its own error type for a read timeout,
+                    # not TimeoutError, so without this branch the two slowest
+                    # tools -- a real composer update, and drush's
+                    # config:security:check pulling advisories off drupal.org --
+                    # were filed DEAD for taking longer than the budget the
+                    # sweep allows them, which is not what DEAD means.
+                    if "timed out" in str(e).lower():
+                        verdict, detail = "BLOCKED", f"timeout >{timeout}s"
+                    else:
+                        verdict, detail = "DEAD", f"{type(e).__name__}: {str(e)[:200]}"
 
                 elapsed = time.time() - start
                 results.append({
