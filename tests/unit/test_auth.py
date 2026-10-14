@@ -141,3 +141,43 @@ async def test_session_login_requires_a_cookie(monkeypatch: pytest.MonkeyPatch):
 
     with pytest.raises(RuntimeError, match="no session cookie"):
         await auth.login()
+
+
+def test_bearer_token_is_used_when_no_credentials_are_set():
+    """DRUPAL_API_TOKEN was documented in three places but never wired up,
+    so setting it silently sent unauthenticated requests."""
+    from drupal_mcp_server.auth import AuthManager
+
+    class TokenSettings(FakeSettings):
+        DRUPAL_USERNAME = None
+        DRUPAL_PASSWORD = None
+        DRUPAL_API_TOKEN = "tok-abc123"
+
+    headers = AuthManager(TokenSettings()).get_headers()
+
+    assert headers["Authorization"] == "Bearer tok-abc123"
+    assert AuthManager(TokenSettings())._session is None
+
+
+def test_credentials_take_priority_over_a_bearer_token():
+    from drupal_mcp_server.auth import AuthManager
+
+    class BothSettings(FakeSettings):
+        DRUPAL_API_TOKEN = "tok-abc123"
+
+    manager = AuthManager(BothSettings())
+
+    assert manager._session is not None
+    assert manager.get_headers()["Authorization"].startswith("Basic ")
+
+
+def test_no_auth_at_all_yields_no_authorization_header():
+    from drupal_mcp_server.auth import AuthManager
+
+    class Anonymous(FakeSettings):
+        DRUPAL_USERNAME = None
+        DRUPAL_PASSWORD = None
+        DRUPAL_OAUTH_TOKEN_URL = None
+        DRUPAL_API_TOKEN = None
+
+    assert "Authorization" not in AuthManager(Anonymous()).get_headers()

@@ -30,6 +30,10 @@ class AuthManager:
                 verify_ssl=bool(getattr(settings, "DRUPAL_VERIFY_SSL", True)),
             )
             self._auth = self._session
+        elif getattr(settings, "DRUPAL_API_TOKEN", None):
+            # Documented as an auth method since v0.1 but never wired up, so
+            # setting it silently produced unauthenticated requests.
+            self._auth = TokenAuth(settings.DRUPAL_API_TOKEN)
 
     async def ensure_session(self) -> None:
         """Log in and cache a CSRF token. Safe to call more than once."""

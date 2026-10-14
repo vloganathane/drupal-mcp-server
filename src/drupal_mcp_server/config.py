@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     DRUPAL_OAUTH_CLIENT_ID: str | None = Field(default=None, description="OAuth client ID")
     DRUPAL_OAUTH_CLIENT_SECRET: str | None = Field(default=None, description="OAuth client secret")
     DRUPAL_OAUTH_TOKEN_URL: str | None = Field(default=None, description="OAuth token endpoint URL")
+    DRUPAL_API_TOKEN: str | None = Field(
+        default=None,
+        description="Pre-obtained bearer token, sent as Authorization: Bearer",
+    )
     DRUPAL_VERIFY_SSL: bool = Field(
         default=True,
         description="Verify TLS certificates. Set false for self-signed dev certs (DDEV, Lando).",

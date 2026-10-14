@@ -6,7 +6,7 @@
 [![Python versions](https://img.shields.io/pypi/pyversions/drupal-mcp-server.svg)](https://pypi.org/project/drupal-mcp-server/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/vloganathane/drupal-mcp-server/blob/main/LICENSE)
 
-A Model Context Protocol (MCP) server for Drupal operations. Provides **366 tools across 35 modules** for site analysis, migration, content management, configuration, commerce, headless, DevOps, security, and more.
+A Model Context Protocol (MCP) server for Drupal operations. Provides **366 tools across 37 modules** for site analysis, migration, content management, configuration, commerce, headless, DevOps, security, and more.
 
 ## Why Use This?
 
@@ -90,13 +90,35 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 ## Configuration
 
+### Drupal connection
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DRUPAL_BASE_URL` | `http://localhost` | Base URL of the Drupal site |
+| `DRUPAL_USERNAME` / `DRUPAL_PASSWORD` | — | Credentials (see below) |
+| `DRUPAL_VERIFY_SSL` | `true` | Set `false` for self-signed dev certs (DDEV, Lando) |
+
 ### Authentication
 
-The server supports three auth methods (in priority order):
+Set `DRUPAL_USERNAME` and `DRUPAL_PASSWORD`. Drupal rejects basic auth on its
+write endpoints with 403, so the server logs in to `/user/login`, reuses the
+session cookie, and attaches the CSRF token that mutating JSON:API requests
+require. Basic auth headers are still sent when a session cannot be
+established, so reads keep working on sites without `/user/login`.
 
-1. **Basic Auth** — Set `DRUPAL_USERNAME` and `DRUPAL_PASSWORD`
-2. **OAuth2** — Set `DRUPAL_OAUTH_CLIENT_ID`, `DRUPAL_OAUTH_CLIENT_SECRET`, `DRUPAL_OAUTH_TOKEN_URL`
-3. **Bearer Token** — Set via `DRUPAL_API_TOKEN`
+Other methods, used when the username/password pair is not set:
+
+1. **OAuth2** — Set `DRUPAL_OAUTH_CLIENT_ID`, `DRUPAL_OAUTH_CLIENT_SECRET`, `DRUPAL_OAUTH_TOKEN_URL`
+2. **Bearer Token** — Set `DRUPAL_API_TOKEN`, sent as `Authorization: Bearer`
+
+### Drush
+
+Drush tools shell out to `DRUSH_PATH` (default `drush`). It may contain
+arguments, so container-based setups work:
+
+```bash
+DRUSH_PATH="ddev drush"    # start the MCP server from the project directory
+```
 
 ### AI Providers
 
