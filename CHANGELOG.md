@@ -28,6 +28,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Provision the live test site with the modules the tools assume are there:
+  media, comment, contact, language, config_translation, workflows,
+  content_moderation and commerce plus its submodules from core and contrib,
+  and token, pathauto, redirect, metatag, paragraphs, search_api, facets,
+  webform, feeds and graphql from drupal.org, with phpstan, drupal-check,
+  phpcodesniffer and coder for the code-quality tools. Drupal's entity types
+  went from 26 to 78 and the JSON:API index from 27 resources to 76, which
+  turned most of the sweep's BLOCKED bucket into a real verdict. The site is
+  also multilingual now -- English and French -- because a single-language site
+  cannot exercise translation behaviour, and that is what surfaced the langcode
+  bug below
+- Add three live suites. `tests/live/install_modules.py` provisions the modules
+  the sweep needs using the server's own `composer_require` and `drush_command`
+  tools, so bootstrapping the site is also a test of them; `resource_check.py`
+  asks Drupal for the entity types it knows and flags any resource name our
+  tools ask for that cannot exist, which is how the `views_view` and
+  `moderation_state` bugs were found; `mcp_call.py` is a one-call driver for
+  operating the site through the server instead of a shell
+
 - Gate CI coverage on the code testable offline (non-tool core ≥70%) instead of
   the total: 86% of statements live in the tool modules, which only a live sweep
   can exercise, so a single total threshold is unreachable by construction.
@@ -43,6 +62,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update ARTIFACT.md to reflect actual project state
 
 ### Fixed
+
+- Fix eleven hard-coded JSON:API filters that Drupal rejected outright, each
+  returning an empty result on every call on every site. `commerce_product`,
+  `commerce_promotion` and `commerce_shipping_method` filtered on `store` where
+  the field is the plural `stores`, and `commerce_order` on `store` where it is
+  the `store_id` reference; all four needed the `.id` specifier that entity
+  references require. `webform_submission` filtered on `webform` where the field
+  is `webform_id`, also a reference. `paragraphs_item_list` filtered on
+  `paragraphs_type`, which is not a field at all -- a paragraph's type is its
+  bundle, so it now addresses `paragraph--{type}`. `pathauto_pattern_list`
+  filtered on `entity_type` and `bundle`, which live in a pattern's id as
+  `{entity_type}--{bundle}`, so it now filters on `id` when it has both.
+  `comments_thread_list` filtered on `pid` for top-level comments, but `pid` is
+  a reference to the parent comment, so it 400'd -- and `pid.id = 0` would have
+  returned nothing, since no comment has id 0; the whole thread is returned now,
+  with each row's `pid` available for building the tree. `facets_facet_list`
+  filtered on `index`, but a facet attaches to a facet source rather than to an
+  index, so it lists facets and reports their `facet_source_id`
+- Stop sending `langcode: "en"` in create payloads. Four tools did this. It is
+  harmless on a single-language site, but once a second language exists the
+  field is writable only with translation permission, so every create failed
+  403 "the current user is not allowed to POST the selected field (langcode)" --
+  including an ordinary authenticated user creating a term in the site's own
+  language. The field is now sent only when the caller asks for a language
+- Fix `drush_command` option rendering, which made every confirmation-answering
+  call fail. Boolean options were emitted as `--key=value`, but drush flags take
+  no value, so `options={"yes": True}` -- the documented way to install a module
+  -- was rejected with "The --yes option does not accept a value" and nothing
+  was installed while the tool reported success. A `False` was worse: it emitted
+  the bare flag, so asking *not* to confirm silently suppressed confirmation on
+  destructive commands. Zero-valued options were also mangled, `--count=0`
+  becoming a bare `--count`. Booleans are now bare flags, `False` omits the
+  option, and everything else keeps its value
+- Return an `error` from `drush_command` when Drush exits non-zero. It handed
+  back the raw result with no `error` key, so the generic escape hatch -- the
+  tool an agent reaches for first -- still presented a failed command as an
+  empty success, even though `ensure_dict` already fixed this for the 224
+  specialised call sites
+- Split several packages in `composer_require`. They arrived as one argv token,
+  so composer read `drupal/pathauto` as a version constraint on `drupal/token`
+  and refused the whole request with "Could not parse version constraint"
+- Ask for `view`, not `views_view`: the entity type has been `view` since
+  Drupal 8, so all six views tools 404'd on a site with Views installed and
+  healthy, and read as "module not installed"
+- Ask for `content_moderation_state`, not `moderation_state`, in the moderation
+  tools. The node *field* is still called `moderation_state` and is unchanged
+- Ask for `facets_facet`, not `search_api_facet`, in the facet tools
+- Rewrite `config_translation_list` and `config_translation_add`, which targeted
+  two mechanisms that do not exist: a `config_translation` JSON:API resource
+  (Drupal stores config translations on the entity, not as entities) and a
+  `config:translation:add` Drush command (Drush has no translation command
+  category at all). The list now reports the config entity types this site can
+  translate, and the add writes a real entity translation, naming
+  `{entity_type}/{entity_id}` rather than a bare config name that cannot resolve
+- Drop a dead `get_resource("jsonapi")` call from `nextjs_helpers_generate`. It
+  requested `/jsonapi/jsonapi`, a path that does not exist, and the 404 aborted
+  the whole tool for a value the generator never used
 
 - Implement the six `layout_builder_*` tools against the real API; they asked
   JSON:API for a resource that has never existed and returned an opaque 404 on

@@ -25,6 +25,28 @@ they need a real Drupal. Found here, none of them offline:
   `layout_builder_*` tools requesting a JSON:API resource that has never
   existed.
 
+Found once the modules were installed, and still not catchable offline:
+
+- **a resource name that does not exist in Drupal**, which is indistinguishable
+  from a missing module. `views_list` asked for `views_view`; the entity type
+  has been `view` since Drupal 8, so all six views tools 404'd on a site with
+  Views installed and healthy, and the sweep read three of them as BLOCKED and
+  three as ordinary lookup misses. `resource_check.py` asks Drupal for the
+  entity types it actually knows, which found eleven more the same way --
+  `moderation_state`, `search_api_facet`, `language`, `metatag_config` and six
+  names that are not entity types at all;
+- **`options={"yes": True}`**, which `drush_command` rendered as `--yes=True`.
+  Drush flags take no value, so it was refused outright: installing a module
+  through the tool failed every time and reported success. A `False` was worse,
+  because it passed the bare flag, silently suppressing confirmation on
+  destructive commands;
+- **the host `composer` resolving a DDEV project's dependencies against the
+  host's PHP.** It locked in a `doctrine/collections` release needing PHP 8.4
+  for a container running 8.3, and Composer's platform check then aborted every
+  subsequent request, taking the site down;
+- **`langcode: "en"` in create payloads**, harmless until a second language
+  makes the field permission-gated, after which every create answers 403.
+
 ## Setup
 
 The Drupal site lives in `drupal-live/` at the repository root and is
@@ -55,6 +77,21 @@ ddev exec bash -c 'cat > /tmp/seed.php' < ../tests/live/seed.php
 ddev drush php-script /tmp/seed.php
 ```
 
+The sweep needs the modules its tools target, which a standard install does not
+include. Install them through the MCP server's own tools rather than by hand,
+which is also a live test of `composer_require` and `drush_command`:
+
+```bash
+python tests/live/install_modules.py            # every wave
+python tests/live/install_modules.py core       # just one wave
+```
+
+It runs in dependency order — core, contrib, commerce, then the static-analysis
+binaries — one `pm:install` per module so a single unmet dependency cannot hide
+which of them landed, and prints the entity types JSON:API exposes before and
+after. Re-running is safe: composer resolves nothing new and installing an
+installed module is a quick no-op.
+
 ## Running
 
 ```bash
@@ -62,8 +99,11 @@ python tests/live/smoke_test.py           # 9 end-to-end cases, ~30s
 python tests/live/layout_builder_test.py  # 10 Layout Builder cases, ~60s
 python tests/live/queue_test.py           # 18 cron/queue cases, ~60s
 python tests/live/filter_check.py         # every hard-coded filter, ~5s
+python tests/live/resource_check.py       # every resource name, ~10s
+python tests/live/install_modules.py      # the modules the tools assume, ~10 min
 python tests/live/sweep.py                # every tool, ~30 min
 python tests/live/sweep.py composer_      # only tools whose name contains that
+python tests/live/mcp_call.py content_list '{}'   # one call, for spot checks
 ```
 
 These need `venv/` with the package installed (`pip install -e ".[dev]" mcp`)
@@ -76,11 +116,14 @@ and `ddev drush` only resolves inside the project.
 | File | Purpose |
 |------|---------|
 | `bootstrap.py` | Bring the site up using MCP tools rather than hand-run `ddev`/`drush` |
+| `install_modules.py` | Install the modules the tools assume, through `composer_require` and `drush_command` |
+| `mcp_call.py` | Call one tool and print the result; every call is a live exercise of the tool it names |
 | `seed.php` | Idempotent fixtures: admin role, a sacrificial `sweeptarget` user, a `tags` vocabulary with a term, two article nodes |
 | `smoke_test.py` | Nine cases covering the operations a user actually reaches for |
 | `layout_builder_test.py` | Ten cases for the six `layout_builder_*` tools, including an override create/revert round trip |
 | `queue_test.py` | Eighteen cases for the six cron/queue tools, including a cross-queue `item_id` delete that core's own `deleteItem()` would get wrong |
 | `filter_check.py` | Sends every hard-coded JSON:API filter to the site and fails on a 400, which is what made two tools dead on every site |
+| `resource_check.py` | Asks Drupal which entity types it knows and flags any resource name our tools ask for that cannot exist |
 | `sweep.py` | Calls every registered tool and classifies the result |
 
 ## Verdicts
@@ -121,3 +164,12 @@ so a missing module never hides a broken tool:
 - **DDEV's key is `docroot`, not `webroot`.** DDEV 1.24 silently drops an
   unrecognised key, so an empty docroot makes nginx serve the project root and
   every request 404s.
+- **The site is multilingual on purpose.** English and French are both enabled,
+  which makes `langcode` a permission-gated field and keeps the "not allowed to
+  POST the selected field (langcode)" bug caught. A 403 on a create is not
+  something to fix by removing the second language.
+- **`composer_*` resolves inside the container.** `_container_composer` picks
+  `ddev composer` when the project has a `.ddev` directory. The host composer
+  resolves against the host's PHP, which locked in a `doctrine/collections`
+  release the container's 8.3 could not run, and Composer's platform check then
+  aborted every request.
