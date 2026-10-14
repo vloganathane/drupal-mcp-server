@@ -387,7 +387,21 @@ rather than returning an opaque error.
 - **Composer is its own binary.** Drush ships no `composer` command, so
   `composer_install` / `composer_require` / `composer_update` / `composer_audit` run
   `composer` directly and need it on `PATH` (or at `./vendor/bin/composer`). They
-  also do not require Drush.
+  also do not require Drush. When the project is a DDEV or Lando project the
+  command runs as `ddev composer` / `lando composer` instead: the host binary
+  resolves against the host's PHP, which once locked in a `doctrine/collections`
+  release needing 8.4 for a container running 8.3 — Composer's platform check
+  then aborted every subsequent request and took the site down.
+- **GraphQL needs a server before `/graphql` exists.** The module installs no
+  default, so `graphql_query` and `graphql_schema_get` answer a bare 404 on a
+  fresh site. They now explain that, naming the `graphql_server` config entity,
+  the `execute default arbitrary graphql requests` permission, and the fact that
+  `basic_auth` has to be enabled before credentials reach Drupal at all.
+- **`langcode` is not always writable.** With `content_translation` installed
+  and no bundle configured for translation, JSON:API refuses any write to
+  `langcode` with a 403 regardless of the value sent — `"en"` as much as a
+  nonsense one. The create tools omit it unless a language was asked for, so a
+  create succeeds; one that does pass it gets Drupal's own explanation.
 - **Security scanning needs PHPStan 1.x.** Older PHPStan has no `--exclude-path`; the
   tools probe for it and fall back rather than failing.
 - **`release_history` for Drupal 7 projects.** packages.drupal.org is the live source
@@ -397,9 +411,12 @@ rather than returning an opaque error.
   unrecognised key, so `ddev_setup` writes `docroot:` — an empty docroot makes nginx
   serve the project root and every request 404s.
 
-Tools needing a module this site does not have (Commerce, Paragraphs, Webform,
-Search API, Feeds, Metatag, Pathauto patterns) return an upstream error naming the
-module to install; they are counted separately from failures.
+Modules the tools target are installed in the test site — Commerce, Paragraphs,
+Webform, Search API, Feeds, Metatag, Pathauto — so a missing module is no longer
+the usual explanation for a tool that does nothing. Two resources stay out of
+reach by design: `content_moderation_state` is never exposed through JSON:API,
+and `feeds_feed` needs a feed type with a `feeds_item` field configured on its
+target bundle. Both are reported as not exposed rather than as failures.
 
 ## Development
 
@@ -430,7 +447,10 @@ python tests/live/smoke_test.py           # 9 end-to-end cases, ~30s
 python tests/live/layout_builder_test.py  # 10 Layout Builder cases, ~60s
 python tests/live/queue_test.py           # 18 cron/queue cases, ~60s
 python tests/live/filter_check.py         # every hard-coded JSON:API filter
+python tests/live/resource_check.py       # every resource name, asked of Drupal
+python tests/live/install_modules.py      # the modules the tools assume, ~10 min
 python tests/live/sweep.py                # all 366 tools, ~30 min
+python tests/live/mcp_call.py content_list '{}'  # one call, for spot checks
 ```
 
 They need `ddev` running and the site in `drupal-live/`; `tests/live/README.md`
