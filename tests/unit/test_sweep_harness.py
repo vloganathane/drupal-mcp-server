@@ -346,12 +346,17 @@ def test_links_the_site_generates_are_followed_on_this_run_s_origin(
 def test_fields_is_sent_as_a_payload_not_an_empty_object(sweep: ModuleType) -> None:
     """`create_node` answered "title is required", and updates were no-ops.
 
-    Both came from one shadowing: `fields` is a nested object, so
-    `resolve_schema` reports its type as `object` and the `t == "object"`
-    branch answered `{}` before the name rule that knew what `fields` was for.
-    An update that changes nothing still reports OK, so those tools kept their
+    Both came from one shadowing: `fields` on a content tool is a nested object,
+    so `resolve_schema` reports its type as `object` and the `t == "object"`
+    branch answered `{}` before the rule that knew what `fields` was for. An
+    update that changes nothing still reports OK, so those tools kept their
     verdict while never actually being exercised -- which is why the symptom
     showed up on exactly one of the sixteen that declare the parameter.
+
+    The payload is only for the object shape. `fields` is also the name of a
+    plain list of field names on `query_nodes`, `jsonapi_sparse_fieldsets` and
+    the views tools, and sending those a dict fails FastMCP's validation before
+    the tool runs -- turning three passing tools into three refusals.
     """
     nested = {
         "properties": {
@@ -361,10 +366,45 @@ def test_fields_is_sent_as_a_payload_not_an_empty_object(sweep: ModuleType) -> N
     assert sweep.synthesize(nested, "create_node") == {"fields": {"title": "Sweep Title"}}
     assert sweep.synthesize(nested, "update_node") == {"fields": {"title": "Sweep Title"}}
 
+    listed = {"properties": {"fields": {"type": "array", "items": {"type": "string"}}}}
+    assert sweep.synthesize(listed, "query_nodes") == {"fields": []}
+
     # An object that is not `fields` is still sent empty rather than filled
     # with junk the tool would then have to reject.
     other = {"properties": {"options": {"type": "object"}}}
     assert sweep.synthesize(other, "some_tool") == {"options": {}}
+
+
+def test_only_narrows_a_run_without_changing_the_rest(sweep: ModuleType) -> None:
+    """A targeted re-run has to be able to name its tools.
+
+    `only` was a single substring, so re-checking the tools whose verdicts one
+    fix could have moved meant re-running all 367 -- against a host that may
+    already be busy. A comma-separated list narrows it, and a run that is
+    narrowed says so in its output file rather than overwriting the full
+    sweep's results with the handful of tools it covered.
+    """
+    tools = [
+        type("T", (), {"name": n})()
+        for n in ("create_node", "update_node", "views_create", "queue_list")
+    ]
+
+    assert [t.name for t in sweep.select_tools(tools, None)] == [
+        "create_node",
+        "update_node",
+        "views_create",
+        "queue_list",
+    ]
+    assert [t.name for t in sweep.select_tools(tools, "create")] == [
+        "create_node",
+        "views_create",
+    ]
+    assert [t.name for t in sweep.select_tools(tools, "create_node, queue_list")] == [
+        "create_node",
+        "queue_list",
+    ]
+    # A pattern that matches nothing runs nothing, rather than everything.
+    assert sweep.select_tools(tools, "nothing_matches_this") == []
 
 
 def test_the_fixture_is_re_provisioned_when_a_tool_deletes_it(

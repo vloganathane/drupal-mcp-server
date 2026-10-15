@@ -75,12 +75,17 @@ def TIMEOUT(local: bool) -> int:
     return _LOCAL_TIMEOUT if local else _JSONAPI_TIMEOUT
 
 
-# The modules this site has. Commerce, Webform, Paragraphs, Metatag, Feeds and
-# Search API are all installed, so tools needing them report a real result
-# rather than UPSTREAM; the ones genuinely absent here are listed in
-# tests/live/README.md.
-UPSTREAM_MODULES = (
-    "Pathauto patterns and redirects are not installed here."
+# What to say when a run lands tools in UPSTREAM. Nothing that bucket used to
+# name is actually missing: Commerce, Webform, Paragraphs, Metatag, Feeds,
+# Search API, Pathauto and Redirects are all installed here, and their tools
+# answer for themselves -- pathauto_pattern_list, redirect_list and
+# redirect_pattern_list all return OK. What does land in UPSTREAM is the one
+# thing no module provides (revision_delete, which JSON:API has no collection
+# endpoint for) and three module_* tools the harness pointed at a file that is
+# not a module directory.
+UPSTREAM_NOTE = (
+    "Nothing here is waiting on a module: Commerce, Webform, Paragraphs, "
+    "Metatag, Feeds, Search API, Pathauto and Redirects are all installed."
 )
 
 # Tools that write. They keep synthetic ids so the sweep cannot rewrite the
@@ -271,13 +276,6 @@ def value_for(name: str, t, spec: dict, tool: str = ""):
         # content types has. Without the slash the config translation tools
         # stop at the reference format and never reach their own logic.
         return "node_type/article"
-    if "fields" in n:
-        # The payload Drupal validates. An empty one answers "title is
-        # required" on a create and is a silent no-op on an update that still
-        # reports OK -- so the tool was never exercised either way. Answered
-        # up here, before the type rules: a nested object resolves to `object`,
-        # which used to be sent `{}` and shadow this rule entirely.
-        return {"title": "Sweep Title"}
     if n in ("queue_name", "queue") and EXISTING_QUEUE:
         # A queue that exists, so queue_run exercises the run rather than
         # stopping at "Queue not found" for a name nobody chose.
@@ -307,6 +305,15 @@ def value_for(name: str, t, spec: dict, tool: str = ""):
     if t == "array":
         return []
     if t == "object":
+        # `fields` on a content tool is the payload Drupal validates. An empty
+        # one answers "title is required" on a create, and on an update it is a
+        # silent no-op that still reports OK -- so the tool was never exercised
+        # either way. Only the object shape gets it, though: `fields` is also
+        # the name of a plain list of field names on query_nodes,
+        # jsonapi_sparse_fieldsets and the views tools, and handing those a dict
+        # fails validation before they run.
+        if "fields" in n:
+            return {"title": "Sweep Title"}
         return {}
 
     # Named ids must be matched before the generic endswith("id") rule, or
@@ -565,6 +572,20 @@ async def find_queue(session) -> str:
     return ""
 
 
+def select_tools(tools: list, only: str | None) -> list:
+    """The tools this run should call.
+
+    `only` narrows a run to a specific set -- the tools whose verdicts a
+    targeted fix could plausibly have moved -- so that re-checking them does
+    not cost a full sweep against a host that may already be busy. A single
+    name still works, which is all it used to take.
+    """
+    if not only:
+        return list(tools)
+    wanted = [w.strip() for w in only.split(",") if w.strip()]
+    return [t for t in tools if any(w in t.name for w in wanted)]
+
+
 async def main() -> int:
     only = sys.argv[1] if len(sys.argv) > 1 else None
     env = dict(os.environ)
@@ -602,8 +623,7 @@ async def main() -> int:
             print(f"using node {EXISTING_NID} for id arguments", flush=True)
             if EXISTING_QUEUE:
                 print(f"using queue {EXISTING_QUEUE} for queue arguments", flush=True)
-            if only:
-                tools = [t for t in tools if only in t.name]
+            tools = select_tools(tools, only)
             print(f"sweeping {len(tools)} tools against {BASE}\n", flush=True)
 
             for i, t in enumerate(tools, 1):
@@ -687,11 +707,16 @@ async def main() -> int:
         for r in rows[:60]:
             print(f"  {r['tool']:34s} {r['detail'][:60]!r}")
         if verdict == "UPSTREAM":
-            print(f"\n  {UPSTREAM_MODULES}")
+            print(f"\n  {UPSTREAM_NOTE}")
 
-    out = HERE / "tests" / "live" / "sweep-results.json"
+    # A narrowed run says where it wrote, so it cannot quietly stand in for the
+    # full sweep by replacing its results file with the handful of tools it
+    # happened to cover.
+    out = HERE / "tests" / "live" / (
+        "sweep-results.json" if not only else "sweep-results-partial.json"
+    )
     out.write_text(json.dumps(results, indent=2))
-    print(f"\nfull results written to {out}")
+    print(f"\n{'full results' if not only else 'partial results'} written to {out}")
     return 0
 
 
