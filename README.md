@@ -14,7 +14,7 @@ A Model Context Protocol (MCP) server for Drupal operations. Provides **367 tool
 - **AI-powered** — Content analysis, field mapping, and migration planning with your choice of LLM
 - **Multi-transport** — Stdio for desktop apps, HTTP/SSE for remote deployments
 - **Secure** — Input validation, OAuth 2.1, no shell injection
-- **Comprehensive** — 35 tool modules covering every major Drupal subsystem
+- **Comprehensive** — 37 tool modules covering every major Drupal subsystem
 
 ## Features
 
@@ -265,9 +265,9 @@ displays have Layout Builder enabled; `layout_builder_get`,
 - `sync_media_files` — Sync media between paths
 - `migrate_taxonomy` — Migrate taxonomy vocabularies
 
-### Moderation (12)
+### Moderation (13)
 - `moderation_state_list`, `moderation_state_get`, `moderation_state_create`, `moderation_state_update`, `moderation_state_delete`
-- `moderation_transition_list`, `moderation_transition_get`, `moderation_transition_create`, `moderation_transition_execute`
+- `moderation_transition_list`, `moderation_transition_get`, `moderation_transition_create`, `moderation_transition_execute`, `moderation_transition_delete`
 - `content_moderation_dashboard`, `workflow_list`, `workflow_get`
 
 ### Module Development (12)
@@ -287,9 +287,9 @@ displays have Layout Builder enabled; `layout_builder_get`,
 - `paragraphs_type_list`, `paragraphs_type_get`, `paragraphs_type_create`, `paragraphs_type_update`, `paragraphs_type_delete`
 - `paragraphs_item_list`, `paragraphs_item_get`, `paragraphs_item_create`, `paragraphs_item_update`, `paragraphs_item_delete`
 
-### Pathauto (9)
+### Pathauto (8)
 - `pathauto_pattern_list`, `pathauto_pattern_get`, `pathauto_pattern_create`, `pathauto_pattern_update`, `pathauto_pattern_delete`
-- `pathauto_generate`, `pathauto_token_list`, `redirect_pattern_list`, `redirect_bulk_create`
+- `pathauto_generate`, `pathauto_token_list`, `redirect_pattern_list`
 
 ### Performance (7)
 - `performance_query_log`, `performance_cache_stats`, `performance_redis_info`

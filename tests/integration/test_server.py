@@ -57,6 +57,45 @@ def test_every_tool_is_documented() -> None:
     assert undocumented == [], f"{len(undocumented)} tools lack a description"
 
 
+def test_readme_tools_section_matches_the_registered_tools() -> None:
+    """The Tools section is the map a reader navigates by, and it had drifted
+    in both directions at once.
+
+    `moderation_transition_delete` was missing from it entirely, while
+    `redirect_bulk_create` was listed under both Pathauto and Redirects -- so
+    the section counts still summed to exactly 367 and every header still
+    matched its own bullets, with two separate errors cancelling out. Only a
+    check against the registered tools notices either.
+    """
+    import collections
+    import re
+    from pathlib import Path
+
+    text = (Path(__file__).resolve().parents[2] / "README.md").read_text(encoding="utf-8")
+    registered = {t.name for t in asyncio.run(create_server().list_tools())}
+    sections = re.findall(r"^### (.+?) \((\d+)\)\n((?:- .*\n|`.*\n)*)", text, re.M)
+    assert sections, "the README's Tools sections could not be parsed"
+
+    listed: dict[str, list[str]] = collections.defaultdict(list)
+    mismatches = []
+    for name, declared, body in sections:
+        tools = [t for t in re.findall(r"`([a-z0-9_]+)`", body) if t in registered]
+        for tool in tools:
+            listed[tool].append(name)
+        if int(declared) != len(tools):
+            mismatches.append(f"{name} declares {declared} but lists {len(tools)}")
+
+    assert mismatches == [], mismatches
+
+    duplicated = {t: s for t, s in listed.items() if len(s) > 1}
+    assert duplicated == {}, f"listed in more than one section: {duplicated}"
+
+    missing = sorted(registered - set(listed))
+    assert missing == [], f"registered but absent from the README: {missing}"
+
+    assert sum(int(n) for _, n, _ in sections) == len(registered)
+
+
 def test_required_parameters_are_declared_in_properties() -> None:
     """A `required` entry with no matching property is unsatisfiable, so a
     client could never construct a valid call for that tool."""
