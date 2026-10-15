@@ -128,19 +128,62 @@ async def test_session_login_rejects_bad_credentials(monkeypatch: pytest.MonkeyP
 
 @pytest.mark.asyncio
 async def test_session_login_requires_a_cookie(monkeypatch: pytest.MonkeyPatch):
-    """A site without /user/login must fail loudly, not run unauthenticated."""
+    """A site without /user/login must fail loudly, not run unauthenticated.
+
+    This check is also what rejects bad credentials: Drupal answers a refused
+    login with 200 re-rendering the form and sets no cookie, so no status code
+    above can catch it.
+    """
     import drupal_mcp_server.auth.session as session_mod
 
     class NoCookieClient(_FakeAsyncClient):
         async def post(self, url: str, **kwargs: Any) -> Any:
-            return _Resp(200, "")  # 200 but no session established
+            return _Resp(200, "Sorry, unrecognized username or password")
 
     monkeypatch.setattr(session_mod.httpx, "AsyncClient", NoCookieClient)
 
-    auth = session_mod.SessionAuth("https://example.test", "admin", "secret")
+    auth = session_mod.SessionAuth("https://example.test", "admin", "wrong")
 
     with pytest.raises(RuntimeError, match="no session cookie"):
         await auth.login()
+
+
+@pytest.mark.asyncio
+async def test_a_redirecting_login_is_a_successful_login(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """Drupal answers a good login with 303 to the account page, and builds
+    that Location from the scheme *it* saw the request arrive on.
+
+    Following it used to turn a working login into a failure: the site
+    reported itself as plain `http` while the client was on HTTPS, so the
+    redirect was fetched as HTTP against a TLS port, nginx answered 400, and
+    the cookie the same response had just issued was discarded. Session auth
+    then stayed off, and every write silently fell back to basic auth, which
+    Drupal's mutating endpoints reject.
+    """
+    import drupal_mcp_server.auth.session as session_mod
+
+    class _RedirectingClient(_FakeAsyncClient):
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            super().__init__(*args, **kwargs)
+            assert kwargs.get("follow_redirects") is False, (
+                "the login POST must not be followed to a URL the site invented"
+            )
+
+        async def post(self, url: str, **kwargs: Any) -> Any:
+            assert url.endswith("/user/login")
+            self.cookies = {self.cookie_value: "1"}
+            return _Resp(303, "")
+
+    monkeypatch.setattr(session_mod.httpx, "AsyncClient", _RedirectingClient)
+
+    auth = session_mod.SessionAuth("https://example.test", "admin", "secret")
+    await auth.login()
+
+    assert auth.is_logged_in() is True
+    assert auth.get_cookies() == {"SSESSxyz": "1"}
+    assert auth.get_headers() == {"X-CSRF-Token": "csrf-token-xyz"}
 
 
 def test_bearer_token_is_used_when_no_credentials_are_set():

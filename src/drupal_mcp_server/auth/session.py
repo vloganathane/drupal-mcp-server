@@ -30,13 +30,27 @@ class SessionAuth:
     async def login(self) -> None:
         """Establish a session and fetch a CSRF token.
 
+        The login POST is deliberately not followed past its redirect. Drupal
+        answers a good login with 303 to the account page, built from the
+        scheme and host it saw the request arrive on -- its own idea of its
+        base URL, not the client's. Following that turns a successful login
+        into a failure whenever the two disagree: reached on a port-mapped
+        HTTPS endpoint the site reported itself as plain `http`, so the
+        redirect was fetched as HTTP against a TLS port, nginx answered 400,
+        and the session cookie the same response had just issued was thrown
+        away. Every write then silently fell back to basic auth, which
+        Drupal's mutating endpoints reject.
+
+        Only the redirect's status and the cookie it sets are wanted here;
+        the page it points at is the site's business.
+
         Raises:
             RuntimeError: If login fails or no token is issued.
         """
         async with httpx.AsyncClient(
             verify=self._verify_ssl,
             timeout=self._timeout,
-            follow_redirects=True,
+            follow_redirects=False,
         ) as client:
             resp = await client.post(
                 f"{self._base_url}/user/login",
@@ -53,13 +67,15 @@ class SessionAuth:
                     "check DRUPAL_USERNAME and DRUPAL_PASSWORD"
                 )
 
-            # Cookies are set across the redirect chain, so read the client's
-            # accumulated jar rather than the final response's own set.
+            # A 3xx here is the success path, and a refused login is a 200
+            # re-rendering the form without setting a cookie -- so this check,
+            # not the status above, is what actually rejects bad credentials.
             self._cookies = {k: v for k, v in client.cookies.items()}
             if not self._cookies:
                 raise RuntimeError(
                     "Drupal login returned no session cookie; "
-                    "the site may not expose /user/login."
+                    "the site may not expose /user/login, or the credentials "
+                    "were refused."
                 )
 
             token_resp = await client.get(
