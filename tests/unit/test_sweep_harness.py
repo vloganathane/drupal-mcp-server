@@ -110,3 +110,157 @@ def test_a_passing_run_stays_ok(sweep: ModuleType) -> None:
         "OK",
         "",
     )
+
+
+# --- fixtures ------------------------------------------------------------
+#
+# Before these, every parameter ending in "id" was answered with the fixture
+# node's id. `view_id`, `menu_id`, `webform_id` and eighty-odd others were all
+# sent the same node number, so the tool answered a lookup miss and the sweep
+# filed it as a refusal. That was 84 of 174 refusals in the run before the
+# fixtures existed: not tools refusing, but the harness asking the wrong
+# question. A miss says nothing about whether a tool works.
+
+
+def test_a_read_only_tool_gets_a_real_id_for_its_resource(sweep: ModuleType) -> None:
+    for tool, param, expected in [
+        ("views_get", "view_id", "content"),
+        ("menu_get", "menu_id", "main"),
+        ("webform_get", "webform_id", "contact"),
+        ("paragraphs_type_get", "type_id", "basic"),
+        ("workflow_get", "workflow_id", "editorial"),
+        ("media_type_get", "media_type_id", "image"),
+    ]:
+        schema = {"properties": {param: {"type": "string"}}}
+        assert sweep.synthesize(schema, tool)[param] == expected, f"{tool}.{param}"
+
+
+def test_config_id_means_what_the_tools_name_says_it_means(sweep: ModuleType) -> None:
+    """One parameter name covers three different resources.
+
+    `config_id` is a field config for field_config_*, a metatag config for
+    metatag_config_*, and a search index for search_api_index_*. Handing all
+    three the same value tests none of them.
+    """
+    schema = {"properties": {"config_id": {"type": "string"}}}
+    assert (
+        sweep.synthesize(schema, "field_config_get")["config_id"]
+        == "media.image.field_media_image"
+    )
+    assert (
+        sweep.synthesize(schema, "field_storage_get")["config_id"]
+        == "media.field_media_image"
+    )
+    assert (
+        sweep.synthesize(schema, "metatag_config_get")["config_id"] == "node.article"
+    )
+
+
+def test_a_mutating_tool_keeps_a_synthetic_id(sweep: ModuleType) -> None:
+    """The sweep must not rewrite the site out from under itself.
+
+    `views_update` with a real view id would save the view back with the
+    arguments the harness synthesised, and every later `views_execute` would
+    run against a view this run broke. Structural writes keep junk ids so
+    they are refused rather than applied.
+    """
+    schema = {"properties": {"view_id": {"type": "string"}}}
+    assert sweep.synthesize(schema, "views_update")["view_id"] == "sweep_value"
+    assert sweep.synthesize(schema, "views_get")["view_id"] == "content"
+
+
+def test_the_mutating_rule_catches_every_write_suffix(sweep: ModuleType) -> None:
+    for tool in [
+        "views_delete", "menu_link_delete", "field_config_update",
+        "webform_delete", "node_delete", "moderation_state_delete",
+        "user_block", "user_unblock", "comment_approve", "cache_clear",
+        "config_import", "queue_purge",
+    ]:
+        assert sweep.MUTATING.search(tool), tool
+
+    for tool in [
+        "views_get", "views_list", "views_execute", "views_export",
+        "webform_handler_list", "queue_list", "db_query", "search_index_get",
+    ]:
+        assert not sweep.MUTATING.search(tool), tool
+
+
+def test_interface_translations_name_a_language_that_has_translations(
+    sweep: ModuleType,
+) -> None:
+    """The interface translation tools operate on locale's target-language rows.
+
+    This site's translations are French, so omitting the language lists
+    nothing and writing one would create an English translation of English
+    source text. JSON:API write-protection still applies everywhere else.
+    """
+    schema = {"properties": {"langcode": {"type": "string"}}}
+    assert (
+        sweep.synthesize(schema, "interface_translation_list")["langcode"] == "fr"
+    )
+    # A JSON:API write still omits it: sending one there is a 403 about a
+    # field permission that says nothing about the tool.
+    assert "langcode" not in sweep.synthesize(schema, "create_term")
+
+
+def test_a_tool_that_names_a_node_id_is_the_one_that_triggers_a_recheck(
+    sweep: ModuleType,
+) -> None:
+    """`delete_node` takes the fixture with it mid-sweep.
+
+    revision_list, revision_get, revision_revert, revision_diff,
+    translation_status, translation_add, moderation_transition_execute,
+    layout_builder_override_remove and accessibility_aria_validate all 404'd
+    for that reason alone. Only tools that actually declare a node id pay
+    for the existence check.
+    """
+    assert sweep._takes_a_node_id({"properties": {"nid": {"type": "string"}}})
+    assert sweep._takes_a_node_id({"properties": {"node_id": {"type": "string"}}})
+    assert not sweep._takes_a_node_id({"properties": {"view_id": {"type": "string"}}})
+    assert not sweep._takes_a_node_id({"properties": {}})
+
+
+def test_a_missing_node_is_reported_missing(sweep: ModuleType, monkeypatch) -> None:
+    """Only a real 404 counts as gone: a timeout or a network blip is not
+    evidence, and re-provisioning on one would churn the fixture."""
+    import urllib.error
+
+    def http_error(code: int) -> urllib.error.HTTPError:
+        return urllib.error.HTTPError("u", code, "gone", {}, None)
+
+    monkeypatch.setattr(
+        sweep.urllib.request, "urlopen", lambda *a, **k: (_ for _ in ()).throw(http_error(404))
+    )
+    assert sweep.node_exists("7") is False
+
+    monkeypatch.setattr(
+        sweep.urllib.request, "urlopen", lambda *a, **k: (_ for _ in ()).throw(http_error(500))
+    )
+    assert sweep.node_exists("7") is True
+
+    def timeout(*a, **k):
+        raise TimeoutError("slow")
+
+    monkeypatch.setattr(sweep.urllib.request, "urlopen", timeout)
+    assert sweep.node_exists("7") is True
+
+
+def test_the_fixture_is_re_provisioned_when_a_tool_deletes_it(
+    sweep: ModuleType, monkeypatch
+) -> None:
+    seen = {"checked": 0}
+
+    def exists(nid: str) -> bool:
+        seen["checked"] += 1
+        return False
+
+    monkeypatch.setattr(sweep, "node_exists", exists)
+    monkeypatch.setattr(sweep, "pick_live_nid", lambda: "99")
+    monkeypatch.setattr(sweep, "EXISTING_NID", "7")
+
+    assert sweep.refresh_nid_if_gone() == "99"
+    assert seen["checked"] == 1
+
+    # Once re-provisioned it is not re-checked until it vanishes again.
+    assert sweep.refresh_nid_if_gone() == "99"
+    assert seen["checked"] == 2

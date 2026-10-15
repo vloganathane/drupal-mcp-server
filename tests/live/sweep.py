@@ -32,6 +32,7 @@ import re
 import ssl
 import sys
 import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -67,6 +68,95 @@ UPSTREAM_MODULES = (
     "Commerce, Paragraphs, Webform, Search API, Feeds, Metatag, Pathauto "
     "patterns, redirect, and the translation modules are not installed here."
 )
+
+# Tools that write. They keep synthetic ids so the sweep cannot rewrite the
+# site's views, menus and fields out from under the tools that run after them.
+#
+# Structural updates are included on purpose: `views_update` with a real view
+# id would save the view back with the arguments the harness synthesised, and
+# every later `views_execute` would then run against a view this run broke.
+MUTATING = re.compile(
+    r"_(create|update|delete|revert|truncate|purge|remove|place|attach|detach"
+    r"|enable|disable|import|rollback|clear|reindex|publish|unpublish"
+    r"|block|unblock|approve|unapprove|cancel|abort|spam|assign|promote"
+    r"|demote|rebuild|install|uninstall|flush|wipe|reset|restore|save)$"
+)
+
+# The parameters whose names really do mean "the id of a content entity", and
+# so can be answered with a node that exists. Everything else ending in `id`
+# names some other resource, and gets junk instead: asking `view_id` for a
+# node number tests nothing but the miss.
+_CONTENT_ENTITY_ID = {"entity_id", "revision_id_1", "revision_id_2"}
+
+# A real id for each resource the site has, handed to read-only tools.
+#
+# Every parameter ending in "id" used to be answered with the fixture node's
+# id, so `view_id`, `menu_id`, `webform_id` and 80-odd others were all sent
+# "7" and answered a lookup miss. That was 84 of 174 refusals in the last run:
+# not tools refusing, but the harness asking the wrong question. A miss tells
+# you nothing about whether the tool works.
+FIXTURE_ID = {
+    "view_id": "content",
+    "display_id": "page_1",
+    "menu_id": "main",
+    "webform_id": "contact",
+    "media_type_id": "image",
+    "type_id": "basic",  # paragraphs_type
+    "transition_id": "create_new_draft",
+    "workflow_id": "editorial",
+    # The editorial workflow's states. This site has no `content_moderation_state`
+    # config entities of its own -- they come from the workflow -- so naming one
+    # is the only way moderation_state_get reaches its own logic.
+    "state_id": "draft",
+    "form_id": "personal",  # contact_form
+    "pattern_id": "article",  # pathauto_pattern
+    "server_id": "database",  # search_api_server
+    "index_id": "content",  # search_api_index
+    "store_id": "default",  # commerce_store
+    "block_id": "claro_content",
+    "format_id": "basic_html",  # filter_format
+    "style_id": "thumbnail",  # image_style
+    "date_format_id": "html_date",
+    "role_id": "authenticated",
+    "language_id": "fr",
+    "node_type_id": "article",
+    "vocabulary_id": "tags",
+    "action_id": "comment_save_action",
+    "breakpoint_id": " breakpoint.user",
+    "plugin_id": "field",
+    "machine_name": "sweep_probe",
+    # Entities this site has none of. Naming one is still more honest than a
+    # node id: the refusal reads "no comment with id 1", which is the truth
+    # about the fixture rather than about the tool.
+    "comment_id": "1",
+    "submission_id": "1",
+    "message_id": "1",
+    "paragraph_id": "1",
+    "item_id": "1",
+    "revision_id": "1",
+    "migration_id": "1",
+    "redirect_id": "1",
+    "feed_id": "1",
+}
+
+# One parameter name can mean several resources, and only the tool's own name
+# says which: `config_id` is a field config, a metatag config or a search
+# index depending on who is asking.
+FIXTURE_BY_TOOL = {
+    "field_config_": {"config_id": "media.image.field_media_image"},
+    "field_storage_": {"config_id": "media.field_media_image"},
+    "metatag_config_": {"config_id": "node.article"},
+    "search_api_index_": {"index_id": "content"},
+    "paragraphs_type_": {"type_id": "basic"},
+    "views_": {"view_id": "content", "display_id": "page_1"},
+    "menu_link_": {"menu_id": "main"},
+    "webform_handler_": {"webform_id": "contact"},
+    "webform_element_": {"webform_id": "contact"},
+    "webform_submission_": {"webform_id": "contact"},
+    "moderation_transition_": {"workflow_id": "editorial"},
+    "moderation_state_": {"workflow_id": "editorial"},
+    "workflow_": {"workflow_id": "editorial"},
+}
 
 DEAD_PATTERNS = [
     "unexpected keyword argument",
@@ -149,6 +239,12 @@ def value_for(name: str, t, spec: dict, tool: str = ""):
     # tested nothing but Drupal's permission message and cost create_term a
     # clean verdict.
     if n == "langcode":
+        # The interface translation tools are the exception: they operate on
+        # locale's target-language rows, and this site's translations are
+        # French. Omitting the language there lists nothing and writing one
+        # would create an English translation of English source text.
+        if tool.startswith("interface_translation_"):
+            return "fr"
         return _OMIT
     # Drush's watchdog filters are an enumerated type and a severity number;
     # "sweep_value" is neither, so the command is refused before it runs.
@@ -169,6 +265,16 @@ def value_for(name: str, t, spec: dict, tool: str = ""):
         # These run the argument inside the container, where `status` -- the
         # right answer for drush_command -- is not a command at all.
         return "php -v"
+    # A read-only tool is handed an id that exists, so its answer is about the
+    # tool rather than about a lookup miss. See FIXTURE_ID for why.
+    if not MUTATING.search(tool):
+        # Where one parameter name covers several resources, the tool's own
+        # name says which one it means, so that is consulted first.
+        for prefix, mapping in FIXTURE_BY_TOOL.items():
+            if tool.startswith(prefix) and name in mapping:
+                return mapping[name]
+        if name in FIXTURE_ID:
+            return FIXTURE_ID[name]
     if isinstance(t, list):
         t = next((x for x in t if x and x != "null"), None)
     if t == "boolean":
@@ -198,7 +304,11 @@ def value_for(name: str, t, spec: dict, tool: str = ""):
         # drupal.org tools want a machine name; "1" 404s every one of them.
         return "pathauto"
     if n.endswith("id"):
-        return EXISTING_NID
+        # Only a parameter that genuinely names a content entity gets a live
+        # node. Before this, `view_id`, `menu_id` and `webform_id` were all
+        # answered with a node number, which is where 84 of the last run's
+        # 174 refusals came from.
+        return EXISTING_NID if n in _CONTENT_ENTITY_ID else "sweep_value"
     if n in ("bundle", "content_type", "type", "resource_type"):
         return "article"
     if n in ("entity_type",):
@@ -312,6 +422,55 @@ EXISTING_NID = "1"
 EXISTING_QUEUE = ""
 
 
+def node_exists(nid: str) -> bool:
+    """Ask JSON:API whether the fixture node is still there.
+
+    `delete_node` runs during the sweep and takes the fixture with it, so
+    every tool that ran after it got a 404 for a node this harness deleted --
+    revision_list, revision_get, revision_revert, revision_diff,
+    translation_status, translation_add, moderation_transition_execute,
+    layout_builder_override_remove and accessibility_aria_validate all failed
+    for that reason alone. Checking before the tools that need the id lets
+    the fixture be re-provisioned instead of silently rotting.
+    """
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    req = urllib.request.Request(
+        f"{BASE}/jsonapi/node--article/{nid}",
+        headers={"Accept": "application/vnd.api+json"},
+    )
+    try:
+        with urllib.request.urlopen(req, context=ctx, timeout=20) as response:
+            return response.status == 200
+    except urllib.error.HTTPError as e:
+        return e.code != 404
+    except Exception:
+        # A timeout or a network blip is not evidence the node is gone.
+        return True
+
+
+def refresh_nid_if_gone() -> str:
+    """Re-provision the fixture node if a tool deleted it mid-sweep."""
+    global EXISTING_NID
+    if EXISTING_NID and not node_exists(EXISTING_NID):
+        print(f"node {EXISTING_NID} was deleted mid-sweep; re-provisioning", flush=True)
+        EXISTING_NID = str(pick_live_nid())
+        print(f"using node {EXISTING_NID} for id arguments", flush=True)
+    return EXISTING_NID
+
+
+def _takes_a_node_id(schema: dict) -> bool:
+    """Whether this tool will be handed the fixture node's id.
+
+    Checking the declared parameter names rather than the resolved value
+    keeps the check free of the same `endswith("id")` guessing that made the
+    fixture wrong in the first place.
+    """
+    props = schema.get("properties") or {}
+    return any(name in props for name in ("nid", "node_id"))
+
+
 async def find_queue(session) -> str:
     """Return the name of a queue that exists on this site, or ""."""
     try:
@@ -381,6 +540,11 @@ async def main() -> int:
                 # The MCP SDK renamed `inputSchema` to `input_schema`. Read
                 # either so a client upgrade does not abort the whole sweep.
                 schema = getattr(t, "inputSchema", None) or getattr(t, "input_schema", None) or {}
+                # `delete_node` may have taken the fixture with it, and every
+                # tool that names a node id from here on would 404 for a reason
+                # that has nothing to do with the tool under test.
+                if _takes_a_node_id(schema):
+                    refresh_nid_if_gone()
                 args = synthesize(schema, t.name)
                 local = bool(LOCAL_TOOL.match(t.name))
                 timeout = 150 if local else 45
