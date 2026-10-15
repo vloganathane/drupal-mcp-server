@@ -7,7 +7,7 @@
 [![PyPI downloads](https://img.shields.io/pypi/dm/drupal-mcp-server.svg)](https://pypi.org/project/drupal-mcp-server/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/vloganathane/drupal-mcp-server/blob/main/LICENSE)
 
-A Model Context Protocol (MCP) server for Drupal operations. Provides **367 tools across 37 modules** for site analysis, migration, content management, configuration, commerce, headless, DevOps, security, and more.
+A Model Context Protocol (MCP) server for Drupal operations. Provides **375 tools across 37 modules** for site analysis, migration, content management, configuration, commerce, headless, DevOps, security, and more.
 
 ## Why Use This?
 
@@ -257,7 +257,7 @@ displays have Layout Builder enabled; `layout_builder_get`,
 - `metatag_defaults_get`, `metatag_defaults_set`, `metatag_token_list`
 - `metatag_canonical_set`, `metatag_jsonld_generate`
 
-### Migration (7)
+### Migration (15)
 - `generate_migration_yaml` — Generate migration YAML
 - `generate_module_migration` — Generate migration module
 - `run_migration_test` — Test migration with limited records
@@ -265,6 +265,14 @@ displays have Layout Builder enabled; `layout_builder_get`,
 - `rollback_migration` — Rollback a migration
 - `sync_media_files` — Sync media between paths
 - `migrate_taxonomy` — Migrate taxonomy vocabularies
+- `create_migration_plan` — Create a persisted migration manifest
+- `get_migration_plan` — Read a migration manifest and tracked state
+- `list_migration_plans` — List migration manifests
+- `migration_status` — Summarize migration progress
+- `migrate_records` — Copy a batch of source records to the target site
+- `record_migration_result` — Record externally executed migration outcomes
+- `analyze_source_site` — Analyze a source Drupal JSON:API resource type
+- `reconcile_migration_counts` — Compare source and target counts
 
 ### Moderation (13)
 - `moderation_state_list`, `moderation_state_get`, `moderation_state_create`, `moderation_state_update`, `moderation_state_delete`

@@ -86,7 +86,7 @@ def create_server(auth_manager: AuthManager | None = None) -> FastMCP:
     drush_client = DrushClient(settings)
     ai_service = AIService(settings)
     site_manager = SiteManager(settings)
-    MigrationService(
+    migration_service = MigrationService(
         settings=settings, jsonapi_client=jsonapi_client,
         drush_client=drush_client, ai_service=ai_service, site_manager=site_manager,
     )
@@ -99,6 +99,7 @@ def create_server(auth_manager: AuthManager | None = None) -> FastMCP:
         module.register_tools(
             mcp, jsonapi_client=jsonapi_client, graphql_client=graphql_client,
             drush_client=drush_client, ai_service=ai_service, site_manager=site_manager,
+            migration_service=migration_service,
         )
     
     # Add dynamic tool discovery endpoint

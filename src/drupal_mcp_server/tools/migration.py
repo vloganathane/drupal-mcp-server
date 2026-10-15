@@ -15,6 +15,14 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
     deps.get("ai_service")
     jsonapi = deps.get("jsonapi_client")
 
+    migration_service = deps.get("migration_service")
+    if migration_service is None:
+        from ..services.migration_service import MigrationService
+
+        migration_service = MigrationService(
+            storage_dir=os.environ.get("DRUPAL_MCP_MIGRATION_DIR")
+        )
+
     @mcp.tool()
     async def generate_migration_yaml(migration_type: str, source: dict[str, Any], destination: dict[str, Any]) -> dict[str, Any]:
         """Generate migration YAML configuration."""
@@ -324,3 +332,134 @@ function {module_name}_migrate_api() {{
             }
         except Exception as e:
             return {"error": str(e)}
+
+    @mcp.tool()
+    async def create_migration_plan(
+        migration_id: str,
+        source: dict[str, Any] | None = None,
+        target: dict[str, Any] | None = None,
+        entities: list[str] | None = None,
+        field_mappings: dict[str, Any] | None = None,
+        notes: str = "",
+    ) -> dict[str, Any]:
+        """Create or replace a persisted migration plan."""
+        if not migration_service:
+            return {"error": "Migration service not available"}
+        try:
+            return migration_service.create_plan(
+                migration_id=migration_id,
+                source=source,
+                target=target,
+                entities=entities,
+                field_mappings=field_mappings,
+                notes=notes,
+            )
+        except Exception as exc:  # noqa: BLE001
+            return {"error": str(exc)}
+
+    @mcp.tool()
+    async def get_migration_plan(migration_id: str) -> dict[str, Any]:
+        """Read a persisted migration plan and its tracked state."""
+        if not migration_service:
+            return {"error": "Migration service not available"}
+        return migration_service.get_plan(migration_id)
+
+    @mcp.tool()
+    async def list_migration_plans() -> list[dict[str, Any]]:
+        """List all persisted migration plans."""
+        if not migration_service:
+            return [{"error": "Migration service not available"}]
+        return migration_service.list_plans()
+
+    @mcp.tool()
+    async def migration_status(migration_id: str) -> dict[str, Any]:
+        """Summarize migration progress for a persisted plan."""
+        if not migration_service:
+            return {"error": "Migration service not available"}
+        return migration_service.migration_status(migration_id)
+
+    @mcp.tool()
+    async def migrate_records(
+        migration_id: str,
+        entity_type: str,
+        records: list[dict[str, Any]],
+        field_mapping: dict[str, str] | None = None,
+        idempotency_key: str = "id",
+        dry_run: bool = False,
+    ) -> dict[str, Any]:
+        """Copy a batch of source records into the target Drupal site through JSON:API."""
+        if not migration_service:
+            return {"error": "Migration service not available"}
+        try:
+            return await migration_service.migrate_records(
+                migration_id=migration_id,
+                entity_type=entity_type,
+                records=records,
+                field_mapping=field_mapping,
+                idempotency_key=idempotency_key,
+                dry_run=dry_run,
+            )
+        except Exception as exc:  # noqa: BLE001
+            return {"error": str(exc)}
+
+    @mcp.tool()
+    async def record_migration_result(
+        migration_id: str,
+        entity_type: str,
+        legacy_id: str,
+        target_id: str | None = None,
+        status: str = "created",
+        error: str | None = None,
+    ) -> dict[str, Any]:
+        """Record the outcome of a manually executed migration operation."""
+        if not migration_service:
+            return {"error": "Migration service not available"}
+        try:
+            return migration_service.record_entity_result(
+                migration_id=migration_id,
+                entity_type=entity_type,
+                legacy_id=legacy_id,
+                target_id=target_id,
+                status=status,
+                error=error,
+            )
+        except Exception as exc:  # noqa: BLE001
+            return {"error": str(exc)}
+
+    @mcp.tool()
+    async def analyze_source_site(
+        migration_id: str | None = None,
+        source_url: str = "",
+        resource_type: str = "node--article",
+        token: str | None = None,
+    ) -> dict[str, Any]:
+        """Analyze a source Drupal JSON:API resource type and optionally store counts in a plan."""
+        if not migration_service:
+            return {"error": "Migration service not available"}
+        if not source_url:
+            return {"error": "source_url is required"}
+        try:
+            return await migration_service.analyze_source_site(
+                source_url=source_url,
+                resource_type=resource_type,
+                token=token,
+                migration_id=migration_id,
+            )
+        except Exception as exc:  # noqa: BLE001
+            return {"error": str(exc)}
+
+    @mcp.tool()
+    async def reconcile_migration_counts(
+        migration_id: str,
+        target_resource_types: list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Compare recorded source counts with current target-site counts."""
+        if not migration_service:
+            return {"error": "Migration service not available"}
+        try:
+            return await migration_service.reconcile_counts(
+                migration_id=migration_id,
+                target_resource_types=target_resource_types,
+            )
+        except Exception as exc:  # noqa: BLE001
+            return {"error": str(exc)}
