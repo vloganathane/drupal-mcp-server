@@ -1,6 +1,5 @@
 """Tests for migration plan helpers and service."""
 
-import tempfile
 from unittest.mock import AsyncMock
 
 import pytest
