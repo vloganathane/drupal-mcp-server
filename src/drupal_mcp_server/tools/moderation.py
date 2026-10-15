@@ -4,7 +4,6 @@ from typing import Any
 
 from fastmcp import FastMCP
 
-from ._utils import absent_entity as _absent_entity
 from ._utils import ensure_dict as _ensure_dict
 from ._utils import validate_pagination
 
@@ -130,8 +129,13 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
 
         Transitions are configuration *inside* the `workflow` entity, not
         entities of their own, so there is no `workflow_transition` resource
-        for JSON:API to list. This reads them off the workflow instead, which
-        is where they are defined.
+        for JSON:API to list. They are read from the workflow's workflow-type
+        plugin (`WorkflowTypeInterface::getTransitions()`), which is where
+        Drupal keeps them.
+
+        Every workflow is read when `workflow_id` is left out. Naming a
+        workflow that does not exist answers an error listing the ones this
+        site has, rather than an empty list that reads as "no transitions".
         """
         if not drush:
             return {"error": "Drush not available"}
@@ -143,18 +147,28 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
 
             ids = [workflow_id] if workflow_id else None
             code = (
-                "$tm = \\Drupal::entityTypeManager();"
+                "$all = \\Drupal::entityTypeManager()->getStorage('workflow')->loadMultiple();"
                 "$ids = " + _json.dumps(ids) + ";"
-                "$workflows = $ids ? $tm->getStorage('workflow')->loadMultiple($ids)"
-                "                  : $tm->getStorage('workflow')->loadMultiple();"
+                "if ($ids) {"
+                "  $missing = array_values(array_diff($ids, array_keys($all)));"
+                "  if ($missing) {"
+                "    print json_encode(['error' => 'No workflow with id '"
+                "      . implode(', ', $missing), 'available' => array_keys($all)]);"
+                "    return;"
+                "  }"
+                "  $all = array_intersect_key($all, array_flip($ids));"
+                "}"
                 "$out = [];"
-                "foreach ($workflows as $wf) {"
-                "  foreach ((array) $wf->get('transitions') as $tid => $t) {"
+                "foreach ($all as $wf) {"
+                "  $wt = $wf->getTypePlugin();"
+                "  if (!$wt) { continue; }"
+                "  foreach ($wt->getTransitions() as $tid => $t) {"
+                "    $to = $t->to();"
                 "    $out[] = ['id' => (string) $tid, 'workflow' => $wf->id(),"
-                "      'label' => (string) ($t['label'] ?? ''),"
-                "      'from' => (array) ($t['from'] ?? []),"
-                "      'to' => (string) ($t['to'] ?? ''),"
-                "      'weight' => (int) ($t['weight'] ?? 0)];"
+                "      'label' => (string) $t->label(),"
+                "      'from' => array_keys((array) $t->from()),"
+                "      'to' => (string) $to->id(),"
+                "      'weight' => (int) $t->weight()];"
                 "  }"
                 "}"
                 "print json_encode(array_values($out));"
@@ -163,7 +177,10 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             payload = _ensure_dict(result)
             if payload.get("error"):
                 return payload
-            rows = payload.get("data") or []
+            data = payload.get("data")
+            if isinstance(data, dict) and data.get("error"):
+                return data
+            rows = data if isinstance(data, list) else []
             start = int(page_offset)
             window = rows[start:start + int(page_limit)]
             return {"count": len(rows), "transitions": window}
@@ -175,27 +192,46 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         """Get a single moderation transition by ID.
 
         Transitions belong to a workflow rather than being entities, so this
-        searches every workflow for the named transition.
+        searches every workflow's transitions for the named one. Pass
+        `include=states` to attach the states of the workflow that owns it --
+        transitions have no JSON:API relationships to include.
         """
         if not drush:
             return {"error": "Drush not available"}
         try:
             import json as _json
 
+            want_states = "state" in include.lower()
             code = (
                 "$tid = " + _json.dumps(transition_id) + ";"
-                "foreach (\\Drupal::entityTypeManager()->getStorage('workflow')->loadMultiple() as $wf) {"
-                "  $t = $wf->get('transitions')[$tid] ?? NULL;"
-                "  if ($t) {"
-                "    print json_encode(['id' => $tid, 'workflow' => $wf->id(),"
-                "      'label' => (string) ($t['label'] ?? ''),"
-                "      'from' => (array) ($t['from'] ?? []),"
-                "      'to' => (string) ($t['to'] ?? ''),"
-                "      'weight' => (int) ($t['weight'] ?? 0)]);"
-                "    return;"
+                "$all = \\Drupal::entityTypeManager()->getStorage('workflow')->loadMultiple();"
+                "foreach ($all as $wf) {"
+                "  $wt = $wf->getTypePlugin();"
+                "  if (!$wt || !$wt->hasTransition($tid)) { continue; }"
+                "  $t = $wt->getTransition($tid);"
+                "  $to = $t->to();"
+                "  $row = ['id' => (string) $tid, 'workflow' => $wf->id(),"
+                "    'label' => (string) $t->label(),"
+                "    'from' => array_keys((array) $t->from()),"
+                "    'to' => (string) $to->id(),"
+                "    'weight' => (int) $t->weight()];"
+                "  if (" + ("TRUE" if want_states else "FALSE") + ") {"
+                "    $states = [];"
+                "    foreach ($wt->getStates() as $sid => $s) {"
+                "      $states[] = ['id' => (string) $sid, 'label' => (string) $s->label()];"
+                "    }"
+                "    $row['states'] = $states;"
                 "  }"
+                "  print json_encode($row);"
+                "  return;"
                 "}"
-                "print json_encode(['error' => 'No transition with id ' . $tid]);"
+                "$known = [];"
+                "foreach ($all as $wf) {"
+                "  $wt = $wf->getTypePlugin();"
+                "  if ($wt) { $known = array_merge($known, array_keys($wt->getConfiguration()['transitions'] ?? [])); }"
+                "}"
+                "print json_encode(['error' => 'No transition with id ' . $tid,"
+                "  'available' => array_values(array_unique($known))]);"
             )
             result = await drush.run("php:eval", [code])
             payload = _ensure_dict(result)
@@ -203,7 +239,8 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 return payload
             data = payload.get("data")
             if isinstance(data, dict) and data.get("error"):
-                return {"error": data["error"], "transition_id": transition_id}
+                return {"error": data["error"], "transition_id": transition_id,
+                        "available": data.get("available", [])}
             return data if isinstance(data, dict) else {}
         except Exception as e:
             return {"error": str(e)}
@@ -217,19 +254,169 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         to_state: str,
         weight: int = 0,
     ) -> dict[str, Any]:
-        """Create a new moderation transition.
+        """Create a new moderation transition on a workflow.
 
-        Not implemented: a transition is configuration inside its workflow, not
-        an entity, so it is edited on the workflow and cannot be POSTed as a
-        JSON:API resource. `moderation_transition_list` and `workflow_get` read
-        the transitions a workflow defines.
+        Transitions are configuration inside the `workflow` entity, so they
+        cannot be POSTed as a JSON:API resource. This adds one the way
+        Drupal's own transition form does: through
+        `WorkflowTypeInterface::addTransition()` and a save of the workflow,
+        which writes the change back into the workflow's configuration.
+
+        Both the origin states and the target state must already exist in the
+        workflow; an error names the ones that do not and lists the states the
+        workflow does have. `weight` defaults to 0, which places the transition
+        first -- pass a higher number to append it.
         """
-        return _absent_entity(
-            "workflow_transition",
-            "Transitions are configuration inside the `workflow` entity and are "
-            "edited on the workflow itself. Read them with "
-            "moderation_transition_list.",
-        )
+        if not drush:
+            return {"error": "Drush not available"}
+        if not from_states:
+            return {
+                "error": "from_states must name at least one state this "
+                "transition starts from.",
+                "workflow_id": workflow_id,
+            }
+        try:
+            import json as _json
+
+            code = (
+                "$wfid = " + _json.dumps(workflow_id) + ";"
+                "$tid = " + _json.dumps(transition_id) + ";"
+                "$label = " + _json.dumps(label) + ";"
+                "$from = " + _json.dumps(list(from_states)) + ";"
+                "$to = " + _json.dumps(to_state) + ";"
+                "$weight = " + str(int(weight)) + ";"
+                "$all = \\Drupal::entityTypeManager()->getStorage('workflow')->loadMultiple();"
+                "if (!isset($all[$wfid])) {"
+                "  print json_encode(['error' => 'No workflow with id ' . $wfid,"
+                "    'available' => array_keys($all)]);"
+                "  return;"
+                "}"
+                "$wf = $all[$wfid];"
+                "$wt = $wf->getTypePlugin();"
+                "if (!$wt) { print json_encode(['error' => 'Workflow ' . $wfid . ' has no workflow type']); return; }"
+                "$states = [];"
+                "foreach ($wt->getStates() as $sid => $s) { $states[] = (string) $sid; }"
+                "if ($wt->hasTransition($tid)) {"
+                "  print json_encode(['error' => 'Workflow ' . $wfid"
+                "    . ' already has a transition ' . $tid,"
+                "    'available' => array_keys($wt->getConfiguration()['transitions'] ?? [])]);"
+                "  return;"
+                "}"
+                "$missing = array_values(array_diff(array_merge((array) $from, [$to]), $states));"
+                "if ($missing) {"
+                "  print json_encode(['error' => 'No state ' . implode(', ', $missing)"
+                "    . ' in workflow ' . $wfid, 'available_states' => $states]);"
+                "  return;"
+                "}"
+                "try {"
+                "  $wt->addTransition($tid, $label, (array) $from, $to);"
+                "  $wt->setTransitionWeight($tid, $weight);"
+                "} catch (\\InvalidArgumentException $e) {"
+                "  print json_encode(['error' => $e->getMessage()]);"
+                "  return;"
+                "}"
+                "try { $wf->save(); } catch (\\Throwable $e) {"
+                "  print json_encode(['error' => $e->getMessage()]);"
+                "  return;"
+                "}"
+                "$t = $wt->getTransition($tid);"
+                "print json_encode(['ok' => TRUE, 'id' => (string) $tid,"
+                "  'workflow' => (string) $wfid, 'label' => (string) $t->label(),"
+                "  'from' => array_keys((array) $t->from()),"
+                "  'to' => (string) $t->to()->id(),"
+                "  'weight' => (int) $t->weight()]);"
+            )
+            result = await drush.run("php:eval", [code])
+            payload = _ensure_dict(result)
+            if payload.get("error"):
+                return payload
+            data = payload.get("data")
+            if isinstance(data, dict) and data.get("error"):
+                out: dict[str, Any] = {
+                    "error": data["error"],
+                    "workflow_id": workflow_id,
+                    "transition_id": transition_id,
+                }
+                if data.get("available"):
+                    out["available"] = data["available"]
+                if data.get("available_states"):
+                    out["available_states"] = data["available_states"]
+                return out
+            return data if isinstance(data, dict) else {}
+        except Exception as e:
+            return {"error": str(e)}
+
+    @mcp.tool()
+    async def moderation_transition_delete(
+        workflow_id: str,
+        transition_id: str,
+    ) -> dict[str, Any]:
+        """Delete a moderation transition from a workflow.
+
+        The counterpart of `moderation_transition_create`: a transition is
+        configuration inside its workflow, so this removes it through
+        `WorkflowTypeInterface::deleteTransition()` and saves the workflow,
+        exactly as Drupal's own delete form does. The reply reports how many
+        transitions the workflow has left, and warns when that was the last
+        one -- a workflow with no transitions cannot move content at all.
+        """
+        if not drush:
+            return {"error": "Drush not available"}
+        try:
+            import json as _json
+
+            code = (
+                "$wfid = " + _json.dumps(workflow_id) + ";"
+                "$tid = " + _json.dumps(transition_id) + ";"
+                "$all = \\Drupal::entityTypeManager()->getStorage('workflow')->loadMultiple();"
+                "if (!isset($all[$wfid])) {"
+                "  print json_encode(['error' => 'No workflow with id ' . $wfid,"
+                "    'available' => array_keys($all)]);"
+                "  return;"
+                "}"
+                "$wf = $all[$wfid];"
+                "$wt = $wf->getTypePlugin();"
+                "if (!$wt || !$wt->hasTransition($tid)) {"
+                "  $known = []; foreach ($all as $w) {"
+                "    $t2 = $w->getTypePlugin();"
+                "    if ($t2) { $known = array_merge($known, array_keys($t2->getConfiguration()['transitions'] ?? [])); }"
+                "  }"
+                "  print json_encode(['error' => 'Workflow ' . $wfid"
+                "    . ' has no transition ' . $tid, 'available' => array_values(array_unique($known))]);"
+                "  return;"
+                "}"
+                "$remaining = array_diff_key($wt->getConfiguration()['transitions'] ?? [], [$tid => TRUE]);"
+                "$wt->deleteTransition($tid);"
+                "try { $wf->save(); } catch (\\Throwable $e) {"
+                "  print json_encode(['error' => $e->getMessage()]);"
+                "  return;"
+                "}"
+                "$out = ['ok' => TRUE, 'id' => (string) $tid,"
+                "  'workflow' => (string) $wfid, 'remaining' => count($remaining)];"
+                "if (!$remaining) {"
+                "  $out['warning'] = 'That was the last transition: ' . $wfid"
+                "    . ' now has none, so content in it cannot be moderated"
+                "    . until one is added.';"
+                "}"
+                "print json_encode($out);"
+            )
+            result = await drush.run("php:eval", [code])
+            payload = _ensure_dict(result)
+            if payload.get("error"):
+                return payload
+            data = payload.get("data")
+            if isinstance(data, dict) and data.get("error"):
+                out: dict[str, Any] = {
+                    "error": data["error"],
+                    "workflow_id": workflow_id,
+                    "transition_id": transition_id,
+                }
+                if data.get("available"):
+                    out["available"] = data["available"]
+                return out
+            return data if isinstance(data, dict) else {}
+        except Exception as e:
+            return {"error": str(e)}
 
     @mcp.tool()
     async def moderation_transition_execute(
@@ -262,18 +449,18 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 "} else {"
                 "  $t = NULL;"
                 "  foreach (\\Drupal::entityTypeManager()->getStorage('workflow')->loadMultiple() as $wf) {"
-                "    $c = $wf->get('transitions')[$tid] ?? NULL;"
-                "    if ($c) { $t = $c; break; }"
+                "    $wt = $wf->getTypePlugin();"
+                "    if ($wt && $wt->hasTransition($tid)) { $t = $wt->getTransition($tid); break; }"
                 "  }"
                 "  if (!$t) { print json_encode(['error' => 'No transition with id ' . $tid]); }"
                 "  else {"
                 "    $current = (string) $entity->get('moderation_state')->value;"
-                "    $from = (array) ($t['from'] ?? []);"
+                "    $from = array_keys((array) $t->from());"
                 "    if (!in_array('*', $from, TRUE) && !in_array($current, $from, TRUE)) {"
                 "      print json_encode(['error' => 'Entity is in state ' . $current"
                 "        . ', but transition ' . $tid . ' starts from one of: ' . implode(', ', $from)]);"
                 "    } else {"
-                "      $to = (string) ($t['to'] ?? '');"
+                "      $to = (string) $t->to()->id();"
                 "      $entity->set('moderation_state', $to);"
                 "      " + ("$entity->set('uid', " + str(uid) + ");" if uid else "") + ""
                 "      $entity->save();"
