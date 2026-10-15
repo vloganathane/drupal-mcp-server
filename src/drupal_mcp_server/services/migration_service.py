@@ -155,6 +155,7 @@ class MigrationService:
         resource_type: str,
         token: str | None = None,
         migration_id: str | None = None,
+        verify_tls: bool = True,
     ) -> dict[str, Any]:
         import httpx
 
@@ -164,7 +165,7 @@ class MigrationService:
         headers = {"Accept": "application/vnd.api+json"}
         if token:
             headers["Authorization"] = f"Bearer {token}"
-        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True, verify=verify_tls) as client:
             response = await client.get(url, params={"page[limit]": "1"}, headers=headers)
             response.raise_for_status()
             body = response.json()
@@ -265,12 +266,16 @@ class MigrationService:
         for record in records or []:
             legacy_id = self._legacy_id(record, idempotency_key)
             attributes = self._extract_attributes(record)
+            source_relationships = attributes.pop("_relationships", None)
+            if not isinstance(source_relationships, dict):
+                source_relationships = record.get("relationships")
             attributes = self._apply_mapping(attributes, field_mapping)
             attributes = {
                 key: value
                 for key, value in attributes.items()
                 if not key.startswith("drupal_internal__")
             }
+            relationships = self._map_relationships(source_relationships, plan)
 
             target_id = entity_state.get("records", {}).get(legacy_id) if legacy_id else None
             if dry_run:
@@ -286,6 +291,8 @@ class MigrationService:
                 continue
 
             payload = {"type": entity_type, "attributes": attributes}
+            if relationships:
+                payload["relationships"] = relationships
             try:
                 if target_id:
                     response = await self.jsonapi.update_resource(entity_type, target_id, payload)
@@ -344,6 +351,117 @@ class MigrationService:
             "skipped": skipped,
             "results": results,
         }
+
+    async def run_migration_wave(
+        self,
+        migration_id: str,
+        resource_type: str,
+        batch_size: int = 100,
+        dry_run: bool = False,
+        field_mapping: dict[str, str] | None = None,
+        source_token: str | None = None,
+        verify_tls: bool = True,
+    ) -> dict[str, Any]:
+        plan = self.get_plan(migration_id)
+        if "error" in plan:
+            return plan
+        source = plan.get("source") or {}
+        source_url = str(source.get("url") or "")
+        if not source_url:
+            return {"error": "Migration plan does not contain a source URL"}
+        token = source_token or source.get("token")
+        records = await self._fetch_source_records(
+            source_url=source_url,
+            resource_type=resource_type,
+            token=token,
+            batch_size=batch_size,
+            verify_tls=verify_tls,
+        )
+        mapping = field_mapping or (plan.get("field_mappings") or {}).get(resource_type)
+        result = await self.migrate_records(
+            migration_id=migration_id,
+            entity_type=resource_type,
+            records=records,
+            field_mapping=mapping,
+            dry_run=dry_run,
+        )
+        result["fetched"] = len(records)
+        return result
+
+    async def run_migration(
+        self,
+        migration_id: str,
+        entity_types: list[str] | None = None,
+        dry_run: bool = False,
+        source_token: str | None = None,
+        verify_tls: bool = True,
+    ) -> dict[str, Any]:
+        plan = self.get_plan(migration_id)
+        if "error" in plan:
+            return plan
+        if not entity_types:
+            entity_types = plan.get("entities") or []
+        if not entity_types:
+            return {"error": "No entity types supplied and the plan has none"}
+        results = []
+        for resource_type in entity_types:
+            wave_result = await self.run_migration_wave(
+                migration_id=migration_id,
+                resource_type=resource_type,
+                dry_run=dry_run,
+                source_token=source_token,
+                verify_tls=verify_tls,
+            )
+            results.append(wave_result)
+            if isinstance(wave_result, dict) and wave_result.get("failed"):
+                break
+        totals = {"processed": 0, "created": 0, "updated": 0, "failed": 0, "skipped": 0}
+        for result in results:
+            if isinstance(result, dict):
+                for key in totals:
+                    totals[key] += int(result.get(key, 0))
+        return {"migration_id": migration_id, "dry_run": dry_run, "results": results, "totals": totals}
+
+    async def _fetch_source_records(
+        self,
+        source_url: str,
+        resource_type: str,
+        token: str | None,
+        batch_size: int,
+        verify_tls: bool,
+    ) -> list[dict[str, Any]]:
+        import httpx
+
+        base = source_url.rstrip("/")
+        path = resource_type.replace("--", "/")
+        headers = {"Accept": "application/vnd.api+json"}
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+        page_size = max(1, min(batch_size, 200))
+        records: list[dict[str, Any]] = []
+        next_url: str | None = f"{base}/jsonapi/{path}"
+        params = {"page[limit]": str(page_size)}
+        seen_pages = 0
+        async with httpx.AsyncClient(timeout=60.0, follow_redirects=True, verify=verify_tls) as client:
+            while next_url and seen_pages < 1000:
+                seen_pages += 1
+                response = await client.get(next_url, params=params, headers=headers)
+                response.raise_for_status()
+                body = response.json()
+                records.extend(body.get("data") or [])
+                params = {}
+                links = body.get("links") or {}
+                next_link = links.get("next")
+                if isinstance(next_link, dict):
+                    href = next_link.get("href")
+                    next_url = str(href) if href else None
+                elif isinstance(next_link, str):
+                    next_url = next_link
+                else:
+                    next_url = None
+                if not next_url:
+                    break
+        return records
 
     @staticmethod
     def _now() -> str:
@@ -405,6 +523,39 @@ class MigrationService:
                 if source_field != target_field:
                     result.pop(source_field, None)
         return result
+
+    @staticmethod
+    def _map_relationships(relationships: Any, plan: dict[str, Any]) -> dict[str, Any] | None:
+        if not isinstance(relationships, dict):
+            return None
+        entity_states = (plan.get("state") or {}).get("entities", {})
+        result: dict[str, Any] = {}
+        for relation_name, spec in relationships.items():
+            if not isinstance(spec, dict):
+                continue
+            data = spec.get("data")
+            if data is None:
+                result[relation_name] = {"data": None}
+                continue
+            mapped_data = MigrationService._map_relationship_data(data, entity_states)
+            result[relation_name] = {"data": mapped_data}
+        return result if result else None
+
+    @staticmethod
+    def _map_relationship_data(data: Any, entity_states: dict[str, Any]) -> Any:
+        if isinstance(data, list):
+            return [MigrationService._map_relationship_data(item, entity_states) for item in data]
+        if not isinstance(data, dict):
+            return data
+        resource_type = data.get("type")
+        source_id = data.get("id")
+        if resource_type and source_id:
+            state = entity_states.get(resource_type, {})
+            records = state.get("records", {}) if isinstance(state, dict) else {}
+            target_id = records.get(str(source_id))
+            if target_id:
+                return {"type": resource_type, "id": target_id}
+        return {key: value for key, value in data.items() if key in {"type", "id", "meta"}}
 
     @staticmethod
     def _response_id(response: Any) -> str | None:

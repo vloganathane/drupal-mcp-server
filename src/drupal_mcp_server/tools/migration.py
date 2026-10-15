@@ -432,6 +432,7 @@ function {module_name}_migrate_api() {{
         source_url: str = "",
         resource_type: str = "node--article",
         token: str | None = None,
+        verify_tls: bool = True,
     ) -> dict[str, Any]:
         """Analyze a source Drupal JSON:API resource type and optionally store counts in a plan."""
         if not migration_service:
@@ -444,6 +445,7 @@ function {module_name}_migrate_api() {{
                 resource_type=resource_type,
                 token=token,
                 migration_id=migration_id,
+                verify_tls=verify_tls,
             )
         except Exception as exc:  # noqa: BLE001
             return {"error": str(exc)}
@@ -460,6 +462,52 @@ function {module_name}_migrate_api() {{
             return await migration_service.reconcile_counts(
                 migration_id=migration_id,
                 target_resource_types=target_resource_types,
+            )
+        except Exception as exc:  # noqa: BLE001
+            return {"error": str(exc)}
+
+    @mcp.tool()
+    async def run_migration_wave(
+        migration_id: str,
+        resource_type: str,
+        batch_size: int = 100,
+        dry_run: bool = False,
+        source_token: str | None = None,
+        verify_tls: bool = True,
+    ) -> dict[str, Any]:
+        """Fetch and migrate one resource type from the plan's source site into the target site."""
+        if not migration_service:
+            return {"error": "Migration service not available"}
+        try:
+            return await migration_service.run_migration_wave(
+                migration_id=migration_id,
+                resource_type=resource_type,
+                batch_size=batch_size,
+                dry_run=dry_run,
+                source_token=source_token,
+                verify_tls=verify_tls,
+            )
+        except Exception as exc:  # noqa: BLE001
+            return {"error": str(exc)}
+
+    @mcp.tool()
+    async def run_migration(
+        migration_id: str,
+        entity_types: list[str] | None = None,
+        dry_run: bool = False,
+        source_token: str | None = None,
+        verify_tls: bool = True,
+    ) -> dict[str, Any]:
+        """Run an ordered end-to-end migration for one or all planned entity types."""
+        if not migration_service:
+            return {"error": "Migration service not available"}
+        try:
+            return await migration_service.run_migration(
+                migration_id=migration_id,
+                entity_types=entity_types,
+                dry_run=dry_run,
+                source_token=source_token,
+                verify_tls=verify_tls,
             )
         except Exception as exc:  # noqa: BLE001
             return {"error": str(exc)}
