@@ -127,7 +127,18 @@ python tests/live/resource_check.py       # every resource name, ~10s
 python tests/live/install_modules.py      # the modules the tools assume, ~10 min
 python tests/live/sweep.py                # every tool, ~30 min
 python tests/live/sweep.py composer_      # only tools whose name contains that
+python tests/live/sweep.py create_node,update_node   # a specific set
 python tests/live/mcp_call.py content_list '{}'   # one call, for spot checks
+```
+
+A narrowed run writes `sweep-results-partial.json`, not `sweep-results.json`:
+re-checking the tools one fix could have moved should not be able to replace
+the full sweep's results with the handful of tools it covered. The per-tool
+budgets are env-tunable, so a host that is already busy can widen them rather
+than file every slow tool `BLOCKED`:
+
+```bash
+SWEEP_LOCAL_TIMEOUT=240 SWEEP_JSONAPI_TIMEOUT=60 python tests/live/sweep.py
 ```
 
 These need `venv/` with the package installed (`pip install -e ".[dev]" mcp`)
@@ -205,6 +216,14 @@ resource-name fixes and the filter fixes:
 turned away with a reason instead of stopping at a 404. No tool that used to
 work now fails, and nothing is dead.
 
+A definitive full re-sweep with the same tools and site recorded 195 OK /
+156 REJECTED / 7 BLOCKED / 4 UPSTREAM / 0 DEAD / 5 SKIPPED (367 total). After
+the follow-up harness fixes (`entity_id` and `revision_id` now count as
+node-id tools, so the fixture re-provisions; `revision_id` is derived from
+`drupal_internal__vid` instead of a hardcoded `1`) a targeted re-run pushed
+six more of those past their lookup and reached the tool body, all reporting
+honestly — still no dead tools, and no tool regressed.
+
 What is left is five, all explained:
 
 - `feeds_feed_list` / `feeds_feed_create` — JSON:API exposes no `feeds_feed`
@@ -272,3 +291,11 @@ endpoint, so there is nothing to delete through it.
   — both 404 for nodes that exist, which made the fixture look permanently gone
   and would have had it re-provisioned on every check. The answer is a
   `filter[drupal_internal__nid]` across the bundles the index advertises.
+- **Some tools want a file the harness cannot fake.** `module_hook_implement`,
+  `module_info_generate` and `module_dependencies_analyze` need a module
+  directory, and `theme_base_change` and `theme_preprocess_function` need a
+  theme; the harness offers `/tmp/sweep-file.txt`, which is a file and neither.
+  They answer "file not found" for a path that was never theirs to fix, and one
+  cause is then counted twice over — as `UPSTREAM` for the three module tools
+  and as `BLOCKED` for the two theme ones. Neither number counts broken tools,
+  which is worth remembering before quoting either.

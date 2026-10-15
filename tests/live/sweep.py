@@ -294,6 +294,11 @@ def value_for(name: str, t, spec: dict, tool: str = ""):
                 return mapping[name]
         if name in FIXTURE_ID:
             return FIXTURE_ID[name]
+        # A revision id is a different number from the node's, and the tools
+        # that ask for one mean `drupal_internal__vid`. Handing them a node id
+        # is a lookup miss whatever the node is called.
+        if name.startswith("revision_id") and EXISTING_VID:
+            return EXISTING_VID
     if isinstance(t, list):
         t = next((x for x in t if x and x != "null"), None)
     if t == "boolean":
@@ -485,7 +490,29 @@ def pick_live_nid() -> str:
     return "1"
 
 
+def pick_live_vid(nid: str) -> str:
+    """The fixture node's revision id, or "" if the site will not say.
+
+    JSON:API exposes it as `drupal_internal__vid`. Read-only revision tools
+    name a parameter `revision_id` and mean one of these, so the generic
+    id rule was handing them a node number and getting a lookup miss for an
+    answer -- the tool never got as far as its own logic.
+    """
+    for url in node_collections():
+        rows = _get(
+            f"{url}?filter%5Bdrupal_internal__nid%5D={nid}&page%5Blimit%5D=1"
+        ).get("data") or []
+        if rows:
+            return str(rows[0]["attributes"].get("drupal_internal__vid") or "")
+    return ""
+
+
 EXISTING_NID = "1"
+# The fixture node's internal revision id, JSON:API's `drupal_internal__vid`.
+# A revision id is not a node id, so handing `revision_get` the node's number
+# is a lookup miss whatever the node is called, and this is the only one a
+# caller can obtain without shelling out to Drush.
+EXISTING_VID = ""
 # Filled in from queue_list before the sweep starts, so queue_run exercises a
 # queue the site actually has.
 EXISTING_QUEUE = ""
@@ -537,10 +564,13 @@ def node_exists(nid: str) -> bool:
 
 def refresh_nid_if_gone() -> str:
     """Re-provision the fixture node if a tool deleted it mid-sweep."""
-    global EXISTING_NID
+    global EXISTING_NID, EXISTING_VID
     if EXISTING_NID and not node_exists(EXISTING_NID):
         print(f"node {EXISTING_NID} was deleted mid-sweep; re-provisioning", flush=True)
         EXISTING_NID = str(pick_live_nid())
+        # The new node has its own revision, and a stale one is as useless as
+        # a stale node id.
+        EXISTING_VID = pick_live_vid(EXISTING_NID)
         print(f"using node {EXISTING_NID} for id arguments", flush=True)
     return EXISTING_NID
 
@@ -551,9 +581,16 @@ def _takes_a_node_id(schema: dict) -> bool:
     Checking the declared parameter names rather than the resolved value
     keeps the check free of the same `endswith("id")` guessing that made the
     fixture wrong in the first place.
+
+    `_CONTENT_ENTITY_ID` belongs in that answer as much as `nid` and
+    `node_id` do. The revision, accessibility, metatag and translation tools
+    all call the node `entity_id`, so they were handed the fixture and never
+    checked it: after `delete_node` removed the node mid-sweep, each of them
+    answered "No resource of type 'node' with id '8'" about a node the harness
+    itself had deleted. Ten refusals that were really about the fixture.
     """
     props = schema.get("properties") or {}
-    return any(name in props for name in ("nid", "node_id"))
+    return bool(set(props) & ({"nid", "node_id"} | _CONTENT_ENTITY_ID))
 
 
 async def find_queue(session) -> str:
@@ -617,10 +654,13 @@ async def main() -> int:
             # JSON:API returns drupal_internal__nid as an int; tools declare
             # `nid: str`, so pydantic rejects it with string_type before the
             # body ever runs. Coerce it.
-            global EXISTING_NID, EXISTING_QUEUE
+            global EXISTING_NID, EXISTING_VID, EXISTING_QUEUE
             EXISTING_NID = str(pick_live_nid())
+            EXISTING_VID = pick_live_vid(EXISTING_NID)
             EXISTING_QUEUE = await find_queue(session)
             print(f"using node {EXISTING_NID} for id arguments", flush=True)
+            if EXISTING_VID:
+                print(f"using revision {EXISTING_VID} for revision arguments", flush=True)
             if EXISTING_QUEUE:
                 print(f"using queue {EXISTING_QUEUE} for queue arguments", flush=True)
             tools = select_tools(tools, only)

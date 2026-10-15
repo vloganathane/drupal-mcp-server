@@ -53,6 +53,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   has no log table, no `feeds*` service and no log entity to read, so there is
   nothing behind it to query; the tool names `imports_import_status`, which does
   answer, instead of returning an empty list that would read as "no log entries"
+- Definitive full re-sweep (OK 195 / REJECTED 156 / BLOCKED 7 /
+  UPSTREAM 4 / DEAD 0 / SKIPPED 5, 367 total); no tool that used to work
+  regressed and nothing is dead. Harness follow-up fixes (`entity_id` and
+  revision-id handling) pushed six more tools past their lookup so they reach
+  their own logic, where they report honestly.
+
 - Re-sweep all 366 tools against the provisioned site. BLOCKED fell from 71 to
   5, OK rose from 156 to 181, and nothing is dead. 25 tools that could not be
   reached at all now run; 41 reach Drupal and are turned away with a reason
@@ -110,6 +116,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Make an issued OAuth token worth issuing. HTTP transport with OAuth enabled
+  refused everyone: `load_access_token` returned the dict the token was stored
+  in where the declared type is FastMCP's `AccessToken`, so the first thing the
+  bearer middleware did with a good token -- `auth_info.expires_at` -- raised
+  `AttributeError: 'dict' object has no attribute 'expires_at'` and the request
+  was refused exactly as a forged one would be. That made the defect invisible
+  by construction, because the fail-closed path and the fail-for-everyone path
+  are the same 401: the only OAuth behaviour anyone had ever observed was the
+  reassuring one, and the 401 that read as security working was also masking an
+  unusable transport. `expires_at` was stored as a float from `time.time()`
+  while `AccessToken.expires_at` is an int, so pydantic would have refused it
+  regardless. Verified three ways -- unit tests over authorize/exchange/load,
+  an ASGI test against FastMCP's real HTTP app (401 unauthenticated, 200 for
+  the issued token, 401 for a forged one), and a replay of the old
+  implementation that reproduces the AttributeError
 - Implement twelve tools that refused or had never been written. The five
   `moderation_transition_*` tools all read `$wf->get("transitions")`, a key the
   workflow entity has never had — transitions live on

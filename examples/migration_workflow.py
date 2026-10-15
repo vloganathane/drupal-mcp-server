@@ -15,7 +15,6 @@ with access to both D7 source and D10 destination.
 
 import asyncio
 import json
-import os
 
 from dotenv import load_dotenv
 

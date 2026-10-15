@@ -213,9 +213,15 @@ def test_a_tool_that_names_a_node_id_is_the_one_that_triggers_a_recheck(
     layout_builder_override_remove and accessibility_aria_validate all 404'd
     for that reason alone. Only tools that actually declare a node id pay
     for the existence check.
+
+    Those same tools declare it `entity_id`, not `nid`, which is why they
+    kept failing after the first fix: the check named only `nid`/`node_id`
+    and never re-asked whether the fixture was still there.
     """
     assert sweep._takes_a_node_id({"properties": {"nid": {"type": "string"}}})
     assert sweep._takes_a_node_id({"properties": {"node_id": {"type": "string"}}})
+    assert sweep._takes_a_node_id({"properties": {"entity_id": {"type": "string"}}})
+    assert sweep._takes_a_node_id({"properties": {"revision_id_1": {"type": "string"}}})
     assert not sweep._takes_a_node_id({"properties": {"view_id": {"type": "string"}}})
     assert not sweep._takes_a_node_id({"properties": {}})
 
@@ -418,10 +424,16 @@ def test_the_fixture_is_re_provisioned_when_a_tool_deletes_it(
 
     monkeypatch.setattr(sweep, "node_exists", exists)
     monkeypatch.setattr(sweep, "pick_live_nid", lambda: "99")
+    # The new node has its own revision; asking for it must not reach out
+    # over the network in a unit test.
+    monkeypatch.setattr(sweep, "pick_live_vid", lambda nid: "9901")
     monkeypatch.setattr(sweep, "EXISTING_NID", "7")
+    monkeypatch.setattr(sweep, "EXISTING_VID", "701")
 
     assert sweep.refresh_nid_if_gone() == "99"
     assert seen["checked"] == 1
+    # A stale revision id is as useless as a stale node id.
+    assert sweep.EXISTING_VID == "9901"
 
     # Once re-provisioned it is not re-checked until it vanishes again.
     assert sweep.refresh_nid_if_gone() == "99"

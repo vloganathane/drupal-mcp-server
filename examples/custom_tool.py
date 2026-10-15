@@ -20,7 +20,7 @@ from typing import Any
 
 from fastmcp import FastMCP
 
-from ._utils import ensure_dict, validate_pagination, validate_identifier
+from ._utils import ensure_dict, validate_identifier, validate_pagination
 
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
