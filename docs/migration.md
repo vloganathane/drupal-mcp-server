@@ -1,5 +1,26 @@
 # Migration & Upgrade Guide
 
+## End-to-end migration engine
+
+The server now supports persisted migration plans and wave-based imports.
+
+Recommended flow:
+
+1. `analyze_source_site(source_url=..., resource_type=...)`
+2. `create_migration_plan(...)`
+3. `run_migration(migration_id, entity_types=[...], dry_run=true)`
+4. Review the returned per-wave results and `migration_status(...)`
+5. `run_migration(migration_id, dry_run=false)`
+6. `reconcile_migration_counts(migration_id, [...])`
+
+Supported first-class orchestration today:
+- Users, taxonomy, nodes/articles, media, and any other JSON:API resource type through `run_migration_wave`
+- Idempotent create/update by tracked legacy IDs
+- Relationship UUID remapping when source and target ID maps are available
+- Source pagination and target-side persistence of migration state
+
+Remaining specialized work usually includes bespoke field-transform and content-block migration rules for a particular site.
+
 ## Table of Contents
 
 - [Upgrading from 0.1.x to 0.2.x](#upgrading-from-01x-to-02x)
