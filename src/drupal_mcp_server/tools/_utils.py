@@ -23,6 +23,30 @@ def b64_text(value: Any) -> str:
     return base64.b64encode(str(value).encode("utf-8")).decode("ascii")
 
 
+def php_text(value: Any) -> str:
+    """A PHP expression that evaluates to ``value`` as a string, exactly.
+
+    Interpolating ``json.dumps(value)`` into PHP is not safe: JSON escapes are
+    not PHP escapes, so a French label comes out as the literal six characters
+    ``\u00e9``, and any ``$`` in the text starts a PHP variable interpolation
+    that quietly eats the rest of the word. Base64 has neither problem, so the
+    whole value is handed over as ``base64_decode('...')``.
+    """
+    return "base64_decode('" + b64_text(value) + "')"
+
+
+def php_json(value: Any) -> str:
+    """A PHP expression that evaluates to ``value`` as a PHP array or scalar.
+
+    For anything that is not a plain string -- a list of ids, a dict of
+    configuration -- because a JSON object literal is not a PHP array literal
+    at all: both ``{}`` and ``{"k": 1}`` are parse errors there.
+    """
+    return (
+        "json_decode(base64_decode('" + b64_text(json.dumps(value)) + "'), TRUE)"
+    )
+
+
 def _working_dir(args: list[str]) -> str:
     for arg in args:
         if isinstance(arg, str) and arg.startswith("--working-dir="):
