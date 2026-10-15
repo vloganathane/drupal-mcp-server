@@ -50,7 +50,9 @@ jobs:
         fail_ci_if_error: false
 
     - name: Dependency vulnerability scan
-      run: pip-audit
+      run: |
+        pip install --upgrade "setuptools>=83.0.0"
+        pip-audit
 
   build:
     runs-on: ubuntu-latest
