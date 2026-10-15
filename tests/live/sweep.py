@@ -33,6 +33,7 @@ import ssl
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -62,11 +63,24 @@ LOCAL_TOOL = re.compile(
     r"|module_|theme_|ai_|bulk_update_aliases)"
 )
 
-# Modules this site deliberately does not install, so tools that need them
-# report UPSTREAM rather than FAILING like broken code.
+# Tools that shell out rather than call JSON:API. They need far more headroom:
+# a single `ddev drush` invocation takes 24-66s on a healthy machine, and far
+# longer when the host is loaded. SWEEP_TIMEOUT scales both budgets, so a
+# congested machine can raise it rather than filing every slow tool BLOCKED.
+_LOCAL_TIMEOUT = int(os.environ.get("SWEEP_LOCAL_TIMEOUT", "150"))
+_JSONAPI_TIMEOUT = int(os.environ.get("SWEEP_JSONAPI_TIMEOUT", "45"))
+
+
+def TIMEOUT(local: bool) -> int:
+    return _LOCAL_TIMEOUT if local else _JSONAPI_TIMEOUT
+
+
+# The modules this site has. Commerce, Webform, Paragraphs, Metatag, Feeds and
+# Search API are all installed, so tools needing them report a real result
+# rather than UPSTREAM; the ones genuinely absent here are listed in
+# tests/live/README.md.
 UPSTREAM_MODULES = (
-    "Commerce, Paragraphs, Webform, Search API, Feeds, Metatag, Pathauto "
-    "patterns, redirect, and the translation modules are not installed here."
+    "Pathauto patterns and redirects are not installed here."
 )
 
 # Tools that write. They keep synthetic ids so the sweep cannot rewrite the
@@ -388,29 +402,72 @@ def classify(payload, tool_name: str, local: bool):
     return "OK", ""
 
 
-def pick_live_nid() -> str:
-    """Ask the site for a node that actually exists.
+def _origin() -> str:
+    """The scheme, host and port this run is actually talking to.
 
-    JSON:API has no /jsonapi/node collection - every content entity is
-    addressed per bundle - so the bundle has to come from the index first.
+    Drupal builds its own links from the request it saw, so a site fronted by
+    a port-mapped HTTPS endpoint hands back `http://` URLs. Following one of
+    those to the HTTPS port sends a plain request to a TLS listener and nginx
+    answers 400 -- which is how the sweep used to die before calling a single
+    tool. Anchoring every follow on BASE keeps the run on the origin it was
+    given, whatever origin the site thinks it has.
     """
+    parts = urllib.parse.urlsplit(BASE)
+    return urllib.parse.urlunsplit((parts.scheme, parts.netloc, "", "", ""))
+
+
+def _reanchor(href: str) -> str:
+    """Point a link the site generated at the origin this run was given."""
+    if "://" not in href:
+        return href
+    scheme, netloc, *_ = urllib.parse.urlsplit(_origin())
+    parts = urllib.parse.urlsplit(href)
+    return urllib.parse.urlunsplit((scheme, netloc, parts.path, parts.query, ""))
+
+
+def _get(url: str, timeout: int = 30) -> dict:
+    req = urllib.request.Request(url, headers={"Accept": "application/vnd.api+json"})
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
+    with urllib.request.urlopen(req, context=ctx, timeout=timeout) as response:
+        return json.load(response)
 
-    def get(url: str):
-        req = urllib.request.Request(url, headers={"Accept": "application/vnd.api+json"})
-        with urllib.request.urlopen(req, context=ctx, timeout=30) as response:
-            return json.load(response)
 
-    index = get(f"{BASE}/jsonapi")
-    for key, link in (index.get("links") or {}).items():
-        if not key.startswith("node--"):
-            continue
-        href = link.get("href") if isinstance(link, dict) else link
-        if not href:
-            continue
-        rows = get(f"{href}?page%5Blimit%5D=1&sort=created").get("data") or []
+_NODE_COLLECTIONS: list[str] | None = None
+
+
+def node_collections() -> list[str]:
+    """Collection URLs for every node bundle this site exposes.
+
+    JSON:API has no cross-bundle collection. The resource name in the index
+    (`node--article`) is not its path (`/jsonapi/node/article`), and a row is
+    addressed by uuid rather than by the internal id the harness holds -- so
+    neither `/jsonapi/node--article/8` nor `/jsonapi/node/article/8` can
+    answer "is this node still here". The bundles cannot change during a
+    sweep, so the index is read once.
+
+    Raises whatever the index request raised; the caller decides whether that
+    is evidence of anything.
+    """
+    global _NODE_COLLECTIONS
+    if _NODE_COLLECTIONS is None:
+        index = _get(f"{BASE}/jsonapi")
+        urls: list[str] = []
+        for key, link in (index.get("links") or {}).items():
+            if not key.startswith("node--"):
+                continue
+            href = link.get("href") if isinstance(link, dict) else link
+            if href:
+                urls.append(_reanchor(href))
+        _NODE_COLLECTIONS = urls
+    return _NODE_COLLECTIONS
+
+
+def pick_live_nid() -> str:
+    """Ask the site for a node that actually exists."""
+    for url in node_collections():
+        rows = _get(f"{url}?page%5Blimit%5D=1&sort=created").get("data") or []
         if rows:
             return str(rows[0]["attributes"].get("drupal_internal__nid") or "1")
     return "1"
@@ -432,22 +489,38 @@ def node_exists(nid: str) -> bool:
     layout_builder_override_remove and accessibility_aria_validate all failed
     for that reason alone. Checking before the tools that need the id lets
     the fixture be re-provisioned instead of silently rotting.
+
+    The question is asked as a filter, because there is no direct one: rows
+    are addressed by uuid, and the obvious `/jsonapi/node--article/{nid}`
+    builds the resource *name* into the path, which 404s for every node and
+    used to make the fixture look permanently gone.
     """
-    ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
-    req = urllib.request.Request(
-        f"{BASE}/jsonapi/node--article/{nid}",
-        headers={"Accept": "application/vnd.api+json"},
-    )
     try:
-        with urllib.request.urlopen(req, context=ctx, timeout=20) as response:
-            return response.status == 200
-    except urllib.error.HTTPError as e:
-        return e.code != 404
+        urls = node_collections()
     except Exception:
-        # A timeout or a network blip is not evidence the node is gone.
+        # The index could not be read. A timeout or a network blip is not
+        # evidence that the node is gone, and re-provisioning on one would
+        # churn the fixture for nothing.
         return True
+    if not urls:
+        # The index read cleanly and exposes no node bundle, so there is
+        # nowhere for this id to live.
+        return False
+    for url in urls:
+        query = f"{url}?filter%5Bdrupal_internal__nid%5D={nid}&page%5Blimit%5D=1"
+        try:
+            if _get(query, timeout=20).get("data"):
+                return True
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                # This bundle's path does not resolve, which says nothing
+                # about the others -- keep asking them.
+                continue
+            # A 5xx is the server failing to answer, not the node being gone.
+            return True
+        except Exception:
+            return True
+    return False
 
 
 def refresh_nid_if_gone() -> str:
@@ -547,7 +620,7 @@ async def main() -> int:
                     refresh_nid_if_gone()
                 args = synthesize(schema, t.name)
                 local = bool(LOCAL_TOOL.match(t.name))
-                timeout = 150 if local else 45
+                timeout = TIMEOUT(local)
                 start = time.time()
                 try:
                     res = await session.call_tool(t.name, args, read_timeout_seconds=timeout)
@@ -608,6 +681,8 @@ async def main() -> int:
         print(f"\n{verdict} ({len(rows)}):")
         for r in rows[:60]:
             print(f"  {r['tool']:34s} {r['detail'][:60]!r}")
+        if verdict == "UPSTREAM":
+            print(f"\n  {UPSTREAM_MODULES}")
 
     out = HERE / "tests" / "live" / "sweep-results.json"
     out.write_text(json.dumps(results, indent=2))

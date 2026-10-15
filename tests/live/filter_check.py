@@ -20,6 +20,7 @@ already counted UPSTREAM.
 from __future__ import annotations
 
 import json
+import os
 import re
 import ssl
 import sys
@@ -29,12 +30,29 @@ import urllib.request
 from pathlib import Path
 
 SRC = Path(__file__).resolve().parents[2] / "src" / "drupal_mcp_server" / "tools"
-BASE = "https://drupal-live.ddev.site"
+BASE = os.environ.get("DRUPAL_BASE_URL", "https://drupal-live.ddev.site")
 PROBE = "filter-probe-value"  # never matches, but must parse as a field query
 
 _ctx = ssl.create_default_context()
 _ctx.check_hostname = False
 _ctx.verify_mode = ssl.CERT_NONE
+
+
+def _reanchor(href: str) -> str:
+    """Point a link the site generated at the origin BASE names.
+
+    Drupal answers `http://` when it is reached through a port-mapped HTTPS
+    endpoint, and following that to the TLS port earns 400 from nginx -- so
+    every filter probe would report as broken. tests/live/sweep.py pins the
+    same rule for the sweep.
+    """
+    if "://" not in href:
+        return href
+    want = urllib.parse.urlsplit(BASE)
+    have = urllib.parse.urlsplit(href)
+    return urllib.parse.urlunsplit(
+        (want.scheme, want.netloc, have.path, have.query, "")
+    )
 
 
 def pairs() -> list[tuple[str, str, str]]:
@@ -92,7 +110,7 @@ def index() -> dict[str, str]:
         href, _, remainder = key.partition("--")
         if not href or not remainder or not value.get("href"):
             continue
-        hrefs.setdefault(href, value["href"])
+        hrefs.setdefault(href, _reanchor(value["href"]))
     return hrefs
 
 

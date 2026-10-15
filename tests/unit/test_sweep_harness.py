@@ -220,18 +220,56 @@ def test_a_tool_that_names_a_node_id_is_the_one_that_triggers_a_recheck(
     assert not sweep._takes_a_node_id({"properties": {}})
 
 
+class _Response:
+    """The one piece of urlopen's interface that json.load() actually uses."""
+
+    def __init__(self, body: bytes) -> None:
+        self._body = body
+
+    def read(self, *args) -> bytes:
+        return self._body
+
+    def __enter__(self) -> _Response:
+        return self
+
+    def __exit__(self, *args) -> bool:
+        return False
+
+
+def _seed_bundles(sweep: ModuleType, monkeypatch) -> None:
+    """Skip the index read so these tests only exercise the question asked."""
+    monkeypatch.setattr(sweep, "_NODE_COLLECTIONS", ["https://example.test/jsonapi/node/article"])
+
+
 def test_a_missing_node_is_reported_missing(sweep: ModuleType, monkeypatch) -> None:
-    """Only a real 404 counts as gone: a timeout or a network blip is not
-    evidence, and re-provisioning on one would churn the fixture."""
+    """Gone means "the filter matched nothing", not "the request 404'd".
+
+    JSON:API addresses rows by uuid, so there is no direct URL for the node id
+    the harness holds. The obvious `/jsonapi/node--article/7` builds the
+    resource *name* into the path and 404s for every node -- including the
+    ones that exist -- which made the fixture look permanently gone and
+    re-provision itself on every check.
+
+    A 5xx or a timeout is the server failing to answer rather than the node
+    going away, and re-provisioning on one would churn the fixture for
+    nothing. The same goes for an index that cannot be read at all.
+    """
     import urllib.error
 
-    def http_error(code: int) -> urllib.error.HTTPError:
-        return urllib.error.HTTPError("u", code, "gone", {}, None)
+    _seed_bundles(sweep, monkeypatch)
 
     monkeypatch.setattr(
-        sweep.urllib.request, "urlopen", lambda *a, **k: (_ for _ in ()).throw(http_error(404))
+        sweep.urllib.request, "urlopen", lambda *a, **k: _Response(b'{"data": []}')
     )
     assert sweep.node_exists("7") is False
+
+    monkeypatch.setattr(
+        sweep.urllib.request, "urlopen", lambda *a, **k: _Response(b'{"data": [{"id": "u"}]}')
+    )
+    assert sweep.node_exists("7") is True
+
+    def http_error(code: int) -> urllib.error.HTTPError:
+        return urllib.error.HTTPError("u", code, "boom", {}, None)
 
     monkeypatch.setattr(
         sweep.urllib.request, "urlopen", lambda *a, **k: (_ for _ in ()).throw(http_error(500))
@@ -243,6 +281,66 @@ def test_a_missing_node_is_reported_missing(sweep: ModuleType, monkeypatch) -> N
 
     monkeypatch.setattr(sweep.urllib.request, "urlopen", timeout)
     assert sweep.node_exists("7") is True
+
+    # No index, no answer -- and no fixture churn on a blip.
+    monkeypatch.setattr(sweep, "_NODE_COLLECTIONS", None)
+    assert sweep.node_exists("7") is True
+
+
+def test_node_collections_uses_the_paths_the_index_advertises(
+    sweep: ModuleType, monkeypatch
+) -> None:
+    """The resource name in the index is not its path.
+
+    `node--article` is served at `/jsonapi/node/article`, so building the name
+    into the URL -- as node_exists used to -- 404s for nodes that are there.
+    """
+    monkeypatch.setattr(sweep, "BASE", "https://127.0.0.1:64653")
+    monkeypatch.setattr(sweep, "_NODE_COLLECTIONS", None)
+
+    def fake_get(url: str, timeout: int = 30) -> dict:
+        if url.endswith("/jsonapi"):
+            return {
+                "links": {
+                    "node--article": {"href": "http://127.0.0.1:64653/jsonapi/node/article"},
+                    "node--page": {"href": "http://127.0.0.1:64653/jsonapi/node/page"},
+                    "taxonomy_term--tags": {"href": "http://example.test/jsonapi/tt/tags"},
+                }
+            }
+        return {"data": [{"attributes": {"drupal_internal__nid": 12}}]}
+
+    monkeypatch.setattr(sweep, "_get", fake_get)
+
+    assert sweep.node_collections() == [
+        "https://127.0.0.1:64653/jsonapi/node/article",
+        "https://127.0.0.1:64653/jsonapi/node/page",
+    ]
+    # Read once: the bundles cannot change during a run, and asking again on
+    # every existence check would double the request volume for nothing.
+    assert sweep.node_collections() == sweep.node_collections()
+    assert sweep.pick_live_nid() == "12"
+
+
+def test_links_the_site_generates_are_followed_on_this_run_s_origin(
+    sweep: ModuleType, monkeypatch
+) -> None:
+    """Drupal answers `http://` when it is reached through a port-mapped HTTPS
+    endpoint. Following such a link sends plain HTTP to a TLS listener and
+    nginx answers 400, which killed the sweep before it called a single tool.
+    """
+    monkeypatch.setattr(sweep, "BASE", "https://127.0.0.1:64653")
+
+    assert sweep._origin() == "https://127.0.0.1:64653"
+    assert (
+        sweep._reanchor("http://127.0.0.1:64653/jsonapi/node/article")
+        == "https://127.0.0.1:64653/jsonapi/node/article"
+    )
+    assert (
+        sweep._reanchor("http://drupal-live.ddev.site/jsonapi/node/article?page=1")
+        == "https://127.0.0.1:64653/jsonapi/node/article?page=1"
+    )
+    # A relative link already points at this run's origin.
+    assert sweep._reanchor("/jsonapi/node/article") == "/jsonapi/node/article"
 
 
 def test_the_fixture_is_re_provisioned_when_a_tool_deletes_it(
