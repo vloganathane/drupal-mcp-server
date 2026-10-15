@@ -73,3 +73,8 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+# tests/live/*.py are runnable scripts, not tests. Three of them match pytest's
+# default `*_test.py` pattern (smoke_test, queue_test, layout_builder_test) and
+# would be imported at collection time, which one day means CI hangs on a live
+# suite. Only the real test naming is collected.
+python_files = ["test_*.py"]

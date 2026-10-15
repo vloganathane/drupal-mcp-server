@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add `moderation_transition_delete`, giving `moderation_transition_create` the
+  counterpart it never had. The tool count is now 367
 - Add Lando support to SiteManager
 - Add subprocess timeout to DrushClient
 - Add OAuth token fetching to AuthManager
@@ -28,6 +30,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Correct what the sweep asks for, not just how it reads the answer. Every
+  parameter ending in `id` had been answered with the fixture node's id, so
+  `view_id`, `menu_id`, `webform_id` and eighty-odd others were all sent one
+  node number and answered a lookup miss: **84 of 174 refusals** in the run
+  before this were the harness asking the wrong question, not tools refusing,
+  and a miss says nothing about whether a tool works. Of 367 tools, 192 declare
+  no id-shaped parameter, 93 read-only ones now get a real id for their own
+  resource — with the tool's own name deciding where one parameter covers
+  several, since `config_id` is a field config, a metatag config or a search
+  index depending on who is asking — and 82 mutating ones deliberately keep
+  junk ids, because `views_update` with a real view id would save the view back
+  with the harness's synthesised arguments and every later `views_execute`
+  would then run against a view this run broke. The remaining 8 read-only tools
+  keep junk because the site has no such entity to name. The fixture node also
+  re-checks and re-provisions itself: `delete_node` runs mid-sweep and took the
+  node with it, which alone 404'd `revision_list`, `revision_get`,
+  `revision_revert`, `revision_diff`, `translation_status`, `translation_add`,
+  `moderation_transition_execute`, `layout_builder_override_remove` and
+  `accessibility_aria_validate`
+- Keep `feeds_log_list` an explicit refusal rather than implement it. Feeds 3.x
+  has no log table, no `feeds*` service and no log entity to read, so there is
+  nothing behind it to query; the tool names `imports_import_status`, which does
+  answer, instead of returning an empty list that would read as "no log entries"
 - Re-sweep all 366 tools against the provisioned site. BLOCKED fell from 71 to
   5, OK rose from 156 to 181, and nothing is dead. 25 tools that could not be
   reached at all now run; 41 reach Drupal and are turned away with a reason
@@ -85,6 +110,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Implement twelve tools that refused or had never been written. The five
+  `moderation_transition_*` tools all read `$wf->get("transitions")`, a key the
+  workflow entity has never had — transitions live on
+  `Workflow::getTypePlugin()->getTransitions()` — so `list` answered
+  `count: 0` against a five-transition workflow, which reads as a pass because
+  an empty list is not an error, `get` reported "No transition with id 7" for a
+  transition present by name, and `execute`, `create` and the new `delete` were
+  unreachable behind the same mistake. The four `interface_translation_*` tools
+  read `TranslationString::getLanguage()` and `getTranslation()`, methods that
+  class does not have; they now go through `locale.storage`, and a live round
+  trip verified the list (13666 French rows, with search and context filters),
+  add, update and delete, including a source string carrying a non-ASCII
+  character and a `$`. Writing a translation also dispatches
+  `LocaleEvents::SAVE_TRANSLATION` through `_locale_refresh_translations()`,
+  which invalidates the `locale` cache tag every `LocaleLookup` row depends on
+  — `invalidateByPrefix` and `cache_clear_all` do not exist in Drupal 11. The
+  three `webform_handler_*` tools answered `absent_entity` because they had
+  never been written; they now use `plugin.manager.webform.handler` with
+  `Webform::addWebformHandler` / `updateWebformHandler` / `deleteWebformHandler`,
+  take `webform_id` to disambiguate a handler id that is unique per webform
+  rather than site-wide, replace configuration keys whole so omitted ones keep
+  their current values, and locate handlers through
+  `getHandlers()->getInstanceIds()` instead of `Webform::getHandler()`, which
+  throws `PluginNotFoundException` for an unseen id rather than returning NULL.
+  A `contact` form started this with two handlers and ended with two after a
+  full create/update/delete — the point of a round trip
+- Hand structured values to `php:eval` as base64 rather than as JSON, which is
+  not PHP: it emits `\uXXXX` and PHP has no such escape, so non-ASCII mangles
+  silently; `$` interpolates into the code; and `{"k":1}` is a parse error.
+  `_utils.php_text()` and `php_json()` carry a string as `base64_decode(...)`
+  and an array as `json_decode(base64_decode(...), TRUE)`
+- Stop chasing the login redirect to a URL the site invented. Drupal answers a
+  good login with 303 to the account page, built from the scheme and host it
+  saw the request arrive on, so when the site reported itself as plain `http`
+  while the client was on HTTPS the redirect was fetched as HTTP against a TLS
+  port, nginx answered 400, and the session cookie that same response had just
+  issued was discarded — leaving only a startup warning. Every write then fell
+  back to basic auth, which Drupal's mutating endpoints reject, on any site
+  whose self-issued URL disagrees with the client's behind a proxy or a
+  misconfigured base_url. The POST is no longer followed, because only its
+  status and its cookie were ever wanted; bad credentials still fail, since
+  Drupal refuses them with 200 and no cookie
+- Make the sweep follow the site's links on the origin it was given. Drupal
+  answers `http://` when reached through a port-mapped HTTPS endpoint, and the
+  harness followed those verbatim — plain HTTP to a TLS listener, which nginx
+  refuses with 400 — so a whole run died before calling a single tool.
+  `filter_check.py` hardcoded its base URL while every other live script honours
+  `DRUPAL_BASE_URL`, so it could not be pointed at all
+- Ask whether a node exists in a way JSON:API can answer. The check built the
+  resource *name* into the path (`/jsonapi/node--article/7`, where the resource
+  lives at `/jsonapi/node/article`) and asked for an internal id where rows are
+  addressed by uuid, so it 404'd for nodes that exist and reported every fixture
+  as gone — which would have had the harness re-provisioning on every check
+  instead of only when `delete_node` removed one
 - Make three tools answer with the reason instead of a bare error.
   `views_execute` could never have run: it asked for a `views.views` service
   that does not exist (the executable is built from the view's config entity by

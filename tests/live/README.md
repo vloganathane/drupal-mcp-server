@@ -45,7 +45,22 @@ Found once the modules were installed, and still not catchable offline:
   for a container running 8.3, and Composer's platform check then aborted every
   subsequent request, taking the site down;
 - **`langcode: "en"` in create payloads**, harmless until a second language
-  makes the field permission-gated, after which every create answers 403.
+  makes the field permission-gated, after which every create answers 403;
+- **twelve tools that refused, or had never been written at all.** The five
+  `moderation_transition_*` tools read `$wf->get("transitions")`, a key the
+  workflow entity has never had — the transitions live on
+  `Workflow::getTypePlugin()->getTransitions()` — so `list` answered
+  `count: 0` against a five-transition workflow while `get` reported "No
+  transition with id 7". The four `interface_translation_*` tools read
+  `TranslationString::getLanguage()` and `getTranslation()`, methods that do
+  not exist on that class, and the three `webform_handler_*` tools answered
+  `absent_entity` because they had never been written. All twelve now round
+  trip against the live site, with the misses pinned offline;
+- **PHP written by way of `json.dumps`.** Structured values interpolated into
+  `drush php:eval` were serialised as JSON, which is not PHP: there is no
+  `\uXXXX` escape there so non-ASCII mangles silently, `$` interpolates, and
+  `{"k":1}` is a parse error. `_utils.php_text()` and `php_json()` carry them
+  as base64 instead.
 
 ## Setup
 
@@ -144,10 +159,36 @@ so a missing module never hides a broken tool:
 |---------|---------|
 | `OK` | returned usable data |
 | `REJECTED` | the tool answered, and the answer was a refusal or lookup miss |
-| `UPSTREAM` | needs a module this site does not have (Commerce, Webform, ...) |
+| `UPSTREAM` | needs a module or subsystem this site does not have |
 | `BLOCKED` | needs a local binary that is not installed (phpstan, ollama, ...) |
 | `DEAD` | the tool itself is broken |
 | `SKIPPED` | controls the environment the sweep runs against |
+
+## Which ids the sweep sends
+
+Every parameter ending in `id` used to be answered with the fixture node's id,
+so `view_id`, `menu_id` and `webform_id` were all sent one node number and the
+tools answered a lookup miss. That was 84 of 174 refusals in the run before it
+was fixed — not tools refusing, but the harness asking the wrong question, and a
+miss says nothing about whether a tool works. Of the 367 tools:
+
+- **192** declare no `id`-shaped parameter at all;
+- **93 read-only** tools are handed a real id for their own resource, from
+  `FIXTURE_ID` and `FIXTURE_BY_TOOL`. Where one parameter name covers several
+  resources — `config_id` is a field config, a metatag config or a search index
+  depending on who is asking — the tool's own name decides;
+- **82 mutating** tools deliberately keep junk ids. `views_update` with a real
+  view id would save the view back with the arguments the harness synthesised,
+  and every later `views_execute` would run against a view this run broke, so
+  structural writes are refused rather than applied;
+- **8 read-only** tools still get junk because this site has no such entity to
+  name: `analyze_node_ids`, `acquia_site_id`, `menu_link_id`, `media_id`,
+  `media_derivative_id`, `commerce_product_id`, `commerce_order_id` and
+  `commerce_gateway_id`.
+
+`MUTATING` decides which side a tool falls on, and it is worth reading before
+changing it: it is the difference between a sweep that measures the tools and
+one that dismantles the site it is measuring.
 
 ## Where the sweep stands
 
@@ -176,12 +217,6 @@ What is left is five, all explained:
 
 The one `UPSTREAM` is `revision_delete`: JSON:API has no revision collection
 endpoint, so there is nothing to delete through it.
-
-Three tools look like regressions and are not. `interface_translation_add`,
-`_update` and `_delete` used to report OK because the sweep counted a refused
-call as a pass; they now say what is actually true, which is that Drupal has no
-`interface_translation` entity type and the tools point at `locale:import` and
-`locale:export` instead.
 
 ## Things that will bite you
 
@@ -216,3 +251,24 @@ call as a pass; they now say what is actually true, which is that Drupal has no
   resolves against the host's PHP, which locked in a `doctrine/collections`
   release the container's 8.3 could not run, and Composer's platform check then
   aborted every request.
+- **The site's links are the site's idea of the site.** Drupal builds every
+  `href` and redirect from the scheme and host it saw the request arrive on,
+  which need not be the ones you are using: behind a proxy, or reached on a
+  container's published port without DDEV's router in front, it answers `http://`
+  while you are on HTTPS. Following one of those sends plain HTTP to a TLS
+  listener and nginx answers **400 "The plain HTTP request was sent to HTTPS
+  port"** — which killed a whole sweep run before it called a single tool, and
+  separately turned a successful login into a reported failure. `_reanchor()`
+  puts every followed link back on `BASE`'s origin, and `SessionAuth.login()`
+  no longer follows the login redirect at all. If `ddev start` fails its health
+  check and never creates the router, the site is still reachable at the
+  container's published port: `docker port ddev-drupal-live-web`, then
+  `DRUPAL_BASE_URL=https://127.0.0.1:<port>`. That is what the sweep in this
+  directory was run against.
+- **JSON:API cannot be asked "does this node exist".** The resource *name* in
+  the index (`node--article`) is not its path (`/jsonapi/node/article`), and a
+  row is addressed by uuid rather than by `drupal_internal__nid`, so neither
+  `/jsonapi/node--article/7` nor `/jsonapi/node/article/7` answers the question
+  — both 404 for nodes that exist, which made the fixture look permanently gone
+  and would have had it re-provisioned on every check. The answer is a
+  `filter[drupal_internal__nid]` across the bundles the index advertises.
