@@ -18,7 +18,7 @@ scripts/live-migration-d7d11.sh up
 scripts/live-migration-d7d11.sh down
 ```
 
-The D7 harness uses the standard Drupal Migrate model<rfl:parameter name=" where the target reads the D7 database directly. The D9/D11 harness exercises the MCP JSON:API migration engine.
+The D7 harness uses the standard Drupal Migrate model, where the target reads the D7 database directly. The D9/D11 harness exercises the MCP JSON:API migration engine.
 
 ## End-to-end migration engine
 
