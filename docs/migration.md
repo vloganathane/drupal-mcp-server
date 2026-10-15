@@ -1,5 +1,25 @@
 # Migration & Upgrade Guide
 
+## Live migration test harnesses
+
+Two DDEV-based live test scripts are included:
+
+### D9 to D11 with the generic JSON:API engine
+```bash
+scripts/live-migration-d9d11.sh up
+python scripts/live-migration-d9d11-run.py
+scripts/live-migration-d9d11.sh down
+```
+
+### D7 to D11 legacy DB migration
+```bash
+scripts/live-migration-d7d11.sh up
+# configure the D11 target's source database using the printed D7 credentials
+scripts/live-migration-d7d11.sh down
+```
+
+The D7 harness uses the standard Drupal Migrate model<rfl:parameter name=" where the target reads the D7 database directly. The D9/D11 harness exercises the MCP JSON:API migration engine.
+
 ## End-to-end migration engine
 
 The server now supports persisted migration plans and wave-based imports.
