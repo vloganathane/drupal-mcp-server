@@ -2,8 +2,9 @@
 
 [![CI](https://github.com/vloganathane/drupal-mcp-server/actions/workflows/ci.yml/badge.svg)](https://github.com/vloganathane/drupal-mcp-server/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/vloganathane/drupal-mcp-server/branch/main/graph/badge.svg)](https://codecov.io/gh/vloganathane/drupal-mcp-server)
-[![PyPI version](https://badge.fury.io/py/drupal-mcp-server.svg)](https://badge.fury.io/py/drupal-mcp-server)
+[![PyPI version](https://img.shields.io/pypi/v/drupal-mcp-server.svg)](https://pypi.org/project/drupal-mcp-server/)
 [![Python versions](https://img.shields.io/pypi/pyversions/drupal-mcp-server.svg)](https://pypi.org/project/drupal-mcp-server/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/drupal-mcp-server.svg)](https://pypi.org/project/drupal-mcp-server/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/vloganathane/drupal-mcp-server/blob/main/LICENSE)
 
 A Model Context Protocol (MCP) server for Drupal operations. Provides **367 tools across 37 modules** for site analysis, migration, content management, configuration, commerce, headless, DevOps, security, and more.
