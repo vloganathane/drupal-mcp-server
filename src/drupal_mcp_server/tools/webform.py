@@ -1,11 +1,104 @@
 """Webform tools for Drupal."""
 
+import json
 from typing import Any
 
 from fastmcp import FastMCP
 
-from ._utils import absent_entity as _absent_entity
 from ._utils import ensure_dict as _ensure_dict
+from ._utils import php_json, php_text
+
+
+def _handler_locate_php(handler_id: str, webform_id: str | None) -> str:
+    """PHP that resolves a handler id to `$wf` and `$handler`, or explains why not.
+
+    A handler lives inside one webform's configuration and has no id that is
+    unique site-wide, so with no `webform_id` given this searches every
+    webform. Exactly one match is used; no match, or several, prints an error
+    that says what was found instead of guessing. On error the ``return``
+    stops the caller's own code from running.
+
+    Existence is tested against `getHandlers()->getInstanceIds()` and never
+    through `Webform::getHandler()`, which looks the handler up in the plugin
+    collection: an id the collection has never seen reaches
+    `initializePlugin()` with an empty configuration and throws
+    `PluginNotFoundException`, so asking "is there a handler called X?"
+    explodes instead of answering no.
+    """
+    return (
+        "$hid = " + php_text(handler_id) + ";"
+        "$wfid = " + php_text(webform_id or "") + ";"
+        "$storage = \\Drupal::entityTypeManager()->getStorage('webform');"
+        "$all = $storage->loadMultiple();"
+        "$wf = NULL; $handler = NULL;"
+        "if ($wfid !== '') {"
+        "  if (!isset($all[$wfid])) {"
+        "    print json_encode(['error' => 'No webform with id ' . $wfid,"
+        "      'available' => array_keys($all)]);"
+        "    return;"
+        "  }"
+        "  $wf = $all[$wfid];"
+        "  $ids = $wf->getHandlers()->getInstanceIds();"
+        "  if (!in_array($hid, $ids, TRUE)) {"
+        "    print json_encode(['error' => 'Webform ' . $wfid"
+        "      . ' has no handler with id ' . $hid,"
+        "      'available' => array_keys($ids)]);"
+        "    return;"
+        "  }"
+        "  $handler = $wf->getHandler($hid);"
+        "} else {"
+        "  $matches = [];"
+        "  foreach ($all as $candidate) {"
+        "    if (in_array($hid, $candidate->getHandlers()->getInstanceIds(), TRUE)) {"
+        "      $matches[] = $candidate->id();"
+        "    }"
+        "  }"
+        "  if (!$matches) {"
+        "    $owned = [];"
+        "    foreach ($all as $candidate) {"
+        "      foreach ($candidate->getHandlers() as $h) {"
+        "        $owned[] = $candidate->id() . ':' . $h->getHandlerId();"
+        "      }"
+        "    }"
+        "    print json_encode(['error' => 'No webform has a handler with id ' . $hid,"
+        "      'available' => $owned]);"
+        "    return;"
+        "  }"
+        "  if (count($matches) > 1) {"
+        "    print json_encode(['error' => 'Handler id ' . $hid . ' is used by '"
+        "      . count($matches) . ' webforms: ' . implode(', ', $matches)"
+        "      . '. Pass webform_id to say which one.', 'matches' => $matches]);"
+        "    return;"
+        "  }"
+        "  $wf = $all[$matches[0]];"
+        "  $handler = $wf->getHandler($hid);"
+        "}"
+    )
+
+
+def _handler_result(
+    result: Any, *, webform_id: str | None, handler_id: str
+) -> dict[str, Any]:
+    """Turn a drush run into a reply, refusing to pass silence off as success."""
+    payload = _ensure_dict(result)
+    if payload.get("error"):
+        return payload
+    data = payload.get("data")
+    if isinstance(data, dict) and data.get("error"):
+        out: dict[str, Any] = {"error": data["error"], "handler_id": handler_id}
+        if webform_id:
+            out["webform_id"] = webform_id
+        for key in ("available", "matches"):
+            if data.get(key):
+                out[key] = data[key]
+        return out
+    if not isinstance(data, dict) or "ok" not in data:
+        return {
+            "error": "Webform did not confirm the change: "
+            + json.dumps(payload, default=str)[:200],
+            "handler_id": handler_id,
+        }
+    return data
 
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
@@ -285,48 +378,155 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
     ) -> dict[str, Any]:
         """Create a webform handler (email, remote post, etc.).
 
-        Not implemented: a handler is a plugin held inside the webform's own
-        configuration and is written through the webform form, not as an
-        entity. JSON:API has no `webform_handler` resource, so the POST this
-        used to send could never succeed.
+        A handler is a plugin held inside the webform's own configuration --
+        there is no `webform_handler` entity and JSON:API cannot POST one.
+        This builds the plugin through `plugin.manager.webform.handler` and
+        attaches it with `Webform::addWebformHandler()`, which is the same
+        sequence Webform's own add-handler form runs.
+
+        `id` is the handler's id *within* the webform (`email_confirmation`,
+        not `email`); `handler_type` is the plugin (`email`, `webhook`,
+        `auto_save`, ...). `configuration` supplies plugin settings, which are
+        merged over the plugin's defaults -- the reply echoes the whole
+        resulting configuration so you can see what the defaults filled in.
         """
-        return _absent_entity(
-            "webform_handler",
-            "Handlers are plugins stored inside the webform's configuration and "
-            "are added through the webform form. Read them with "
-            "webform_handler_list.",
-        )
+        if not drush:
+            return {"error": "Drush not available"}
+        try:
+            code = (
+                "$hid = " + php_text(id) + ";"
+                "$wfid = " + php_text(webform_id) + ";"
+                "$type = " + php_text(handler_type) + ";"
+                "$label = " + php_text(label) + ";"
+                "$settings = " + php_json(configuration or {}) + ";"
+                "$storage = \\Drupal::entityTypeManager()->getStorage('webform');"
+                "$all = $storage->loadMultiple();"
+                "if (!isset($all[$wfid])) {"
+                "  print json_encode(['error' => 'No webform with id ' . $wfid,"
+                "    'available' => array_keys($all)]);"
+                "  return;"
+                "}"
+                "$wf = $all[$wfid];"
+                "$manager = \\Drupal::service('plugin.manager.webform.handler');"
+                "if (!$manager->getDefinition($type, FALSE)) {"
+                "  print json_encode(['error' => 'This site has no webform '"
+                "    . 'handler plugin ' . $type . '.',"
+                "    'available' => array_keys($manager->getDefinitions())]);"
+                "  return;"
+                "}"
+                # Webform::getHandler() throws on an id it has never seen
+                # instead of returning NULL, so the duplicate check reads the
+                # plugin collection's own id list.
+                "$ids = $wf->getHandlers()->getInstanceIds();"
+                "if (in_array($hid, $ids, TRUE)) {"
+                "  print json_encode(['error' => 'Webform ' . $wfid"
+                "    . ' already has a handler with id ' . $hid,"
+                "    'available' => array_keys($ids)]);"
+                "  return;"
+                "}"
+                "try {"
+                "  $handler = $manager->createInstance($type, ["
+                "    'id' => $type, 'handler_id' => $hid, 'label' => $label,"
+                "    'notes' => '', 'status' => TRUE,"
+                "    'weight' => count($wf->getHandlers()),"
+                "    'conditions' => [], 'settings' => $settings]);"
+                "  $wf->addWebformHandler($handler);"
+                "} catch (\\Throwable $e) {"
+                "  print json_encode(['error' => $e->getMessage()]);"
+                "  return;"
+                "}"
+                "print json_encode(['ok' => TRUE, 'id' => (string) $hid,"
+                "  'webform_id' => (string) $wfid, 'type' => (string) $type,"
+                "  'handler' => $handler->getConfiguration()]);"
+            )
+            result = await drush.run("php:eval", [code])
+            return _handler_result(result, webform_id=webform_id, handler_id=id)
+        except Exception as e:
+            return {"error": str(e)}
 
     @mcp.tool()
     async def webform_handler_update(
         handler_id: str,
         label: str | None = None,
         configuration: dict[str, Any] | None = None,
+        webform_id: str | None = None,
     ) -> dict[str, Any]:
         """Update a webform handler.
 
-        Not implemented; see `webform_handler_create`. A handler has no entity
-        id of its own to address.
+        Handlers have no entity id of their own, so this finds the webform
+        that owns `handler_id` and writes back through
+        `Webform::updateWebformHandler()`. Pass `webform_id` to skip the
+        search; without it, a handler id used by more than one webform is an
+        error naming them rather than a guess.
+
+        `configuration` keys are replaced as a whole and keys you leave out
+        keep their current value, so you can change one setting without
+        resending the rest.
         """
-        return _absent_entity(
-            "webform_handler",
-            "Handlers live inside the webform's configuration, so there is no "
-            "entity to update. Read them with webform_handler_list.",
-        )
+        if not drush:
+            return {"error": "Drush not available"}
+        if label is None and configuration is None:
+            return {
+                "error": "Nothing to change: pass `label`, `configuration`, or both.",
+                "handler_id": handler_id,
+            }
+        try:
+            code = (
+                _handler_locate_php(handler_id, webform_id)
+                + "$cfg = $handler->getConfiguration();"
+                + ("$cfg['label'] = " + php_text(label) + ";" if label is not None else "")
+                + (
+                    "$cfg['settings'] = array_replace($cfg['settings'], "
+                    + php_json(configuration or {})
+                    + ");"
+                    if configuration is not None
+                    else ""
+                )
+                + "try {"
+                "  $handler->setConfiguration($cfg);"
+                "  $wf->updateWebformHandler($handler);"
+                "} catch (\\Throwable $e) {"
+                "  print json_encode(['error' => $e->getMessage()]);"
+                "  return;"
+                "}"
+                "print json_encode(['ok' => TRUE, 'id' => (string) $hid,"
+                "  'webform_id' => $wf->id(), 'handler' => $handler->getConfiguration()]);"
+            )
+            result = await drush.run("php:eval", [code])
+            return _handler_result(result, webform_id=webform_id, handler_id=handler_id)
+        except Exception as e:
+            return {"error": str(e)}
 
     @mcp.tool()
     async def webform_handler_delete(
         handler_id: str,
+        webform_id: str | None = None,
     ) -> dict[str, Any]:
-        """Delete a webform handler.
+        """Delete a webform handler from its webform.
 
-        Not implemented; see `webform_handler_create`.
+        Removes it the way Webform's own delete form does -- through
+        `Webform::deleteWebformHandler()`, which also runs the plugin's
+        teardown. The webform's other handlers are left alone.
         """
-        return _absent_entity(
-            "webform_handler",
-            "Handlers live inside the webform's configuration, so there is no "
-            "entity to delete. Read them with webform_handler_list.",
-        )
+        if not drush:
+            return {"error": "Drush not available"}
+        try:
+            code = (
+                _handler_locate_php(handler_id, webform_id)
+                + "try {"
+                "  $wf->deleteWebformHandler($handler);"
+                "} catch (\\Throwable $e) {"
+                "  print json_encode(['error' => $e->getMessage()]);"
+                "  return;"
+                "}"
+                "print json_encode(['ok' => TRUE, 'id' => (string) $hid,"
+                "  'webform_id' => $wf->id(), 'deleted' => TRUE,"
+                "  'remaining' => count($wf->getHandlers()->getInstanceIds())]);"
+            )
+            result = await drush.run("php:eval", [code])
+            return _handler_result(result, webform_id=webform_id, handler_id=handler_id)
+        except Exception as e:
+            return {"error": str(e)}
 
     @mcp.tool()
     async def webform_token_list(

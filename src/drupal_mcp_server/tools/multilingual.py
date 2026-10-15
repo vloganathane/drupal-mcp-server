@@ -1,11 +1,111 @@
 """Multilingual workflow tools for Drupal."""
 
+import json
 from typing import Any
 
 from fastmcp import FastMCP
 
-from ._utils import absent_entity as _absent_entity
 from ._utils import ensure_dict as _ensure_dict
+from ._utils import php_json, php_text, validate_pagination
+
+
+def _locale_write_php(
+    action: str, source: str, langcode: str, translation: str, context: str
+) -> str:
+    """Build the PHP that adds, updates or deletes one interface translation.
+
+    All three go through `locale.storage` rather than a Drush command,
+    because Drush has no `locale:translate:*` command to call: the storage
+    is what `locale:import` writes through. `action` is `add`, `update`
+    or `delete`.
+    """
+    return (
+        "$action = " + php_text(action) + ";"
+        "$source = " + php_text(source) + ";"
+        "$lang = " + php_text(langcode) + ";"
+        "$text = " + php_text(translation) + ";"
+        "$ctx = " + php_text(context) + ";"
+        "$storage = \\Drupal::service('locale.storage');"
+        "$find = ['source' => $source, 'context' => $ctx];"
+        "$str = $storage->findString($find);"
+        "$srcLabel = '\"' . $source . '\"' . ($ctx === '' ? '' : ' (context \"' . $ctx . '\")');"
+        "$source_created = FALSE;"
+        "if (!$str) {"
+        "  if ($action === 'update') {"
+        "    print json_encode(['error' => 'There is no source string ' . $srcLabel"
+        "      . '. Use interface_translation_add to create it.']);"
+        "    return;"
+        "  }"
+        "  $str = $storage->createString($find);"
+        "  $storage->save($str);"
+        "  $source_created = TRUE;"
+        "}"
+        "$lid = (int) $str->getId();"
+        "$cur = $storage->findTranslation(['lid' => $lid, 'language' => $lang]);"
+        "$exists = $cur && (string) $cur->language === (string) $lang;"
+        "if ($action !== 'add' && !$exists) {"
+        "  $hint = $action === 'update'"
+        "    ? ' Use interface_translation_add to create it.' : '';"
+        "  print json_encode(['error' => 'There is no ' . $lang . ' translation for '"
+        "    . $srcLabel . '.' . $hint, 'lid' => $lid]);"
+        "  return;"
+        "}"
+        "if ($action === 'delete') {"
+        "  $storage->deleteTranslations(['lid' => $lid, 'language' => $lang]);"
+        "} else {"
+        "  if ($exists) {"
+        "    $cur->setString($text);"
+        "    $cur->setCustomized(TRUE);"
+        "    $storage->save($cur);"
+        "  } else {"
+        "    $storage->save($storage->createTranslation(["
+        "      'lid' => $lid, 'language' => $lang, 'translation' => $text,"
+        "      'customized' => LOCALE_CUSTOMIZED]));"
+        "  }"
+        "}"
+        # `_locale_refresh_translations()` is what Drupal's own translate form
+        # calls after a save: it refreshes the JavaScript translations and
+        # dispatches `LocaleEvents::SAVE_TRANSLATION`, whose subscriber
+        # invalidates the `locale` cache tag -- and every LocaleLookup entry in
+        # cache.default is tagged `locale`, so the cached strings go with it.
+        # Without this the write lands in locales_target but pages keep serving
+        # the old text until an unrelated cache clear.
+        "if (function_exists('_locale_refresh_translations')) {"
+        "  _locale_refresh_translations([$lang], [$lid]);"
+        "}"
+        "\\Drupal::service('string_translator.locale.lookup')->reset();"
+        "$out = ['ok' => TRUE, 'action' => $action, 'lid' => $lid,"
+        "  'langcode' => (string) $lang, 'source' => $source, 'context' => $ctx,"
+        "  'source_created' => $source_created];"
+        "if ($action === 'delete') { $out['deleted'] = TRUE; }"
+        "else { $out['created'] = !$exists; $out['translation'] = $text; }"
+        "print json_encode($out);"
+    )
+
+
+def _locale_write_result(result: Any, source: str, langcode: str) -> dict[str, Any]:
+    """Turn a drush run into a reply, refusing to pass silence off as success."""
+    payload = _ensure_dict(result)
+    if payload.get("error"):
+        return payload
+    data = payload.get("data")
+    if isinstance(data, dict) and data.get("error"):
+        out: dict[str, Any] = {
+            "error": data["error"],
+            "source": source,
+            "langcode": langcode,
+        }
+        if data.get("lid") is not None:
+            out["lid"] = data["lid"]
+        return out
+    if not isinstance(data, dict) or "ok" not in data:
+        return {
+            "error": "Locale did not confirm the write: "
+            + json.dumps(payload, default=str)[:200],
+            "source": source,
+            "langcode": langcode,
+        }
+    return data
 
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
@@ -195,19 +295,99 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         page_limit: int = 50,
         page_offset: int = 0,
     ) -> dict[str, Any]:
-        """List interface translations.
+        """List the interface translations Drupal holds.
 
-        Not implemented: Drupal keeps interface translations in Locale's own
-        storage rather than as a JSON:API entity, so there is no
-        `interface_translation` resource to page through. `drush locale:export`
-        writes them out as a .po file, which is the supported way to read them.
+        Locale does not store translations as entities, so there is no
+        `interface_translation` resource to page through: they live in Locale's
+        own storage, joined from each source string to its translation in a
+        language -- which is where `drush locale:export` reads them from too.
+
+        `langcode` narrows the list to one language; left out, every language
+        is listed and each row says which one it is. `filters` accepts `search`
+        (a substring of the source text) and `context` (the source context,
+        matched exactly). Only translated strings are returned: an untranslated
+        source is not a translation. `count` is the total that matched, before
+        paging.
         """
-        return _absent_entity(
-            "interface_translation",
-            "Locale stores interface translations in its own storage, not as an "
-            "entity. Use drush locale:export to read them, or locale:import to "
-            "load a .po file.",
-        )
+        if not drush:
+            return {"error": "Drush not available"}
+        pag_err = validate_pagination(page_limit, page_offset)
+        if pag_err:
+            return pag_err
+        try:
+            f = filters or {}
+            unknown = sorted(set(f) - {"search", "context"})
+            if unknown:
+                return {
+                    "error": "Unsupported filter(s): "
+                    + ", ".join(unknown)
+                    + ". interface_translation_list accepts `search` (a substring "
+                    "of the source text) and `context` (matched exactly).",
+                    "langcode": langcode,
+                }
+            # Scalars only. A JSON object is not a PHP array literal -- `{}`
+            # and `{"k": 1}` are both parse errors there -- so the filter values
+            # are pulled apart here instead of being embedded as JSON.
+            search = str(f.get("search") or "")
+            has_ctx = "context" in f
+            ctx = str(f.get("context") or "")
+            code = (
+                "$lang = " + php_json(langcode) + ";"
+                "$limit = " + str(int(page_limit)) + ";"
+                "$offset = " + str(int(page_offset)) + ";"
+                "$search = " + php_text(search) + ";"
+                "$ctx = " + (php_text(ctx) if has_ctx else "NULL") + ";"
+                "$storage = \\Drupal::service('locale.storage');"
+                "$conditions = ['translated' => TRUE];"
+                "$options = [];"
+                "if ($lang) { $conditions['language'] = $lang; }"
+                "if ($ctx !== NULL) { $conditions['context'] = $ctx; }"
+                "if ($search !== '') { $options['filters'] = ['source' => $search]; }"
+                "$options['pager limit'] = $offset + $limit;"
+                "$out = [];"
+                "foreach ($storage->getTranslations($conditions, $options) as $r) {"
+                "  $out[] = ['lid' => (int) ($r->lid ?? 0),"
+                "    'source' => (string) ($r->source ?? ''),"
+                "    'context' => (string) ($r->context ?? ''),"
+                "    'language' => (string) ($r->language ?? ''),"
+                "    'translation' => (string) ($r->translation ?? ''),"
+                "    'customized' => (bool) ($r->customized ?? FALSE)];"
+                "}"
+                "$db = \\Drupal::database();"
+                "$q = $db->select('locales_source', 's');"
+                "$q->innerJoin('locales_target', 't',"
+                "  $lang ? 't.lid = s.lid AND t.language = :ilang' : 't.lid = s.lid',"
+                "  $lang ? [':ilang' => $lang] : []);"
+                "if ($ctx !== NULL) { $q->condition('s.context', $ctx, '='); }"
+                "if ($search !== '') {"
+                "  $q->condition('s.source', '%' . $db->escapeLike($search) . '%', 'LIKE');"
+                "}"
+                "print json_encode(['count' => (int) $q->countQuery()->execute()->fetchField(),"
+                "  'translations' => $out]);"
+            )
+            result = await drush.run("php:eval", [code])
+            payload = _ensure_dict(result)
+            if payload.get("error"):
+                return payload
+            data = payload.get("data")
+            if not isinstance(data, dict) or "translations" not in data:
+                # An empty list here would read as "no translations" and hide
+                # a drush or PHP failure, which is how the transition list
+                # once reported zero transitions on a workflow that had five.
+                return {
+                    "error": "Locale did not return a translation list: "
+                    + json.dumps(payload, default=str)[:200],
+                    "langcode": langcode,
+                }
+            rows = data.get("translations") or []
+            start = int(page_offset)
+            return {
+                "langcode": langcode,
+                "count": int(data.get("count") or 0),
+                "translations": rows[start:start + int(page_limit)],
+            }
+        except Exception as e:
+            return {"error": str(e)}
 
     @mcp.tool()
     async def interface_translation_add(
@@ -216,18 +396,27 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         translation: str,
         context: str = "",
     ) -> dict[str, Any]:
-        """Add an interface translation.
+        """Add an interface translation for one source string.
 
-        Not implemented. The `locale:translate:add` command this used to run
-        does not exist -- Drush offers `locale:import` and `locale:export`, and
-        a single string is translated through Locale's own API rather than a
-        command.
+        Written through Locale's own string storage -- `createString()` /
+        `createTranslation()` plus `save()` -- which is what `locale:import`
+        does with a .po file, one entry at a time. There is no
+        `locale:translate:*` command to run instead.
+
+        If the source string is not one Drupal has already collected, it is
+        created too and the reply says so: a translation nobody will ever look
+        up is worth knowing about. The locale lookup cache is invalidated, so
+        the new text is visible without a cache rebuild.
         """
-        return _absent_entity(
-            "interface_translation",
-            "There is no locale:translate:add command. Use drush locale:import "
-            "with a .po file to add translations.",
-        )
+        if not drush:
+            return {"error": "Drush not available"}
+        try:
+
+            code = _locale_write_php("add", source, langcode, translation, context)
+            result = await drush.run("php:eval", [code])
+            return _locale_write_result(result, source, langcode)
+        except Exception as e:
+            return {"error": str(e)}
 
     @mcp.tool()
     async def interface_translation_update(
@@ -236,16 +425,22 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         translation: str,
         context: str = "",
     ) -> dict[str, Any]:
-        """Update an interface translation.
+        """Change an existing interface translation.
 
-        Not implemented; `locale:translate:update` does not exist. See
-        `interface_translation_add`.
+        Same storage as `interface_translation_add`, but this one refuses to
+        invent anything: an unknown source string, or a source with no
+        translation in `langcode`, is an error that says which of those it is
+        and points at `interface_translation_add`. The string is marked
+        customized so a later `locale:import` does not overwrite it.
         """
-        return _absent_entity(
-            "interface_translation",
-            "There is no locale:translate:update command. Use drush locale:import "
-            "with a .po file to update translations.",
-        )
+        if not drush:
+            return {"error": "Drush not available"}
+        try:
+            code = _locale_write_php("update", source, langcode, translation, context)
+            result = await drush.run("php:eval", [code])
+            return _locale_write_result(result, source, langcode)
+        except Exception as e:
+            return {"error": str(e)}
 
     @mcp.tool()
     async def interface_translation_delete(
@@ -253,16 +448,22 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         langcode: str,
         context: str = "",
     ) -> dict[str, Any]:
-        """Delete an interface translation.
+        """Remove an interface translation from one language.
 
-        Not implemented; `locale:translate:delete` does not exist. See
-        `interface_translation_add`.
+        Drops the row from `locales_target` for this source and language; the
+        source string itself stays, because it is Drupal's own string and other
+        languages still use it. There is no `locale:translate:delete` command,
+        and re-importing a .po file without the entry is no longer the only way
+        to do this.
         """
-        return _absent_entity(
-            "interface_translation",
-            "There is no locale:translate:delete command. Translations are "
-            "removed by re-importing a .po file without them.",
-        )
+        if not drush:
+            return {"error": "Drush not available"}
+        try:
+            code = _locale_write_php("delete", source, langcode, "", context)
+            result = await drush.run("php:eval", [code])
+            return _locale_write_result(result, source, langcode)
+        except Exception as e:
+            return {"error": str(e)}
 
     @mcp.tool()
     async def config_translation_list(
