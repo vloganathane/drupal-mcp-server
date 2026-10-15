@@ -1,0 +1,17 @@
+coverage:
+  # The 367 tool modules are thin wrappers exercised by the live test harness,
+  # which needs a real Drupal site and cannot run in CI. The CI gate (70%)
+  # deliberately excludes them, so keep Codecov consistent with CI.
+  ignore:
+    - "src/drupal_mcp_server/tools/*"
+
+  status:
+    project:
+      default:
+        target: 80%
+        threshold: 2%
+        informational: true
+    patch:
+      default:
+        target: 80%
+        informational: true
