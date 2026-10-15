@@ -271,6 +271,13 @@ def value_for(name: str, t, spec: dict, tool: str = ""):
         # content types has. Without the slash the config translation tools
         # stop at the reference format and never reach their own logic.
         return "node_type/article"
+    if "fields" in n:
+        # The payload Drupal validates. An empty one answers "title is
+        # required" on a create and is a silent no-op on an update that still
+        # reports OK -- so the tool was never exercised either way. Answered
+        # up here, before the type rules: a nested object resolves to `object`,
+        # which used to be sent `{}` and shadow this rule entirely.
+        return {"title": "Sweep Title"}
     if n in ("queue_name", "queue") and EXISTING_QUEUE:
         # A queue that exists, so queue_run exercises the run rather than
         # stopping at "Queue not found" for a name nobody chose.
@@ -356,8 +363,6 @@ def value_for(name: str, t, spec: dict, tool: str = ""):
         return "<p>sweep body</p>"
     if "filters" in n:
         return {}
-    if "fields" in n:
-        return {"title": "Sweep Title"}
     if "updates" in n:
         return {"title": "Sweep Updated"}
     if "variables" in n or "options" in n or "params" in n:

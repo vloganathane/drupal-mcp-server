@@ -103,14 +103,30 @@ class DrupalOAuthProvider(OAuthProvider):
         return super().get_challenge_scopes(required_scopes)
     
     async def load_access_token(self, token: str) -> FastMCPAccessToken | None:
-        """Load and validate an access token."""
-        if token in self._access_tokens:
-            token_data = self._access_tokens[token]
-            # Check expiry
-            import time
-            if token_data.get("expires_at", 0) > time.time():
-                return token_data  # type: ignore[return-value]
-        return None
+        """Load and validate an access token.
+
+        The token has to be returned as an `AccessToken`, not as the dict it
+        was stored in. FastMCP reads `.scopes` and `.client_id` off the result
+        to decide whether a request is allowed, and a dict answers every one of
+        those with `AttributeError` -- so a perfectly good token was rejected as
+        harshly as a forged one, and the only OAuth behaviour ever observed was
+        the fail-closed side. That also makes this the constructor of last
+        resort for the stored fields, which is why `expires_at` is stored as an
+        int: `AccessToken.expires_at` is one, and a float fails its validation.
+        """
+        token_data = self._access_tokens.get(token)
+        if token_data is None:
+            return None
+        import time
+
+        if token_data.get("expires_at", 0) <= time.time():
+            return None
+        return FastMCPAccessToken(
+            token=str(token_data.get("token", token)),
+            client_id=str(token_data.get("client_id") or ""),
+            scopes=list(token_data.get("scopes") or []),
+            expires_at=int(token_data.get("expires_at", 0)),
+        )
     
     async def load_authorization_code(
         self,
@@ -170,7 +186,7 @@ class DrupalOAuthProvider(OAuthProvider):
         import time
         access_token = secrets.token_urlsafe(32)
         refresh_token = secrets.token_urlsafe(32)
-        expires_at = time.time() + 3600  # 1 hour
+        expires_at = int(time.time()) + 3600  # 1 hour
         
         token_data = {
             "token": access_token,
@@ -210,7 +226,7 @@ class DrupalOAuthProvider(OAuthProvider):
         import time
         new_access_token = secrets.token_urlsafe(32)
         new_refresh_token = secrets.token_urlsafe(32)
-        expires_at = time.time() + 3600
+        expires_at = int(time.time()) + 3600
         
         new_token_data = {
             "token": new_access_token,

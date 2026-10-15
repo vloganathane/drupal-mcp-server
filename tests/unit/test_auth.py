@@ -1,5 +1,6 @@
 """Unit tests for auth strategies."""
 
+import time
 from typing import Any
 
 import pytest
@@ -184,6 +185,115 @@ async def test_a_redirecting_login_is_a_successful_login(
     assert auth.is_logged_in() is True
     assert auth.get_cookies() == {"SSESSxyz": "1"}
     assert auth.get_headers() == {"X-CSRF-Token": "csrf-token-xyz"}
+
+
+class _OAuthClient:
+    """The only attribute every provider method reads off a client."""
+
+    client_id = "client-1"
+
+
+def _provider() -> Any:
+    from drupal_mcp_server.auth.mcp_oauth import DrupalOAuthProvider
+
+    return DrupalOAuthProvider(base_url="https://example.test")
+
+
+async def _issue(provider: Any, scopes: list[str]) -> Any:
+    params = type(
+        "P",
+        (),
+        {
+            "redirect_uri": "https://example.test/callback",
+            "code_challenge": None,
+            "scopes": scopes,
+        },
+    )()
+    redirect = await provider.authorize(_OAuthClient(), params)
+    return await provider.exchange_authorization_code(
+        _OAuthClient(), str(redirect).split("code=")[1]
+    )
+
+
+@pytest.mark.asyncio
+async def test_an_issued_token_is_accepted_on_the_next_request() -> None:
+    """The fail-closed side was the only half of this ever observed.
+
+    `load_access_token` returned the dict the token had been stored in, so
+    FastMCP's `.scopes` and `.client_id` reads raised AttributeError and a
+    perfectly good token was refused as harshly as a forged one. HTTP
+    transport with OAuth enabled was therefore unusable for everyone, and the
+    401 that produced looked exactly like security working. `expires_at` was
+    stored as a float too, where `AccessToken.expires_at` is an int, so the
+    model would have refused to validate even had the type been right.
+    """
+    from fastmcp.server.auth import AccessToken
+
+    provider = _provider()
+    token = await _issue(provider, ["drupal:read", "drupal:write"])
+    loaded = await provider.load_access_token(token.access_token)
+
+    assert isinstance(loaded, AccessToken), "a dict was returned where a token was promised"
+    assert loaded.token == token.access_token
+    assert loaded.client_id == "client-1"
+    assert loaded.scopes == ["drupal:read", "drupal:write"]
+    assert isinstance(loaded.expires_at, int)
+    assert loaded.expires_at > time.time()
+
+
+@pytest.mark.asyncio
+async def test_an_expired_or_unknown_token_is_still_refused() -> None:
+    """Acceptance has to be earned by the token, not bought by the fix.
+
+    An expired one, a revoked one and a made-up one are each refused, so
+    nothing about the positive path leaked into the negative one.
+    """
+    provider = _provider()
+
+    revoked = await _issue(provider, ["drupal:read"])
+    await provider.revoke_token(revoked.access_token)
+    assert await provider.load_access_token(revoked.access_token) is None
+
+    # The only way to reach expiry in-process: the token was issued to live
+    # for an hour, and there is no clock to advance.
+    expired = await _issue(provider, ["drupal:read"])
+    provider._access_tokens[expired.access_token]["expires_at"] = int(time.time()) - 1
+    assert await provider.load_access_token(expired.access_token) is None
+
+    assert await provider.load_access_token("not-a-real-token") is None
+
+
+@pytest.mark.asyncio
+async def test_a_code_is_single_use_and_refresh_tokens_are_swapped() -> None:
+    """Both exchanges answer an unseen value with an exception rather than a
+    token, so a replayed code or a guessed refresh token gets nowhere."""
+    provider = _provider()
+    params = type(
+        "P",
+        (),
+        {
+            "redirect_uri": "https://example.test/callback",
+            "code_challenge": None,
+            "scopes": ["drupal:read"],
+        },
+    )()
+    code = str(await provider.authorize(_OAuthClient(), params)).split("code=")[1]
+
+    first = await provider.exchange_authorization_code(_OAuthClient(), code)
+    with pytest.raises(ValueError, match="Invalid authorization code"):
+        await provider.exchange_authorization_code(_OAuthClient(), code)
+
+    second = await provider.exchange_refresh_token(
+        _OAuthClient(), first.refresh_token, ["drupal:read", "drupal:write"]
+    )
+    assert second.access_token != first.access_token
+    assert (await provider.load_access_token(second.access_token)).scopes == [
+        "drupal:read",
+        "drupal:write",
+    ]
+
+    with pytest.raises(ValueError, match="Invalid refresh token"):
+        await provider.exchange_refresh_token(_OAuthClient(), "not-a-token", [])
 
 
 def test_bearer_token_is_used_when_no_credentials_are_set():

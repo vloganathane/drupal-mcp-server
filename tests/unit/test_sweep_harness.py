@@ -343,6 +343,30 @@ def test_links_the_site_generates_are_followed_on_this_run_s_origin(
     assert sweep._reanchor("/jsonapi/node/article") == "/jsonapi/node/article"
 
 
+def test_fields_is_sent_as_a_payload_not_an_empty_object(sweep: ModuleType) -> None:
+    """`create_node` answered "title is required", and updates were no-ops.
+
+    Both came from one shadowing: `fields` is a nested object, so
+    `resolve_schema` reports its type as `object` and the `t == "object"`
+    branch answered `{}` before the name rule that knew what `fields` was for.
+    An update that changes nothing still reports OK, so those tools kept their
+    verdict while never actually being exercised -- which is why the symptom
+    showed up on exactly one of the sixteen that declare the parameter.
+    """
+    nested = {
+        "properties": {
+            "fields": {"type": "object", "properties": {"title": {"type": "string"}}}
+        }
+    }
+    assert sweep.synthesize(nested, "create_node") == {"fields": {"title": "Sweep Title"}}
+    assert sweep.synthesize(nested, "update_node") == {"fields": {"title": "Sweep Title"}}
+
+    # An object that is not `fields` is still sent empty rather than filled
+    # with junk the tool would then have to reject.
+    other = {"properties": {"options": {"type": "object"}}}
+    assert sweep.synthesize(other, "some_tool") == {"options": {}}
+
+
 def test_the_fixture_is_re_provisioned_when_a_tool_deletes_it(
     sweep: ModuleType, monkeypatch
 ) -> None:

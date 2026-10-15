@@ -96,6 +96,95 @@ def test_readme_tools_section_matches_the_registered_tools() -> None:
     assert sum(int(n) for _, n, _ in sections) == len(registered)
 
 
+def test_http_transport_accepts_a_token_it_issued_and_refuses_the_others() -> None:
+    """OAuth's positive half, checked where the promise is actually made.
+
+    The provider is unit-tested, but what matters is what FastMCP's bearer
+    middleware does with the result of `load_access_token`. It used to be
+    handed the dict the token was stored in and answered
+    `AttributeError: 'dict' object has no attribute 'expires_at'`, so a good
+    token was refused exactly like a forged one. Because the forged case also
+    failed, the only behaviour anyone could observe was the 401 -- which looks
+    like security working, so an unusable OAuth transport read as a secure one.
+
+    A bare FastMCP is used rather than the full server: the contract under
+    test is between our provider and FastMCP's auth middleware, and the full
+    server would need a Drupal to answer a tool call.
+    """
+    import httpx
+    from fastmcp import FastMCP
+
+    from drupal_mcp_server.auth.mcp_oauth import DrupalOAuthProvider
+
+    base = "https://mcp.test"
+    initialize = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+            "protocolVersion": "2024-11-05",
+            "capabilities": {},
+            "clientInfo": {"name": "probe", "version": "1"},
+        },
+    }
+
+    async def probe() -> list[int]:
+        provider = DrupalOAuthProvider(base_url=base, required_scopes=["drupal:read"])
+        mcp = FastMCP("probe", auth=provider)
+
+        @mcp.tool
+        async def ping() -> str:
+            """Ping."""
+            return "pong"
+
+        client_info = type("C", (), {"client_id": "client-1"})()
+        params = type(
+            "P",
+            (),
+            {
+                "redirect_uri": "https://example.test/callback",
+                "code_challenge": None,
+                "scopes": ["drupal:read"],
+            },
+        )()
+        redirect = await provider.authorize(client_info, params)
+        token = await provider.exchange_authorization_code(
+            client_info, str(redirect).split("code=")[1]
+        )
+
+        app = mcp.http_app(path="/mcp")
+        statuses = []
+        async with app.lifespan(app):
+            async with httpx.AsyncClient(
+                transport=httpx.ASGITransport(app=app), base_url=base
+            ) as client:
+                statuses.append((await client.post("/mcp", json=initialize)).status_code)
+                statuses.append(
+                    (
+                        await client.post(
+                            "/mcp",
+                            json=initialize,
+                            headers={"Authorization": f"Bearer {token.access_token}"},
+                        )
+                    ).status_code
+                )
+                statuses.append(
+                    (
+                        await client.post(
+                            "/mcp",
+                            json=initialize,
+                            headers={"Authorization": "Bearer forged-token"},
+                        )
+                    ).status_code
+                )
+        return statuses
+
+    unauthenticated, issued, forged = asyncio.run(probe())
+    assert unauthenticated == 401
+    assert issued == 200, "a token this server issued was refused"
+    assert forged == 401
+
+
 def test_required_parameters_are_declared_in_properties() -> None:
     """A `required` entry with no matching property is unsatisfiable, so a
     client could never construct a valid call for that tool."""
