@@ -122,6 +122,79 @@ EOF
     echo "Use those values in the D11 target's migrate database connection."
 }
 
+# Core's d7_* sources read $databases['migrate'] (SqlBase' default key when a
+# source declares none), so the target needs that connection plus the
+# settings.php hook that loads settings.local.php.
+configure_migrate_connection() {
+    local settings_dir="${TARGET_DIR}/web/sites/default"
+    cat > "${settings_dir}/settings.local.php" <<'PHP'
+<?php
+
+/**
+ * @file
+ * Local overrides for the D11 legacy-migration target.
+ *
+ * Provides the 'migrate' database connection that core's d7_* migration
+ * sources read: SqlBase defaults to the connection named 'migrate' when a
+ * source plugin declares no 'key'.
+ */
+
+$databases['migrate']['default'] = [
+  'driver' => 'mysql',
+  'host' => 'ddev-drupal-mcp-d7-source-db',
+  'port' => '3306',
+  'database' => 'db',
+  'username' => 'db',
+  'password' => 'db',
+];
+PHP
+    # Uncomment core's settings.local.php include (commented out in the
+    # standard template). perl -pi behaves identically on macOS and Linux.
+    perl -pi -e '
+        s{^# (if \(file_exists\(\$app_root \. .\/. \$site_path \. ./settings\.local\.php.\)\) \{)}{$1};
+        s{^#   (include \$app_root \. .\/. \$site_path \. ./settings\.local\.php.;)}{$1};
+        s{^# (\})$}{$1} if $seen_include;
+        $seen_include = 1 if /^if \(file_exists\(\$app_root/;
+    ' "${settings_dir}/settings.php"
+}
+
+# Dependency-ordered import for the seeded content: formats first (body format
+# lookup), then users, the article bundle, and finally taxonomy.
+run_migrations() {
+    local step
+    for step in d7_filter_format d7_user_role d7_user d7_node_type \
+                "d7_node:article" d7_taxonomy_vocabulary \
+                "d7_taxonomy_term:departures"; do
+        echo "==> migrate:import ${step}"
+        (cd "$TARGET_DIR" && ddev drush migrate:import "${step}" -y)
+    done
+}
+
+verify_migrations() {
+    cd "$TARGET_DIR"
+    echo "==> Migration status"
+    ddev drush migrate:status --format=json 2>/dev/null | python3 -c '
+import json, sys
+rows = json.load(sys.stdin)
+wanted = [
+    "d7_filter_format", "d7_user_role", "d7_user", "d7_node_type",
+    "d7_node:article", "d7_taxonomy_vocabulary",
+    "d7_taxonomy_term:departures",
+]
+bad = 0
+for row in rows:
+    if row["id"] in wanted:
+        ok = row["imported"] == row["total"] and row["status"] == "Idle"
+        bad += 0 if ok else 1
+        print("  %-32s %-6s %s/%s" % (row["id"], row["status"], row["imported"], row["total"]))
+sys.exit(bad)
+'
+    echo "==> Migrated content"
+    ddev drush sqlq "SELECT n.nid, n.title, u.name AS author, n.status FROM node_field_data n LEFT JOIN users_field_data u ON u.uid = n.uid"
+    ddev drush sqlq "SELECT entity_id, body_value, body_format FROM node__body"
+    ddev drush sqlq "SELECT tid, name, vid FROM taxonomy_term_field_data"
+}
+
 case "${1:-up}" in
     up)
         require ddev
@@ -144,6 +217,12 @@ case "${1:-up}" in
         require ddev
         seed_source
         ;;
+    migrate)
+        require ddev
+        configure_migrate_connection
+        run_migrations
+        verify_migrations
+        ;;
     status)
         for dir in "$SOURCE_DIR" "$TARGET_DIR"; do
             if [ -d "${dir}/.ddev" ]; then
@@ -155,7 +234,7 @@ case "${1:-up}" in
         done
         ;;
     *)
-        echo "Usage: $0 {up|down|seed|status}" >&2
+        echo "Usage: $0 {up|down|seed|migrate|status}" >&2
         exit 1
         ;;
 esac

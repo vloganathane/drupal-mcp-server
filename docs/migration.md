@@ -15,12 +15,12 @@ The script enables `jsonapi` + `basic_auth` on both sites, turns off JSON:API re
 
 ### D7 to D11 legacy DB migration
 ```bash
-scripts/live-migration-d7d11.sh up
-# configure the D11 target's source database using the printed D7 credentials
-scripts/live-migration-d7d11.sh down
+scripts/live-migration-d7d11.sh up        # provisions both sites, seeds source data, writes .env.d7d11
+scripts/live-migration-d7d11.sh migrate   # wires the target's 'migrate' DB connection, imports, verifies
+scripts/live-migration-d7d11.sh down      # deletes both DDEV projects
 ```
 
-The D7 harness uses the standard Drupal Migrate model, where the target reads the D7 database directly (D7 predates JSON:API). The D9/D11 harness exercises the MCP JSON:API migration engine.
+The D7 harness uses the standard Drupal Migrate model, where the target reads the D7 database directly (D7 predates JSON:API). `migrate` is idempotent: it points core's `d7_*` sources at the source database via `$databases['migrate']`, runs the dependency-ordered imports (`d7_filter_format` → `d7_user_role` → `d7_user` → `d7_node_type` → `d7_node:article` → `d7_taxonomy_vocabulary` → `d7_taxonomy_term:departures`), and exits non-zero unless every one of them is Idle at full import, then prints the migrated article, body, author, and term for eyeball verification. The D9/D11 harness exercises the MCP JSON:API migration engine.
 
 ## End-to-end migration engine
 
