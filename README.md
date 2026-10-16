@@ -7,7 +7,7 @@
 [![PyPI downloads](https://img.shields.io/pypi/dm/drupal-mcp-server.svg)](https://pypi.org/project/drupal-mcp-server/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/vloganathane/drupal-mcp-server/blob/main/LICENSE)
 
-A Model Context Protocol (MCP) server for Drupal operations. Provides **392 tools across 38 modules** for site analysis, migration, content management, configuration, commerce, headless, DevOps, security, and more.
+A Model Context Protocol (MCP) server for Drupal operations. Provides **400 tools across 39 modules** for site analysis, migration, content management, configuration, commerce, headless, DevOps, security, and more.
 
 ## Why Use This?
 
@@ -161,7 +161,7 @@ Set `MCP_TRANSPORT` to one of:
 - `sse` (for Server-Sent Events)
 - `streamable-http` (for Streamable HTTP)
 
-## Tools (392 total)
+## Tools (400 total)
 
 ### Accessibility (5)
 - `accessibility_axe_scan` — Run axe-core accessibility scan
@@ -176,13 +176,16 @@ Set `MCP_TRANSPORT` to one of:
 - `ai_generate_migration_plan` — Generate migration plan with AI
 - `ai_translate_content` — Translate content with AI
 
-### Analysis (6)
+### Analysis (9)
 - `analyze_d7_site` — Analyze D7 site for D10 readiness
 - `analyze_d9_site` — Analyze D9+ for deprecated APIs
 - `inventory_content_types` — List all content types
 - `inventory_modules` — List all modules
 - `map_modules_d7_to_d10` — AI-powered module mapping D7→D10
 - `find_deprecated_code` — Scan for deprecated APIs
+- `find_entity_references` — Bundles whose reference fields target an entity type
+- `search_entities` — Substring search across titles, names, and subjects
+- `find_entity_by_path` — Resolve a URL path or alias to its entity
 
 ### Code Audit (7)
 - `code_audit_phpstan` — Run PHPStan static analysis
@@ -211,8 +214,8 @@ Set `MCP_TRANSPORT` to one of:
 - `commerce_promotion_list`, `commerce_promotion_create`
 - `commerce_shipping_method_list`, `commerce_shipping_method_create`
 
-### Config (7)
-- `config_get`, `config_set`, `export_config`, `import_config`, `sync_config`, `diff_config`, `split_config`
+### Config (8)
+- `config_get`, `config_set`, `export_config`, `import_config`, `sync_config`, `diff_config`, `split_config`, `config_status`
 
 ### Contact (9)
 - `contact_form_list`, `contact_form_get`, `contact_form_create`, `contact_form_update`, `contact_form_delete`
@@ -359,6 +362,12 @@ displays have Layout Builder enabled; `layout_builder_get`,
 - `csp_audit` — Content Security Policy audit
 - `file_permissions_audit` — File permissions audit
 
+### Status (4)
+- `status_report` — The site's status report (/admin/reports/status), read-only
+- `database_updates` — Pending database updates, read-only
+- `available_updates` — Packages with newer versions, from composer
+- `health_check` — Drush, database, JSON:API, and module diagnostics
+
 ### Taxonomy (10)
 - `create_vocabulary`, `get_vocabulary`, `update_vocabulary`, `delete_vocabulary`, `list_vocabularies`
 - `create_term`, `get_term`, `update_term`, `delete_term`, `list_terms`
@@ -487,7 +496,7 @@ python tests/live/queue_test.py           # 18 cron/queue cases, ~60s
 python tests/live/filter_check.py         # every hard-coded JSON:API filter
 python tests/live/resource_check.py       # every resource name, asked of Drupal
 python tests/live/install_modules.py      # the modules the tools assume, ~10 min
-python tests/live/sweep.py                # all 392 tools, ~30 min
+python tests/live/sweep.py                # all 400 tools, ~30 min
 python tests/live/mcp_call.py content_list '{}'  # one call, for spot checks
 ```
 

@@ -501,6 +501,22 @@ async def test_drush_retries_without_format_when_unsupported(monkeypatch: pytest
 
 
 @pytest.mark.asyncio
+async def test_drush_never_offers_format_to_sql_query(monkeypatch: pytest.MonkeyPatch):
+    """`sql:query` has no --format option on Drush 13, so the flag cost a
+    full failed bootstrap before the retry on every database query."""
+    import drupal_mcp_server.clients.drush as mod
+    from drupal_mcp_server.clients.drush import DrushClient
+
+    calls = _fake_drush(monkeypatch, lambda argv: _FakeProc(b"1\t2\n"), mod)
+
+    await DrushClient(_settings()).run("sql:query", ["SELECT 1, 2"])
+
+    assert len(calls) == 1
+    assert "--format=json" not in calls[0]
+    assert calls[0][2:4] == ["sql:query", "SELECT 1, 2"]
+
+
+@pytest.mark.asyncio
 async def test_drush_missing_binary_returns_actionable_error(monkeypatch: pytest.MonkeyPatch):
     """A bare FileNotFoundError makes every drush tool look broken."""
     from drupal_mcp_server.clients.drush import DrushClient

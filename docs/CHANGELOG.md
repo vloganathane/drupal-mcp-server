@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Wave 2 of the drupal-scout-mcp port — 8 tools (400 total, 39 modules):
+  - Status section (4): `status_report` (drush core:requirements, severity
+    filter), `database_updates` (read-only pending DB updates),
+    `available_updates` (composer outdated with dev filtering and a
+    security-only mode intersected with composer audit), `health_check`
+    (Drush, database, JSON:API, and module probes with a fix per failure)
+  - Analysis: `find_entity_references` (bundles whose reference fields
+    target an entity type, via JSON:API field config), `search_entities`
+    (escaped LIKE search across six entity tables), `find_entity_by_path`
+    (route or path-alias resolution to an entity)
+  - Config: `config_status` (read-only active vs sync comparison)
+- `run_composer` gained a `tail` argument so tools that parse full JSON
+  documents (`composer outdated`) are not truncated
+
 ## [0.2.0] - 2026-10-16
 
 ### Security

@@ -2,9 +2,173 @@
 
 import json
 import os
+import re
+import urllib.parse
 from typing import Any
 
 from fastmcp import FastMCP
+
+from ..validation import validate_identifier, validate_single_select
+
+# Internal routes that resolve straight to an entity id.
+_ROUTES = [
+    (re.compile(r"^/node/(\d+)$"), "node"),
+    (re.compile(r"^/taxonomy/term/(\d+)$"), "taxonomy_term"),
+    (re.compile(r"^/user/(\d+)$"), "user"),
+    (re.compile(r"^/media/(\d+)$"), "media"),
+    (re.compile(r"^/comment/(\d+)$"), "comment"),
+]
+
+# Tables `search_entities` scans. These are the *_field_data tables Drupal
+# itself queries for list views: they hold the values a user would search
+# by (titles, names, subjects), not the field storage tables.
+_SEARCHABLE: dict[str, dict[str, str]] = {
+    "node": {
+        "table": "node_field_data",
+        "match": "title",
+        "id": "nid",
+        "extra": "type",
+    },
+    "user": {
+        "table": "users_field_data",
+        "match": "name",
+        "id": "uid",
+        "extra": "mail",
+    },
+    "taxonomy_term": {
+        "table": "taxonomy_term_field_data",
+        "match": "name",
+        "id": "tid",
+        "extra": "vid",
+    },
+    "comment": {
+        "table": "comment_field_data",
+        "match": "subject",
+        "id": "cid",
+        "extra": "entity_type",
+    },
+    "media": {
+        "table": "media_field_data",
+        "match": "name",
+        "id": "mid",
+        "extra": "bundle",
+    },
+    "file": {
+        "table": "file_managed",
+        "match": "filename",
+        "id": "fid",
+        "extra": "uid",
+    },
+}
+
+def _sql_literal(value: str) -> str:
+    """A single-quoted SQL string literal holding `value` exactly.
+
+    Escapes the backslash first so the escapes below are not themselves
+    escaped. Drush has no bound parameters for sql:query, so every value
+    this module sends to SQL goes through here after validation.
+    """
+    escaped = value.replace("\\", "\\\\").replace("'", "\\'")
+    return f"'{escaped}'"
+
+
+def _like_literal(value: str) -> str:
+    """The literal wrapped for `LIKE '%...%'`, wildcards included verbatim.
+
+    A query for "100%" must not match everything, so % and _ are escaped
+    on top of the string escaping.
+    """
+    escaped = (
+        value.replace("\\", "\\\\")
+        .replace("%", "\\%")
+        .replace("_", "\\_")
+        .replace("'", "\\'")
+    )
+    return f"'%{escaped}%'"
+
+
+def _sql_output(result: dict[str, Any]) -> tuple[str, str | None]:
+    """Raw stdout text and an error reason from a `sql:query` result.
+
+    `sql:query` has no --format option at all, so the client cannot parse
+    the rows itself: stdout arrives as raw text under ``{"output": ...}``
+    (or an empty dict when the query returned nothing).
+    """
+    data = result.get("data")
+    if isinstance(data, dict) and isinstance(data.get("output"), str):
+        return data["output"], None
+    if isinstance(data, str):
+        return data, None
+    if result.get("returncode"):
+        return "", str(result.get("stderr", "")).strip() or "query failed"
+    return "", None
+
+
+def _sql_rows(output: str, columns: list[str]) -> list[dict[str, Any]]:
+    """Parse `drush sql:query` output: tab-separated values, no header row.
+
+    Values arrive as text, and NULL is printed as those four characters, so
+    a NULL langcode reads back as None. A value containing a tab splits into
+    extra fields, which are joined back into the last column rather than
+    shifting the rest of the row.
+    """
+    rows: list[dict[str, Any]] = []
+    for line in output.splitlines():
+        if not line.strip():
+            continue
+        parts = line.split("\t")
+        if len(parts) > len(columns):
+            parts = parts[: len(columns) - 1] + [
+                "\t".join(parts[len(columns) - 1 :])
+            ]
+        while len(parts) < len(columns):
+            parts.append("")
+        rows.append(
+            {
+                column: (None if value == "NULL" else value)
+                for column, value in zip(columns, parts, strict=False)
+            }
+        )
+    return rows
+
+
+async def _fetch_all_field_configs(
+    jsonapi: Any, type_name: str, fields: str, cap: int = 1000
+) -> tuple[list[dict[str, Any]], bool]:
+    """Every row of a field config collection, paged 50 at a time.
+
+    ``type_name`` is the JSON:API type (``field_storage_config--field_storage_config``);
+    the client maps it to the double path Drupal serves config entities at.
+    The sparse fieldset is keyed by the short type name, as the spec requires.
+    Returns the rows and whether the cap was hit. JSON:API offers no filter
+    on nested ``settings``, so the caller filters client-side.
+    """
+    short = type_name.split("--", 1)[0]
+    rows: list[dict[str, Any]] = []
+    offset = 0
+    while offset < cap:
+        params = {
+            "page[limit]": "50",
+            "page[offset]": str(offset),
+            f"fields[{short}]": fields,
+        }
+        result = await jsonapi.get_resource(type_name, params)
+        data = result.get("data") if isinstance(result, dict) else result
+        if not isinstance(data, list):
+            break
+        for item in data:
+            if not isinstance(item, dict):
+                continue
+            # JSON:API nests the payload under "attributes"; the join keys
+            # (drupal_internal__id, bundle, ...) live there, not on the item.
+            attributes = item.get("attributes")
+            rows.append(
+                dict(attributes) if isinstance(attributes, dict) else dict(item)
+            )
+        if len(data) < 50:
+            return rows, False
+        offset += 50
+    return rows, True
 
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
@@ -458,3 +622,302 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                     except Exception:
                         pass
         return findings[:50]
+
+    @mcp.tool()
+    async def find_entity_references(
+        entity_type: str,
+        bundle: str | None = None,
+        field_name: str | None = None,
+        limit: int = 50,
+    ) -> dict[str, Any]:
+        """Find which bundles use reference fields targeting an entity type.
+
+        Answers "where are these used?" at the configuration level: for
+        `entity_type` ("taxonomy_term", "node", "media", ...) it lists every
+        field on every bundle whose storage targets that type, e.g. which
+        content types have a tags or category field. Filter by the
+        referencing `bundle` or by `field_name`.
+
+        This reads field configuration, not content: it reports where
+        references *can* live, not which individual rows currently point at
+        which entity. For the data, query the field's table with `db_query`.
+        """
+        if not jsonapi:
+            return {"error": "JSON:API client not available"}
+        for label, value in (
+            ("entity_type", entity_type),
+            ("bundle", bundle),
+            ("field_name", field_name),
+        ):
+            if value is not None:
+                problem = validate_identifier(value, label)
+                if problem:
+                    return {"error": problem}
+        if not isinstance(limit, int) or limit < 1 or limit > 500:
+            return {"error": "limit must be an integer between 1 and 500"}
+
+        storages, storages_truncated = await _fetch_all_field_configs(
+            jsonapi,
+            "field_storage_config--field_storage_config",
+            "drupal_internal__id,field_name,entity_type,field_storage_config_type,settings",
+        )
+        configs, configs_truncated = await _fetch_all_field_configs(
+            jsonapi,
+            "field_config--field_config",
+            "drupal_internal__id,field_name,bundle,entity_type",
+        )
+
+        matching: dict[str, dict[str, Any]] = {}
+        for storage in storages:
+            settings = storage.get("settings")
+            if (
+                isinstance(settings, dict)
+                and settings.get("target_type") == entity_type
+            ):
+                storage_id = str(storage.get("drupal_internal__id", ""))
+                matching[storage_id] = {
+                    "field_name": storage.get("field_name"),
+                    "source_entity_type": storage.get("entity_type"),
+                    "field_type": storage.get("field_storage_config_type"),
+                    "storage": storage_id,
+                }
+
+        references: list[dict[str, Any]] = []
+        for config in configs:
+            # A storage is keyed by entity type and field name; field_config
+            # exposes no storage relationship, but its parts are enough to
+            # rebuild that key.
+            storage_key = (
+                f"{config.get('entity_type')}.{config.get('field_name')}"
+            )
+            base = matching.get(storage_key)
+            if base is None:
+                continue
+            if bundle is not None and config.get("bundle") != bundle:
+                continue
+            if field_name is not None and config.get("field_name") != field_name:
+                continue
+            references.append({**base, "bundle": config.get("bundle")})
+
+        references.sort(
+            key=lambda row: (
+                str(row.get("source_entity_type")),
+                str(row.get("bundle")),
+                str(row.get("field_name")),
+            )
+        )
+        by_source: dict[str, int] = {}
+        for row in references:
+            key = str(row.get("source_entity_type"))
+            by_source[key] = by_source.get(key, 0) + 1
+
+        payload: dict[str, Any] = {
+            "target_entity_type": entity_type,
+            "reference_fields": references[:limit],
+            "returned": min(len(references), limit),
+            "total": len(references),
+            "by_source_entity_type": by_source,
+        }
+        if storages_truncated or configs_truncated:
+            payload["truncated"] = (
+                "More than 1000 field configs exist; some references may be "
+                "missing from this scan."
+            )
+        return payload
+
+    @mcp.tool()
+    async def search_entities(
+        query: str,
+        entity_types: list[str] | None = None,
+        limit: int = 20,
+    ) -> dict[str, Any]:
+        """Case-insensitive substring search across entity titles and names.
+
+        Scans node titles, user names and emails, taxonomy term names,
+        comment subjects, media names, and file names with one read-only
+        LIKE query per type, returning matches grouped by entity type.
+
+        Pass `entity_types` (e.g. ["node", "taxonomy_term"]) to search
+        fewer tables: a LIKE scan reads every row, so keep it narrow on
+        large sites. This does not search node bodies -- for full text use
+        the site's own search or the search_api tools.
+        """
+        if not drush:
+            return {"error": "Drush not available"}
+        term = query.strip() if isinstance(query, str) else ""
+        if not term or len(term) > 64:
+            return {"error": "query must be 1 to 64 characters"}
+        wanted = list(entity_types) if entity_types else list(_SEARCHABLE)
+        unknown = [kind for kind in wanted if kind not in _SEARCHABLE]
+        if unknown:
+            return {
+                "error": (
+                    f"Unknown entity type(s): {', '.join(unknown)}. Supported: "
+                    f"{', '.join(sorted(_SEARCHABLE))}"
+                )
+            }
+        if not isinstance(limit, int) or limit < 1 or limit > 100:
+            return {"error": "limit must be an integer between 1 and 100"}
+
+        literal = _like_literal(term)
+        columns = ["etype", "id", "label", "extra"]
+
+        def _select(kind: str, limit_clause: str) -> str:
+            spec = _SEARCHABLE[kind]
+            return (
+                f"SELECT '{kind}' AS etype, CAST({spec['id']} AS CHAR) AS id, "
+                f"{spec['match']} AS label, {spec['extra']} AS extra "
+                f"FROM {spec['table']} WHERE {spec['match']} LIKE {literal} "
+                f"{limit_clause}"
+            )
+
+        results: dict[str, list[dict[str, Any]]] = {}
+        skipped: dict[str, str] = {}
+
+        def _group(rows: list[dict[str, Any]]) -> None:
+            for row in rows:
+                kind = str(row.pop("etype", ""))
+                if kind:
+                    results.setdefault(kind, []).append(row)
+
+        # One UNION query first: on a containerized site every drush call
+        # pays a full bootstrap, so six separate queries cost a minute for
+        # the same answer.
+        union = " UNION ALL ".join(
+            _select(kind, "") for kind in wanted
+        ) + f" LIMIT {limit * len(wanted)}"
+        problem = validate_single_select(union)
+        if problem:
+            # The table and column names are fixed and the term is escaped,
+            # so this is the validator being paranoid, not a caller mistake;
+            # surface it rather than run unvalidated.
+            return {"error": f"internal query rejected by validator: {problem}"}
+        try:
+            result = await drush.run("sql:query", [union])
+        except Exception as exc:  # noqa: BLE001 - reported as data
+            result = {"returncode": 1, "stderr": str(exc)}
+        text, error = _sql_output(result)
+        if error is None:
+            _group(_sql_rows(text, columns))
+        else:
+            # One missing table takes the whole UNION down (a site without
+            # media or comments is common), so retry each type on its own
+            # and skip only the ones that are actually absent.
+            for kind in wanted:
+                sql = _select(kind, f"LIMIT {limit}")
+                if validate_single_select(sql):
+                    continue
+                try:
+                    result = await drush.run("sql:query", [sql])
+                except Exception as exc:  # noqa: BLE001 - a missing table is data
+                    skipped[kind] = str(exc)[:200]
+                    continue
+                text, error = _sql_output(result)
+                if error is not None:
+                    skipped[kind] = error[:200]
+                    continue
+                _group(_sql_rows(text, columns))
+
+        payload: dict[str, Any] = {
+            "query": term,
+            "results": results,
+            "matches": {kind: len(rows) for kind, rows in results.items()},
+            "total": sum(len(rows) for rows in results.values()),
+        }
+        if skipped:
+            payload["skipped"] = skipped
+        return payload
+
+    @mcp.tool()
+    async def find_entity_by_path(path: str) -> dict[str, Any]:
+        """Resolve a URL path or alias ("/about", "/node/123") to its entity.
+
+        Internal routes such as /node/123 are read directly. Anything else
+        is looked up in the path alias table, and the resolved target is
+        parsed the same way. A full URL is accepted; the query string and
+        fragment are ignored. Returns the entity id and a short summary,
+        or found: false when nothing resolves.
+        """
+        if not drush or not jsonapi:
+            return {"error": "Drush and JSON:API clients are required"}
+        raw = path.strip() if isinstance(path, str) else ""
+        if not raw or len(raw) > 512:
+            return {"error": "path must be 1 to 512 characters"}
+        if raw.startswith("http://") or raw.startswith("https://"):
+            target = urllib.parse.urlsplit(raw).path or "/"
+        else:
+            target = raw.split("?", 1)[0].split("#", 1)[0]
+        if not target.startswith("/"):
+            target = "/" + target
+        target = target.rstrip("/") or "/"
+
+        is_route = any(rx.match(target) for rx, _ in _ROUTES)
+        alias: dict[str, Any] | None = None
+        internal = target
+        if target != "/" and not is_route:
+            sql = (
+                "SELECT id, alias, path, langcode FROM path_alias "
+                f"WHERE alias = {_sql_literal(target)} LIMIT 1"
+            )
+            problem = validate_single_select(sql)
+            if problem:
+                return {"error": f"internal query rejected by validator: {problem}"}
+            try:
+                result = await drush.run("sql:query", [sql])
+            except Exception as exc:  # noqa: BLE001 - reported below
+                result = {"returncode": 1, "stderr": str(exc)}
+            text, error = _sql_output(result)
+            rows = (
+                _sql_rows(text, ["id", "alias", "path", "langcode"])
+                if error is None
+                else []
+            )
+            if rows and rows[0].get("path"):
+                row = rows[0]
+                alias = {
+                    "id": row.get("id"),
+                    "alias": row.get("alias"),
+                    "path": row.get("path"),
+                    "langcode": row.get("langcode"),
+                }
+                internal = str(row["path"]).rstrip("/") or "/"
+
+        route = next(
+            ((kind, matched.group(1)) for rx, kind in _ROUTES
+             if (matched := rx.match(internal))),
+            None,
+        )
+        if route is None:
+            return {
+                "found": False,
+                "requested": target,
+                "internal_path": internal,
+                "alias": alias,
+                "note": "No route pattern or path alias resolves this to an entity.",
+            }
+
+        kind, entity_id = route
+        # The entity comes back whole: Drupal ignores sparse fieldsets keyed
+        # by the bare entity type on content entities, so asking for a
+        # summary would fetch everything anyway.
+        try:
+            entity = await jsonapi.get_by_id(kind, entity_id)
+        except Exception as exc:  # noqa: BLE001 - a stale alias is data
+            return {
+                "found": False,
+                "requested": target,
+                "internal_path": internal,
+                "alias": alias,
+                "error": str(exc)[:300],
+            }
+        payload: dict[str, Any] = {
+            "found": True,
+            "requested": target,
+            "internal_path": internal,
+            "entity_type": kind,
+            "entity_id": entity_id,
+            "entity": entity,
+        }
+        if alias:
+            payload["alias"] = alias
+        return payload

@@ -246,3 +246,62 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             "missing_configs": missing,
             "total_split": len(split_files),
         }
+
+    @mcp.tool()
+    async def config_status() -> dict[str, Any]:
+        """Compare active configuration with the exported sync directory.
+
+        Read-only: reports how many config objects are the same, differ,
+        exist only in the database (never exported, or changed since), or
+        exist only in the sync directory, with the differing names. This is
+        what `drush config:import` would act on; nothing is exported,
+        imported, or written here.
+
+        An empty sync directory shows everything as "Only in DB" -- export
+        first with `drush config:export` (or the `export_config` tool)
+        before expecting a useful comparison.
+        """
+        if not drush:
+            return {"error": "Drush not available"}
+        result = await drush.run("config:status", ["--format=json"])
+        if result.get("returncode"):
+            return _drush_result(result)
+
+        data = result.get("data")
+        states: dict[str, list[str]] = {}
+        if isinstance(data, dict):
+            for name, row in data.items():
+                state = row.get("state") if isinstance(row, dict) else str(row)
+                states.setdefault(str(state), []).append(str(name))
+        elif isinstance(data, list):
+            for row in data:
+                if isinstance(row, dict):
+                    states.setdefault(str(row.get("state", "unknown")), []).append(
+                        str(row.get("name", ""))
+                    )
+        else:
+            return {
+                "note": "drush config:status returned no recognisable data",
+                "output": _drush_result(result)["output"],
+            }
+
+        payload: dict[str, Any] = {
+            "counts": {state: len(names) for state, names in states.items()},
+            "objects": {
+                state: {
+                    "count": len(names),
+                    "names": names[:200],
+                    "truncated": len(names) > 200,
+                }
+                for state, names in states.items()
+            },
+            "total": sum(len(names) for names in states.values()),
+        }
+        only_db = len(states.get("Only in DB", []))
+        if payload["total"] and only_db == payload["total"]:
+            payload["note"] = (
+                "Every config object is 'Only in DB': the sync directory is "
+                "empty or was never exported, so there is nothing to "
+                "compare against."
+            )
+        return payload

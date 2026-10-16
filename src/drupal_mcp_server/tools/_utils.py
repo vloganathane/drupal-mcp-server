@@ -72,13 +72,18 @@ def _container_composer(args: list[str]) -> list[str] | None:
     return None
 
 
-async def run_composer(args: list[str]) -> dict[str, Any]:
+async def run_composer(args: list[str], tail: int | None = 4000) -> dict[str, Any]:
     """Run composer and report what happened.
 
     Drush has no ``composer`` command, so routing these tools through it made
     all four fail with ``Command "composer" is not defined``. Composer is its
     own executable; look for it rather than borrowing Drush. For a DDEV or
     Lando project the container's own composer is used instead.
+
+    ``tail`` bounds how much of stdout is kept: enough for a human-readable
+    report, and it is what makes a runaway command cheap to return. A tool
+    that parses the whole JSON document passes ``tail=None`` instead, since
+    the tail of a large ``outdated --format=json`` is not parseable JSON.
     """
     argv = _container_composer(args)
     binary: str | None = None
@@ -126,7 +131,7 @@ async def run_composer(args: list[str]) -> dict[str, Any]:
     text = stdout.decode(errors="replace")
     payload: dict[str, Any] = {
         "returncode": proc.returncode,
-        "output": text[-4000:],
+        "output": text if tail is None else text[-tail:],
         "command": command,
     }
     if proc.returncode:

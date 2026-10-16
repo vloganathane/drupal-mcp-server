@@ -5,6 +5,11 @@ import json
 import shlex
 from typing import Any
 
+# Commands with no --format option at all (verified on Drush 13): asking
+# for one fails the bootstrap, and only the retry without it succeeds --
+# costing every query twice.
+_NO_FORMAT_COMMANDS = frozenset({"sql:query", "sqlq"})
+
 
 class DrushClient:
     """Runs drush commands as subprocesses.
@@ -28,7 +33,13 @@ class DrushClient:
         argv.append(command)
         # Many tools already pass --format=json themselves; adding it twice is
         # sloppy, and commands like `drush cron` reject the option outright.
-        if with_format and not any(a.startswith("--format") for a in args):
+        # `sql:query` has no --format at all on Drush 13, so asking for it
+        # costs a full failed bootstrap before the retry without one.
+        if (
+            with_format
+            and command not in _NO_FORMAT_COMMANDS
+            and not any(a.startswith("--format") for a in args)
+        ):
             argv.append("--format=json")
         argv += args
         return argv
