@@ -7,7 +7,7 @@
 [![PyPI downloads](https://img.shields.io/pypi/dm/drupal-mcp-server.svg)](https://pypi.org/project/drupal-mcp-server/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/vloganathane/drupal-mcp-server/blob/main/LICENSE)
 
-A Model Context Protocol (MCP) server for Drupal operations. Provides **377 tools across 37 modules** for site analysis, migration, content management, configuration, commerce, headless, DevOps, security, and more.
+A Model Context Protocol (MCP) server for Drupal operations. Provides **380 tools across 37 modules** for site analysis, migration, content management, configuration, commerce, headless, DevOps, security, and more.
 
 ## Why Use This?
 
@@ -161,7 +161,7 @@ Set `MCP_TRANSPORT` to one of:
 - `sse` (for Server-Sent Events)
 - `streamable-http` (for Streamable HTTP)
 
-## Tools (377 total)
+## Tools (380 total)
 
 ### Accessibility (5)
 - `accessibility_axe_scan` — Run axe-core accessibility scan
@@ -231,9 +231,10 @@ Set `MCP_TRANSPORT` to one of:
 - `composer_install`, `composer_require`, `composer_update`
 - `drush_cron`, `drush_watchdog`, `cache_clear`, `drush_updb`, `drush_php_eval`
 
-### Drupal.org (9)
+### Drupal.org (12)
 - `module_search`, `module_get`, `module_versions`, `module_dependencies`, `module_compatibility`
 - `theme_search`, `theme_get`, `release_history`, `project_usage`
+- `module_issues_search`, `module_popular`, `module_recommendation`
 
 ### Feeds (12)
 - `feeds_feed_list`, `feeds_feed_get`, `feeds_feed_create`, `feeds_feed_update`, `feeds_feed_delete`
@@ -481,7 +482,7 @@ python tests/live/queue_test.py           # 18 cron/queue cases, ~60s
 python tests/live/filter_check.py         # every hard-coded JSON:API filter
 python tests/live/resource_check.py       # every resource name, asked of Drupal
 python tests/live/install_modules.py      # the modules the tools assume, ~10 min
-python tests/live/sweep.py                # all 377 tools, ~30 min
+python tests/live/sweep.py                # all 380 tools, ~30 min
 python tests/live/mcp_call.py content_list '{}'  # one call, for spot checks
 ```
 

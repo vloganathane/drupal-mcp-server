@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   local MCP clients (Claude Code, Claude Desktop, Cursor, Codex CLI,
   OpenCode, Windsurf, Pi, Hermes Agent, OpenClaw), with `--print`/`--json`
   for scripted setup and an AI Coding Agents guide
+- Add `module_issues_search`, `module_popular`, and `module_recommendation`
+  (client-side issue-queue relevance scoring, usage-ranked module lists by
+  category, local-index + drupal.org recommendations), plus the `DRUPAL_ROOT`
+  and `DRUPAL_MODULES_PATH` settings for local codebase analysis
 - Add `moderation_transition_delete`, giving `moderation_transition_create` the
   counterpart it never had. The tool count is now 367
 - Add Lando support to SiteManager

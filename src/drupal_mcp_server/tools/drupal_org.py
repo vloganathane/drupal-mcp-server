@@ -7,12 +7,15 @@ answers and reports a precise error instead of dumping markup.
 """
 
 import re
+from pathlib import Path
 from typing import Any
+from urllib.parse import urlencode
 from xml.etree import ElementTree
 
 import httpx
 from fastmcp import FastMCP
 
+from ..config import get_settings
 from ._utils import ensure_dict as _ensure_dict
 
 DRUPAL_ORG = "https://www.drupal.org"
@@ -398,6 +401,180 @@ async def _usage(machine_name: str, period: str) -> dict[str, Any]:
     return _parse_usage(response.text, machine_name, period)
 
 
+# --- Issue-queue search, popularity, and category helpers -------------------
+# Keyword scoring adapted from drupal-scout-mcp (MIT, David Loor): drupal.org
+# retired its fulltext filter (node.json answers 412 for search_api_fulltext),
+# so relevance is computed client-side over recent issues instead.
+
+_ISSUE_STOP_WORDS = frozenset(
+    {
+        "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of",
+        "with", "by", "from", "is", "are", "was", "were", "been", "be", "have",
+        "has", "had", "do", "does", "did", "will", "would", "should", "could",
+        "may", "might", "can", "i", "my", "me", "getting", "get", "got",
+        "not", "this", "that", "when", "how", "why", "just", "also", "than",
+        "then", "them", "they", "you", "your", "we", "our", "into", "after",
+        "before", "using", "used", "use", "one", "two",
+    }
+)
+
+_ISSUE_STATUS = {
+    "1": "Active",
+    "2": "Needs work",
+    "3": "Reviewed & tested by community",
+    "4": "Reviewed & tested by maintainer",
+    "5": "Fixed",
+    "6": "Closed (won't fix)",
+    "7": "Postponed",
+    "8": "Duplicate",
+}
+
+_CATEGORY_CACHE: list[dict[str, str]] | None = None
+
+
+def _issue_keywords(text: str) -> list[str]:
+    """Tokenize a problem description, dropping stopwords and short words."""
+    return [
+        word
+        for word in re.findall(r"\b\w+\b", text.lower())
+        if word not in _ISSUE_STOP_WORDS and len(word) > 2
+    ]
+
+
+def _score_issue(title: str, body: str, keywords: list[str], phrase: str) -> int:
+    """Score one issue against the problem description.
+
+    A keyword in the title is worth 2, in the body 1; an exact phrase match in
+    the title adds 10. Empty keyword lists score 0 so callers fall back to
+    recency instead of matching everything.
+    """
+    title_l = title.lower()
+    body_l = body.lower()
+    score = 0
+    for keyword in keywords:
+        if keyword in title_l:
+            score += 2
+        elif keyword in body_l:
+            score += 1
+    if phrase and phrase.strip() and phrase.strip().lower() in title_l:
+        score += 10
+    return score
+
+
+def _version_compatible(issue_version: str, drupal_major: str | None) -> bool:
+    """True unless the issue's version field encodes a different Drupal major.
+
+    drupal.org stores the project's own branch in ``field_issue_version``
+    ("6.3.x-dev", "7.x-1.x", "10.3.x"). Only strings whose leading number is a
+    plausible Drupal major (>= 7) can be compared; project-era branches like
+    ``6.3.x-dev`` are not Drupal 6 claims, so they never filter anything out.
+    """
+    if not drupal_major or not issue_version:
+        return True
+    match = re.match(r"^(\d+)\.", issue_version)
+    if not match:
+        return True
+    major = int(match.group(1))
+    if major < 7:
+        return True
+    return str(major) == drupal_major
+
+
+def _local_drupal_major(root: str | None) -> str | None:
+    """Read the Drupal major version from a local codebase, if available."""
+    if not root:
+        return None
+    try:
+        content = (Path(root) / "core" / "lib" / "Drupal.php").read_text(
+            encoding="utf-8", errors="ignore"
+        )
+    except OSError:
+        return None
+    match = re.search(r"const VERSION = '([^']+)'", content)
+    return match.group(1).split(".")[0] if match else None
+
+
+def _issue_body(issue: dict[str, Any]) -> str:
+    """Flatten an issue node's body (dict or list shaped) to plain text."""
+    body = issue.get("body")
+    raw = ""
+    if isinstance(body, dict):
+        raw = str(body.get("value", ""))
+    elif isinstance(body, list) and body and isinstance(body[0], dict):
+        raw = str(body[0].get("value", ""))
+    return _strip_html(raw, 600)
+
+
+def _total_usage(node: dict[str, Any]) -> int:
+    """Sum a project's usage counts across release lines."""
+    usage = node.get("project_usage") or {}
+    if not isinstance(usage, dict):
+        return 0
+    return sum(
+        int(value)
+        for key, value in usage.items()
+        if key != "total" and str(value).isdigit()
+    )
+
+
+async def _node_list(params: dict[str, str], *, max_pages: int = 1) -> list[dict[str, Any]]:
+    """Fetch up to ``max_pages`` pages of an api-d7 node.json query."""
+    items: list[dict[str, Any]] = []
+    for page in range(max_pages):
+        query = urlencode({**params, "page": str(page)})
+        response = await _fetch(f"{DRUPAL_ORG_API}/node.json?{query}")
+        batch = (response.json() or {}).get("list", [])
+        items.extend(batch)
+        if len(batch) < 50:
+            break
+    return items
+
+
+async def _project_nid(machine_name: str) -> str | None:
+    """Resolve a project's node id: exact machine-name lookup, then any
+    project type via its page (covers themes and distributions)."""
+    name = machine_name.strip().strip("/")
+    if not name:
+        return None
+    query = urlencode({"type": "project_module", "field_project_machine_name": name})
+    response = await _fetch(f"{DRUPAL_ORG_API}/node.json?{query}")
+    found = (response.json() or {}).get("list", [])
+    if found:
+        return str(found[0].get("nid"))
+    try:
+        return str((await _resolve_project(name))["nid"])
+    except Exception:  # noqa: BLE001 - the caller turns None into an error message
+        return None
+
+
+async def _category_terms() -> list[dict[str, str]]:
+    """All drupal.org project categories (vocabulary 3), cached per process."""
+    global _CATEGORY_CACHE
+    if _CATEGORY_CACHE is None:
+        query = urlencode({"vocabulary": "3"})
+        response = await _fetch(f"{DRUPAL_ORG_API}/taxonomy_term.json?{query}")
+        _CATEGORY_CACHE = [
+            {"tid": str(term.get("tid")), "name": str(term.get("name", ""))}
+            for term in (response.json() or {}).get("list", [])
+        ]
+    return _CATEGORY_CACHE
+
+
+def _match_category(terms: list[dict[str, str]], category: str) -> dict[str, str] | None:
+    """Find a category term by exact name, then by substring either way."""
+    wanted = category.strip().lower()
+    if not wanted:
+        return None
+    for term in terms:
+        if term["name"].lower() == wanted:
+            return term
+    for term in terms:
+        name = term["name"].lower()
+        if wanted in name or name in wanted:
+            return term
+    return None
+
+
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
     @mcp.tool()
     async def module_search(query: str, page: int = 0, page_size: int = 20) -> dict[str, Any]:
@@ -523,3 +700,189 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             "source": history.get("source"),
             "core_constraints": sample,
         })
+
+    @mcp.tool()
+    async def module_issues_search(
+        module_name: str,
+        problem_description: str,
+        limit: int = 10,
+        drupal_version: str | None = None,
+    ) -> dict[str, Any]:
+        """Search a module's drupal.org issue queue for issues that match a problem.
+
+        Describes the problem (e.g. "Azure AD attribute mapping fails") and the
+        most recently updated issues are scored on keyword overlap with their
+        titles and bodies; the best matches come back first, each with a link.
+        Set drupal_version (e.g. "10") to hide issues filed against other major
+        versions; when unset it is detected from DRUPAL_ROOT if configured.
+        """
+        limit = max(1, min(limit, 50))
+        try:
+            nid = await _project_nid(module_name)
+            if not nid:
+                return {"error": f"No drupal.org project named {module_name!r}."}
+            major = drupal_version or _local_drupal_major(get_settings().DRUPAL_ROOT)
+            issues = await _node_list(
+                {
+                    "type": "project_issue",
+                    "field_project": nid,
+                    "sort": "changed",
+                    "direction": "DESC",
+                },
+                max_pages=2,
+            )
+            keywords = _issue_keywords(problem_description)
+            kept = [
+                issue
+                for issue in issues
+                if _version_compatible(str(issue.get("field_issue_version") or ""), major)
+            ]
+            # Some queues are versioned by the project (e.g. "5.x-dev"), never
+            # by Drupal; a strict filter there would hide every issue, so fall
+            # back to unfiltered results and say so.
+            version_ignored = bool(issues and not kept and major)
+            if version_ignored:
+                kept = issues
+            scored: list[dict[str, Any]] = []
+            recent: list[dict[str, Any]] = []
+            for issue in kept:
+                entry = {
+                    "title": issue.get("title", ""),
+                    "url": issue.get("url", ""),
+                    "status": _ISSUE_STATUS.get(
+                        str(issue.get("field_issue_status") or ""),
+                        str(issue.get("field_issue_status") or ""),
+                    ),
+                    "drupal_version": issue.get("field_issue_version"),
+                    "comments": issue.get("comment_count", 0),
+                    "changed": issue.get("changed"),
+                    "relevance": _score_issue(
+                        str(issue.get("title", "")),
+                        _issue_body(issue),
+                        keywords,
+                        problem_description,
+                    ),
+                }
+                if entry["relevance"] > 0:
+                    scored.append(entry)
+                elif len(recent) < limit:
+                    recent.append(entry)
+            scored.sort(key=lambda item: item["relevance"], reverse=True)
+            results = scored[:limit]
+            payload: dict[str, Any] = {
+                "project": module_name,
+                "nid": nid,
+                "keywords": keywords,
+                "drupal_version": major,
+                "count": len(results),
+                "results": results,
+            }
+            notes: list[str] = []
+            if not results and recent:
+                notes.append(
+                    "No issue matched those keywords; showing the most recently "
+                    "updated issues instead."
+                )
+                payload["results"] = recent
+                payload["count"] = len(recent)
+            if version_ignored:
+                notes.append(
+                    f"Every issue was hidden by the drupal_version={major!r} filter "
+                    "(this queue versions branches by the project, not Drupal), "
+                    "so the filter was ignored."
+                )
+            if notes:
+                payload["note"] = " ".join(notes)
+            return _ensure_dict(payload)
+        except Exception as e:
+            return {"error": str(e)}
+
+    @mcp.tool()
+    async def module_popular(limit: int = 20, category: str | None = None) -> dict[str, Any]:
+        """List the most-installed modules on Drupal.org, newest usage first.
+
+        Optionally filter by a drupal.org category such as "E-commerce",
+        "Security", "SEO", or "Media" (case-insensitive, substrings work). Usage
+        is summed across every release line, so a module's full install base
+        shows up in one number. Categories are listed in the error if the name
+        does not match one.
+        """
+        limit = max(1, min(limit, 50))
+        try:
+            params: dict[str, str] = {"type": "project_module"}
+            resolved: dict[str, str] | None = None
+            if category:
+                terms = await _category_terms()
+                resolved = _match_category(terms, category)
+                if not resolved:
+                    return {
+                        "error": f"No drupal.org category matches {category!r}.",
+                        "available": [term["name"] for term in terms],
+                    }
+                params["taxonomy_vocabulary_3"] = resolved["tid"]
+            nodes = await _node_list(params, max_pages=4)
+            modules = [
+                {
+                    "machine_name": node.get("field_project_machine_name", ""),
+                    "title": node.get("title", ""),
+                    "url": node.get("url", ""),
+                    "usage": _total_usage(node),
+                    "description": _strip_html(
+                        str((node.get("body") or {}).get("value", ""))
+                        if isinstance(node.get("body"), dict)
+                        else "",
+                        200,
+                    ),
+                }
+                for node in nodes
+            ]
+            modules = [module for module in modules if module["machine_name"]]
+            modules.sort(key=lambda module: module["usage"], reverse=True)
+            top = modules[:limit]
+            return _ensure_dict({
+                "category": resolved["name"] if resolved else None,
+                "count": len(top),
+                "searched": len(modules),
+                "results": top,
+            })
+        except Exception as e:
+            return {"error": str(e)}
+
+    @mcp.tool()
+    async def module_recommendation(need: str) -> dict[str, Any]:
+        """Recommend modules for a need: what the local codebase already ships, plus drupal.org options.
+
+        Combines the local codebase index (available when DRUPAL_ROOT is set)
+        with drupal.org search, so the answer starts with modules you already
+        have before suggesting downloads.
+        """
+        local: list[dict[str, Any]] = []
+        searcher = deps.get("codebase_service")
+        local_available = searcher is not None
+        if searcher is not None:
+            try:
+                local = searcher.search_modules(need, limit=5)
+            except Exception:  # noqa: BLE001 - local index issues must not sink the tool
+                local = []
+        org: list[dict[str, str]] = []
+        org_error: str | None = None
+        try:
+            org = [r for r in await _search(need) if r["type"] == "module"][:5]
+        except Exception as e:
+            org_error = str(e)
+        payload: dict[str, Any] = {
+            "need": need,
+            "local_indexed": local_available,
+            "local_modules": local,
+            "drupal_org_modules": org,
+        }
+        if org_error:
+            payload["drupal_org_error"] = org_error
+        if local:
+            payload["note"] = (
+                "Matching modules are already in this codebase - prefer "
+                "extending or enabling those before adding a dependency."
+            )
+        elif not org:
+            payload.setdefault("note", "No matches found locally or on drupal.org.")
+        return _ensure_dict(payload)

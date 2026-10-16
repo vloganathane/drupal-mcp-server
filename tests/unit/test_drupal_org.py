@@ -131,7 +131,7 @@ def test_project_summary_strips_markup_from_the_body():
     assert "<p>" not in summary["summary"]
 
 
-def test_all_nine_drupal_org_tools_are_registered():
+def test_all_twelve_drupal_org_tools_are_registered():
     """The tools must keep their names; an MCP client may hold references."""
 
     class _FakeMCP:
@@ -157,6 +157,9 @@ def test_all_nine_drupal_org_tools_are_registered():
         "release_history",
         "project_usage",
         "module_compatibility",
+        "module_issues_search",
+        "module_popular",
+        "module_recommendation",
     ])
 
 
@@ -288,7 +291,7 @@ def test_composer_releases_reports_no_match_instead_of_nothing():
         drupal_org._parse_composer_packages(entries, "pathauto", "12.x")
 
 
-def _tool_functions() -> dict[str, Any]:
+def _tool_functions(**deps: Any) -> dict[str, Any]:
     class FakeMCP:
         def __init__(self) -> None:
             self.fns: dict[str, Any] = {}
@@ -301,7 +304,7 @@ def _tool_functions() -> dict[str, Any]:
             return decorate
 
     mcp = FakeMCP()
-    drupal_org.register_tools(mcp)  # type: ignore[arg-type]
+    drupal_org.register_tools(mcp, **deps)  # type: ignore[arg-type]
     return mcp.fns
 
 
@@ -416,3 +419,282 @@ async def test_module_compatibility_distinguishes_no_match_from_failure(monkeypa
     assert no["compatible"] is False
     assert no["release_count"] == 0
     assert "error" not in no
+
+
+# --- module_issues_search / module_popular / module_recommendation ----------
+
+
+def test_issue_keywords_drop_stopwords_and_short_words():
+    keywords = drupal_org._issue_keywords("The token is failing for my users!")
+
+    assert keywords == ["token", "failing", "users"]
+
+
+def test_score_issue_prefers_title_then_body_with_phrase_bonus():
+    keywords = ["token", "authentication"]
+
+    title_hit = drupal_org._score_issue(
+        "Token authentication fails on login", "", keywords, "token authentication fails on login"
+    )
+    body_hit = drupal_org._score_issue(
+        "Unrelated title", "the token breaks during authentication", keywords, "something else"
+    )
+    miss = drupal_org._score_issue("Totally unrelated", "", keywords, "something else")
+
+    assert title_hit >= 14  # two title keywords (2+2) + exact phrase bonus (10)
+    assert body_hit == 2  # both keywords, body weight only
+    assert miss == 0
+
+
+def test_version_compatible_matrix():
+    # Drupal-major-encoded versions are compared strictly.
+    assert drupal_org._version_compatible("10.3.x", "10") is True
+    assert drupal_org._version_compatible("10.3.x", "11") is False
+    assert drupal_org._version_compatible("11.x-1.x-dev", "10") is False
+    # Project-era branches ("6.3.x-dev") are not Drupal 6 claims: keep them.
+    assert drupal_org._version_compatible("6.3.x-dev", "10") is True
+    assert drupal_org._version_compatible("7.x-1.x", "10") is False
+    assert drupal_org._version_compatible("7.x-1.x", "7") is True
+    # Unknowns never filter.
+    assert drupal_org._version_compatible("", "10") is True
+    assert drupal_org._version_compatible("dev", "10") is True
+    assert drupal_org._version_compatible("10.3.x", None) is True
+
+
+def test_local_drupal_major_reads_core_version(tmp_path):
+    core = tmp_path / "core" / "lib"
+    core.mkdir(parents=True)
+    (core / "Drupal.php").write_text("<?php const VERSION = '10.2.3';")
+
+    assert drupal_org._local_drupal_major(str(tmp_path)) == "10"
+    assert drupal_org._local_drupal_major(str(tmp_path / "missing")) is None
+    assert drupal_org._local_drupal_major(None) is None
+
+
+def test_total_usage_sums_only_digit_release_lines():
+    node = {
+        "project_usage": {"5.x-1.x": 8, "8.x-5.x": "13161", "total": 999, "odd": "n/a"},
+    }
+
+    assert drupal_org._total_usage(node) == 13169
+    assert drupal_org._total_usage({}) == 0
+    assert drupal_org._total_usage({"project_usage": None}) == 0
+
+
+def test_match_category_exact_then_substring_then_none():
+    terms = [
+        {"tid": "104", "name": "E-commerce"},
+        {"tid": "20", "name": "Search engine optimization (SEO)"},
+    ]
+
+    assert drupal_org._match_category(terms, "e-commerce")["tid"] == "104"
+    assert drupal_org._match_category(terms, "SEO")["tid"] == "20"
+    assert drupal_org._match_category(terms, "blockchain") is None
+    assert drupal_org._match_category(terms, "   ") is None
+
+
+def _issue_node(**overrides: Any) -> dict[str, Any]:
+    node: dict[str, Any] = {
+        "title": "Default issue title",
+        "url": "https://www.drupal.org/node/1",
+        "field_issue_status": "1",
+        "field_issue_version": "10.x-1.x-dev",
+        "comment_count": 3,
+        "changed": 1700000000,
+        "body": {"value": "<p>Some body text</p>"},
+    }
+    node.update(overrides)
+    return node
+
+
+@pytest.mark.asyncio
+async def test_module_issues_search_scores_filters_and_links(monkeypatch):
+    async def fake_nid(name: str):
+        assert name == "webform"
+        return "7404"
+
+    async def fake_nodes(params, *, max_pages=1):
+        assert params["type"] == "project_issue"
+        assert params["field_project"] == "7404"
+        return [
+            _issue_node(
+                title="Token authentication fails during login",
+                url="https://www.drupal.org/node/111",
+                field_issue_status="3",
+            ),
+            _issue_node(
+                title="Token authentication broken",
+                field_issue_version="11.x-1.x-dev",
+            ),
+            _issue_node(title="Cosmetic tweak for icons"),
+        ]
+
+    monkeypatch.setattr(drupal_org, "_project_nid", fake_nid)
+    monkeypatch.setattr(drupal_org, "_node_list", fake_nodes)
+    fns = _tool_functions()
+
+    result = await fns["module_issues_search"](
+        "webform", "token authentication fails", 5, drupal_version="10"
+    )
+
+    assert result["keywords"] == ["token", "authentication", "fails"]
+    assert result["drupal_version"] == "10"
+    # The matching 10.x issue ranks first; the 11.x one is filtered out.
+    assert result["results"][0]["url"] == "https://www.drupal.org/node/111"
+    assert result["results"][0]["status"] == "Reviewed & tested by community"
+    assert len(result["results"]) == 1
+
+
+@pytest.mark.asyncio
+async def test_module_issues_search_falls_back_to_recent_when_no_keyword_matches(monkeypatch):
+    async def fake_nid(name: str):
+        return "7404"
+
+    async def fake_nodes(params, *, max_pages=1):
+        return [_issue_node(title="Cosmetic tweak for icons")]
+
+    monkeypatch.setattr(drupal_org, "_project_nid", fake_nid)
+    monkeypatch.setattr(drupal_org, "_node_list", fake_nodes)
+    fns = _tool_functions()
+
+    result = await fns["module_issues_search"]("webform", "quantum blockchain sync", 5)
+
+    assert result["count"] == 1
+    assert "recently updated" in result["note"]
+    assert result["results"][0]["title"] == "Cosmetic tweak for icons"
+
+
+@pytest.mark.asyncio
+async def test_module_issues_search_unknown_project_errors(monkeypatch):
+    async def fake_nid(name: str):
+        return None
+
+    monkeypatch.setattr(drupal_org, "_project_nid", fake_nid)
+    fns = _tool_functions()
+
+    result = await fns["module_issues_search"]("no_such_project_xyz", "anything")
+
+    assert "error" in result
+
+
+@pytest.mark.asyncio
+async def test_module_issues_search_ignores_a_filter_that_hides_everything(monkeypatch):
+    async def fake_nid(name: str):
+        return "7404"
+
+    async def fake_nodes(params, *, max_pages=1):
+        return [
+            _issue_node(title="Cosmetic tweak for icons", field_issue_version="11.x-1.x-dev"),
+            _issue_node(title="Another minor tweak", field_issue_version="12.x-dev"),
+        ]
+
+    monkeypatch.setattr(drupal_org, "_project_nid", fake_nid)
+    monkeypatch.setattr(drupal_org, "_node_list", fake_nodes)
+    fns = _tool_functions()
+
+    result = await fns["module_issues_search"]("webform", "quantum blockchain sync", 5, drupal_version="10")
+
+    assert result["count"] == 2
+    assert "the filter was ignored" in result["note"]
+
+
+@pytest.mark.asyncio
+async def test_module_popular_sorts_by_usage_and_drops_nameless(monkeypatch):
+    seen: dict[str, Any] = {}
+
+    async def fake_nodes(params, *, max_pages=1):
+        seen.update(params)
+        return [
+            {"field_project_machine_name": "small", "title": "Small", "url": "u1", "project_usage": {"7.x-1.x": 12}},
+            {"field_project_machine_name": "big", "title": "Big", "url": "u2", "project_usage": {"7.x-1.x": "900", "10.x-1.x": 100}},
+            {"title": "Nameless"},
+        ]
+
+    monkeypatch.setattr(drupal_org, "_node_list", fake_nodes)
+    fns = _tool_functions()
+
+    result = await fns["module_popular"](10)
+
+    assert [m["machine_name"] for m in result["results"]] == ["big", "small"]
+    assert result["results"][0]["usage"] == 1000
+    assert result["count"] == 2
+    assert result["category"] is None
+    assert "taxonomy_vocabulary_3" not in seen
+
+
+@pytest.mark.asyncio
+async def test_module_popular_resolves_category_to_tid(monkeypatch):
+    seen: dict[str, Any] = {}
+
+    async def fake_terms():
+        return [{"tid": "20", "name": "Search engine optimization (SEO)"}]
+
+    async def fake_nodes(params, *, max_pages=1):
+        seen.update(params)
+        return [{"field_project_machine_name": "xmlsitemap", "title": "XML sitemap", "url": "u", "project_usage": {"10.x-1.x": 5}}]
+
+    monkeypatch.setattr(drupal_org, "_category_terms", fake_terms)
+    monkeypatch.setattr(drupal_org, "_node_list", fake_nodes)
+    fns = _tool_functions()
+
+    result = await fns["module_popular"](5, category="seo")
+
+    assert result["category"] == "Search engine optimization (SEO)"
+    assert seen["taxonomy_vocabulary_3"] == "20"
+
+
+@pytest.mark.asyncio
+async def test_module_popular_unknown_category_lists_alternatives(monkeypatch):
+    async def fake_terms():
+        return [{"tid": "104", "name": "E-commerce"}]
+
+    async def fake_nodes(params, *, max_pages=1):  # pragma: no cover - must not run
+        raise AssertionError("node list should not be fetched for a bad category")
+
+    monkeypatch.setattr(drupal_org, "_category_terms", fake_terms)
+    monkeypatch.setattr(drupal_org, "_node_list", fake_nodes)
+    fns = _tool_functions()
+
+    result = await fns["module_popular"](5, category="blockchain")
+
+    assert "error" in result
+    assert result["available"] == ["E-commerce"]
+
+
+@pytest.mark.asyncio
+async def test_module_recommendation_combines_local_and_drupal_org(monkeypatch):
+    class FakeIndex:
+        def search_modules(self, query: str, limit: int = 5):
+            assert query == "oauth login"
+            return [{"machine_name": "custom_sso", "title": "Custom SSO", "source": "local"}]
+
+    async def fake_search(query: str):
+        return [
+            {"machine_name": "simple_oauth", "type": "module", "url": "https://www.drupal.org/project/simple_oauth"},
+            {"machine_name": "bootstrap", "type": "theme", "url": "https://www.drupal.org/project/bootstrap"},
+        ]
+
+    monkeypatch.setattr(drupal_org, "_search", fake_search)
+    fns = _tool_functions(codebase_service=FakeIndex())
+
+    result = await fns["module_recommendation"]("oauth login")
+
+    assert result["local_indexed"] is True
+    assert result["local_modules"][0]["machine_name"] == "custom_sso"
+    assert [m["machine_name"] for m in result["drupal_org_modules"]] == ["simple_oauth"]
+    assert "extending" in result["note"]
+
+
+@pytest.mark.asyncio
+async def test_module_recommendation_works_without_local_index(monkeypatch):
+    async def fake_search(query: str):
+        return [{"machine_name": "simple_oauth", "type": "module", "url": "u"}]
+
+    monkeypatch.setattr(drupal_org, "_search", fake_search)
+    fns = _tool_functions()
+
+    result = await fns["module_recommendation"]("oauth")
+
+    assert result["local_indexed"] is False
+    assert result["local_modules"] == []
+    assert result["drupal_org_modules"][0]["machine_name"] == "simple_oauth"

@@ -44,6 +44,19 @@ class Settings(BaseSettings):
     )
     DRUSH_ALIAS: str = Field(default="@self", description="Drush site alias")
 
+    # Local codebase analysis (codebase index, theme templates, local scans)
+    DRUPAL_ROOT: str | None = Field(
+        default=None,
+        description=(
+            "Local path to the Drupal codebase. Enables the codebase index, "
+            "hook/module search, theme template, and local file analysis tools."
+        ),
+    )
+    DRUPAL_MODULES_PATH: str = Field(
+        default="modules",
+        description="Modules directory relative to DRUPAL_ROOT ('web/modules' for composer installs)",
+    )
+
     # DDEV
     DDEV_BINARY: str = Field(default="ddev", description="Path to ddev executable")
 
