@@ -27,6 +27,7 @@ nav:
       - Installation: installation.md
       - Quickstart: quickstart.md
       - Configuration: configuration.md
+      - AI Coding Agents: agents.md
   - Tools:
       - Overview: tools/index.md
       - Content: tools/content.md

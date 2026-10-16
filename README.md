@@ -89,6 +89,27 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 }
 ```
 
+## AI Coding Agents
+
+Register the server with any MCP client in one command:
+
+```bash
+drupal-mcp install
+```
+
+It detects the agents on your machine — Claude Code, Claude Desktop, Cursor,
+Codex CLI, OpenCode, Windsurf, Pi, Hermes Agent and OpenClaw — gathers
+`DRUPAL_*` settings from `./.env` or the environment, and writes each client's
+config (preferring the client's own `mcp add` command when it has one).
+
+```bash
+drupal-mcp install --client claude-code --print   # preview without writing
+drupal-mcp install --command 'uvx drupal-mcp-server'  # run from PyPI, no install
+```
+
+See the [AI Coding Agents guide](docs/agents.md) for per-client copy-paste
+snippets, options, and caveats.
+
 ## Configuration
 
 ### Drupal connection

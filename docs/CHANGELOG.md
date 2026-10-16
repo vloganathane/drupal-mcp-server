@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add `drupal-mcp install`, a self-installer that registers the server with
+  local MCP clients (Claude Code, Claude Desktop, Cursor, Codex CLI,
+  OpenCode, Windsurf, Pi, Hermes Agent, OpenClaw), with `--print`/`--json`
+  for scripted setup and an AI Coding Agents guide
 - Add `moderation_transition_delete`, giving `moderation_transition_create` the
   counterpart it never had. The tool count is now 367
 - Add Lando support to SiteManager

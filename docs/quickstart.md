@@ -80,6 +80,7 @@ Restart Claude Desktop; the Drupal tools appear in the tool picker.
 
 ## Next steps
 
+- [AI Coding Agents](agents.md) — register with Claude Code, Cursor, Codex, OpenCode and more via `drupal-mcp install`
 - [Configuration](configuration.md) — authentication, Drush, AI providers, transport
 - [Tools](tools/index.md) — the full tool catalog by category
 - [Migration](migration.md) — end-to-end content migration between Drupal sites
