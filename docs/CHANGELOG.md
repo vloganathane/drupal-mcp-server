@@ -9,6 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Wave 4 of the drupal-scout-mcp port — 8 read-only theme analysis tools
+  (412 total, 41 modules): `theme_active` (default/admin/enabled themes
+  from `system.theme` + `pm:list`), `theme_info` (pm:list metadata merged
+  with a safe YAML parse of the theme's info.yml — regions in declaration
+  order, libraries, dependencies, and the base-theme chain followed
+  upward), `theme_regions` (regions with their block placements and
+  counts, empty regions visible, placements in regions the theme no
+  longer defines flagged), `theme_blocks` (every `block.block.*`
+  placement with theme/region/search filters — search matches labels and
+  plugins, folding scout's separate `search_blocks` into one tool),
+  `theme_templates` (pruned `*.html.twig` walk with sizes),
+  `theme_template_overrides` (one docroot-wide index splits templates
+  that shadow same-named core/module files from theme originals),
+  `template_suggestions` (the Twig suggestion chain per entity type, each
+  marked with whether the default theme already ships that file), and
+  `view_template_info` (the chain for a view display, looked up in the
+  JSON:API view collection by its machine id — Views config names differ
+  between Drupal generations, `view.*` on older sites and `views.view.*`
+  on Drupal 11.4+, so the entity collection is the stable source — with
+  an unknown display_id erroring with the display list and an unknown
+  view listing the ones the site has). Every file path resolves inside
+  DRUPAL_ROOT before a read — symlinks and `..` segments that leave the
+  docroot are rejected — and no caller input reaches a shell; theme
+  blocks come from JSON:API rather than scout's interpolated `drush ev`
+- The shared JSON:API helpers (`jsonapi_collect`, `jsonapi_attrs`,
+  `jsonapi_bundle`, `jsonapi_rel_ids`), `flag_label`, and the export
+  path/write helpers moved from the exports module into `_utils` so both
+  waves page collections and confine destinations the same way
 - Wave 3 of the drupal-scout-mcp port — 4 export tools (404 total, 40
   modules): `export_nodes`, `export_users`, `export_media`,
   `export_taxonomy` write CSV (UTF-8 with BOM) or Excel files

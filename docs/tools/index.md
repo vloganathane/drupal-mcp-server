@@ -1,8 +1,8 @@
 # Tools Reference
 
-Selected tools from the 404-tool catalog, documented with their parameters,
+Selected tools from the 412-tool catalog, documented with their parameters,
 return values, and errors. The complete list lives in the
-[README's Tools section](https://github.com/vloganathane/drupal-mcp-server#tools-404-total).
+[README's Tools section](https://github.com/vloganathane/drupal-mcp-server#tools-412-total).
 
 ## Content Management
 
@@ -259,3 +259,129 @@ owner, and the managed file's filename/URI, with a `media_type` filter;
 `safe_to_delete` verdict computed from one COUNT query per field storage
 targeting taxonomy terms (`vocabulary` filter, `include_usage=false` to
 skip the counts). All four accept `format="xlsx"` for an Excel workbook.
+
+## Theme Analysis
+
+Read-only theming inspection, the counterpart of the theme_dev tools that
+create things. Theme metadata comes from `drush pm:list` plus a YAML parse
+of the theme's own `info.yml`, block placements from the `block--block`
+JSON:API collection, and template walks resolve every path inside
+DRUPAL_ROOT first — symlinks and `..` segments that leave the docroot are
+rejected before any read. Tools that inspect files say so in their error
+when DRUPAL_ROOT is not configured.
+
+### theme_active
+
+**Parameters:** (none)
+
+**Returns:** `default`, `admin` (from `system.theme`), `enabled` (name,
+label, package, path, version per theme), `enabled_count`,
+`disabled_count`
+
+**Errors:**
+- `error` — Drush not available, or the theme list came back empty
+
+### theme_info / theme_regions
+
+**Parameters:**
+
+| Name | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `theme_name` | string | Yes | — | Theme machine name (e.g. 'olivero') |
+
+**Returns:** `theme_info` merges `pm:list` (status, version, path) with the
+parsed info.yml: `label`, `description`, `core_version_requirement`,
+`hidden`, `regions` (in declaration order), `libraries`, `dependencies`,
+and `base_theme` — the chain of parents followed upward as far as the
+site allows, each with `found: false` when a parent is not installed.
+`theme_regions` returns each region with `block_count` and its `blocks`
+(id, label, plugin, weight, status), `total_blocks`, and
+`blocks_in_unknown_regions` (placements whose region the info.yml no
+longer defines — they will not render).
+
+**Errors:**
+- `error` — invalid machine name, theme not installed (with `available`),
+  its directory or info.yml missing under DRUPAL_ROOT, or no JSON:API
+  client (`theme_regions` needs one for placements)
+
+### theme_blocks
+
+**Parameters:**
+
+| Name | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `theme_name` | string | No | — | Only this theme's placements |
+| `region` | string | No | — | Only this region (e.g. 'sidebar') |
+| `search` | string | No | — | 1–64 chars; case-insensitive substring of label or plugin |
+
+**Returns:** `blocks` (id, theme, region, label, plugin, weight, status,
+`visibility_rules` count), `total`, `filters` — sorted by theme, region,
+weight, label
+
+**Errors:**
+- `error` — invalid identifier, empty/oversized `search`, or no JSON:API
+  client
+
+### theme_templates / theme_template_overrides
+
+**Parameters:**
+
+| Name | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `theme_name` | string | Yes | — | Theme machine name |
+| `pattern` | string | No | — | `theme_templates` only: 1–64 char case-insensitive substring of the template name (e.g. 'node--', 'views') |
+
+**Returns:** `theme_templates` gives `count` and `templates`
+(docroot-relative `path` + `bytes`) plus `truncated` when the walk hit
+its file cap. `theme_template_overrides` indexes every Twig file in the
+docroot once (excluding the theme itself) and splits the theme's
+templates into `overrides` (same-named core/module files it shadows, with
+their `sources`) and `theme_only` (theme originals), alongside
+`docroot_templates_scanned`.
+
+**Errors:**
+- `error` — invalid machine name, bad pattern, theme not installed, its
+  directory missing, or DRUPAL_ROOT not configured
+
+### template_suggestions
+
+**Parameters:**
+
+| Name | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `entity_type` | string | Yes | — | e.g. 'node', 'block', 'taxonomy_term', 'user', 'field', 'page' |
+| `bundle` | string | No | — | e.g. 'article'; unknown entity types still get the generic chain |
+
+**Returns:** `suggestions` most-specific first (bracketed parts are
+placeholders Drupal fills in — `node--article--123.html.twig` beats
+`node--article.html.twig`), each with a `description` and
+`in_checked_theme`: whether the default theme already ships that file,
+so you know which name creating one would take effect. `checked_in` names
+the theme that was checked; when DRUPAL_ROOT is unset the check is
+skipped and a `note` says so instead of guessing.
+
+**Errors:**
+- `error` — invalid `entity_type` or `bundle`
+
+### view_template_info
+
+**Parameters:**
+
+| Name | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `view_name` | string | Yes | — | View machine name (from `views_list`) |
+| `display_id` | string | No | — | Display machine name; without it every display gets a suggestion |
+
+**Returns:** `label` and `displays` from the JSON:API view collection
+(the view's `drupal_internal__id` is the machine name, and the embedded
+`display` dict is the real one — Views config names differ between
+Drupal generations, `view.*` on older sites and `views.view.*` on
+Drupal 11.4+, so the entity collection is the stable source), then
+`suggestions` (`views-view--NAME--DISPLAY` → `views-view--NAME` →
+`views-view`, marked `in_checked_theme` against the default theme when
+DRUPAL_ROOT allows) and `checked_in`.
+
+**Errors:**
+- `error` — invalid identifier, no JSON:API client, view not found (with
+  the `available` views the site has), or an unknown `display_id` (with
+  the `displays` the view has)

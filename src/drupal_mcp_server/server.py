@@ -54,6 +54,7 @@ from drupal_mcp_server.tools import (
     status,
     taxonomy,
     testing,
+    theme_analysis,
     theme_dev,
     users,
     views,
@@ -102,7 +103,7 @@ def create_server(auth_manager: AuthManager | None = None) -> FastMCP:
         version=__version__,
         instructions="Drupal MCP Server - JSON:API, GraphQL, Drush, AI-powered migration.",
     )
-    for module in [analysis, migration, content, config_tools, devops, ai, taxonomy, users, database, views, paragraphs, menus, fields, revisions, redirects, scheduler, code_audit, codebase, security_audit, status, drupal_org, moderation, module_dev, theme_dev, layout_builder, search_api, multilingual, media_enhanced, pathauto, metatag, commerce, webform, headless, testing, accessibility, performance, contact, comments, feeds, exports]:
+    for module in [analysis, migration, content, config_tools, devops, ai, taxonomy, users, database, views, paragraphs, menus, fields, revisions, redirects, scheduler, code_audit, codebase, security_audit, status, drupal_org, moderation, module_dev, theme_dev, layout_builder, search_api, multilingual, media_enhanced, pathauto, metatag, commerce, webform, headless, testing, accessibility, performance, contact, comments, feeds, exports, theme_analysis]:
         module.register_tools(
             mcp, jsonapi_client=jsonapi_client, graphql_client=graphql_client,
             drush_client=drush_client, ai_service=ai_service, site_manager=site_manager,

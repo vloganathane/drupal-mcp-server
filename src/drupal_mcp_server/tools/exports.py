@@ -8,30 +8,25 @@ read-only SQL, and paths are confined to the Drupal root, the system
 temp directory, or the user's home directory.
 """
 
-import csv
 import json
-import tempfile
-from datetime import UTC, datetime
-from pathlib import Path
 from typing import Any
 
 from fastmcp import FastMCP
 
 from ..config import get_settings
 from ..validation import validate_identifier, validate_single_select
-from ._utils import sql_output, sql_rows
-
-# JSON:API accepts page sizes up to 200 on stock Drupal; larger pages are
-# clamped to the configured maximum, so the pager also treats an empty or
-# short page as the end rather than trusting the requested size.
-_PAGE = 200
-# Hard stop per bundle: 500 pages x 200 rows = 100,000 entities.
-_MAX_PAGES = 500
-# Per-value cap for the free-form `fields` column so one body value cannot
-# produce a multi-megabyte CSV row.
-_FIELD_CAP = 5000
-_PREVIEW_ROWS = 3
-_PREVIEW_CAP = 120
+from ._utils import (
+    cap_value,
+    flag_label,
+    jsonapi_attrs,
+    jsonapi_bundle,
+    jsonapi_collect,
+    jsonapi_rel_ids,
+    safe_export_path,
+    sql_output,
+    sql_rows,
+    write_file,
+)
 
 _NODE_COLUMNS = [
     "nid",
@@ -61,75 +56,6 @@ _TERM_COLUMNS = [
 ]
 
 
-def _attrs(item: dict[str, Any]) -> dict[str, Any]:
-    """The attributes object of a JSON:API resource, or an empty dict."""
-    attributes = item.get("attributes")
-    return attributes if isinstance(attributes, dict) else {}
-
-
-def _bundle(item: dict[str, Any]) -> str:
-    """Bundle machine name from a resource type like ``node--article``."""
-    type_name = str(item.get("type", ""))
-    return type_name.split("--", 1)[1] if "--" in type_name else ""
-
-
-def _rel_ids(item: dict[str, Any], relationship: str) -> list[str]:
-    """UUIDs referenced by one relationship (single or to-many)."""
-    relationships = item.get("relationships")
-    rel = relationships.get(relationship) if isinstance(relationships, dict) else None
-    if not isinstance(rel, dict):
-        return []
-    data = rel.get("data")
-    if isinstance(data, dict):
-        return [str(data.get("id"))] if data.get("id") else []
-    if isinstance(data, list):
-        return [str(row.get("id")) for row in data if isinstance(row, dict) and row.get("id")]
-    return []
-
-
-async def _collect(
-    jsonapi: Any,
-    resource_type: str,
-    params: dict[str, Any],
-    max_items: int = 0,
-) -> tuple[list[dict[str, Any]], dict[str, dict[str, Any]], bool]:
-    """Page through one bundle collection.
-
-    Returns ``(items, included-by-uuid, stopped-early)``; stopped-early is
-    set when the item budget or the page cap ended the scan. Pagination
-    runs per bundle: the JSON:API endpoint for a bare entity type merges
-    every bundle behind one shared offset, which would silently skip rows
-    when the pager walked the merged list. ``max_items`` is a fetch
-    budget; callers trim to their exact row budget themselves.
-    """
-    items: list[dict[str, Any]] = []
-    included: dict[str, dict[str, Any]] = {}
-    offset = 0
-    for _ in range(_MAX_PAGES):
-        if max_items and len(items) >= max_items:
-            return items, included, True
-        page_params: dict[str, Any] = {
-            **params,
-            "page[limit]": str(_PAGE),
-            "page[offset]": str(offset),
-        }
-        doc = await jsonapi.get_resource(resource_type, page_params)
-        rows = doc.get("data") if isinstance(doc, dict) else None
-        if not isinstance(rows, list) or not rows:
-            break
-        items.extend(row for row in rows if isinstance(row, dict))
-        if isinstance(doc, dict):
-            for extra in doc.get("included") or []:
-                if isinstance(extra, dict) and extra.get("id"):
-                    included[str(extra["id"])] = extra
-        if len(rows) < _PAGE:
-            break
-        offset += len(rows)
-    else:
-        return items, included, True
-    return items, included, False
-
-
 async def _bundles(jsonapi: Any, type_resource: str) -> list[str]:
     """Bundle machine names from a config-entity collection (node_type etc.).
 
@@ -144,139 +70,13 @@ async def _bundles(jsonapi: Any, type_resource: str) -> list[str]:
         for row in rows:
             if not isinstance(row, dict):
                 continue
-            attrs = _attrs(row)
+            attrs = jsonapi_attrs(row)
             for key in ("drupal_internal__type", "drupal_internal__vid", "drupal_internal__id"):
                 value = attrs.get(key)
                 if isinstance(value, str) and value and validate_identifier(value, "bundle") is None:
                     names.append(value)
                     break
     return sorted(set(names))
-
-
-def _flag(value: Any, positive: str, negative: str) -> str:
-    """Status cell that stays empty when the value was not readable.
-
-    An absent status must never be presented as "unpublished" or
-    "blocked": not knowing and knowing it is false are different facts.
-    """
-    if value is None:
-        return ""
-    return positive if value else negative
-
-
-def _cap(value: Any) -> Any:
-    """Cap every string in a JSON-ish value at `_FIELD_CAP` characters."""
-    if isinstance(value, str):
-        if len(value) <= _FIELD_CAP:
-            return value
-        return value[:_FIELD_CAP] + "...[truncated]"
-    if isinstance(value, dict):
-        return {key: _cap(inner) for key, inner in value.items()}
-    if isinstance(value, list):
-        return [_cap(inner) for inner in value]
-    return value
-
-
-def _preview_value(value: Any) -> Any:
-    """Shorten one preview cell so the response stays tiny."""
-    if isinstance(value, str) and len(value) > _PREVIEW_CAP:
-        return value[:_PREVIEW_CAP] + "..."
-    return value
-
-
-def _safe_export_path(
-    requested: str | None, default_stem: str, fmt: str, drupal_root: str | None
-) -> tuple[Path | None, str | None]:
-    """Resolve the destination, confined to safe roots.
-
-    Allowed roots: the Drupal root, the system temp directory, and the
-    user's home directory. The path is resolved first, so `..` segments
-    and symlinks that leave a safe root are rejected rather than followed.
-    """
-    suffix = ".xlsx" if fmt == "xlsx" else ".csv"
-    if requested is not None:
-        if not requested.strip():
-            return None, "output_path is empty"
-        path = Path(requested.strip()).expanduser()
-        if path.suffix.lower() not in (".csv", ".xlsx"):
-            return None, f"output_path must end in .csv or .xlsx (got {path.name!r})"
-        if path.suffix.lower() != suffix:
-            return None, f"output_path ends in {path.suffix!r} but format is {fmt!r}; make them match"
-    else:
-        stamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
-        if drupal_root:
-            base = Path(drupal_root) / "exports"
-        else:
-            base = Path(tempfile.gettempdir()) / "drupal-mcp-exports"
-        path = base / f"{default_stem}_{stamp}{suffix}"
-    try:
-        resolved = path.resolve()
-    except OSError as exc:
-        return None, f"Cannot resolve output_path: {exc}"
-    roots = [Path(tempfile.gettempdir()).resolve(), Path.home().resolve()]
-    if drupal_root:
-        roots.append(Path(drupal_root).resolve())
-    for root in roots:
-        if resolved == root or resolved.is_relative_to(root):
-            return resolved, None
-    return None, (
-        f"output_path must live inside the Drupal root, {tempfile.gettempdir()}, or your home "
-        f"directory (got {resolved})"
-    )
-
-
-def _write_file(
-    path: Path, columns: list[str], rows: list[list[Any]], fmt: str
-) -> dict[str, Any]:
-    """Write rows to CSV/XLSX; returns the file statistics or an error."""
-    try:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        if fmt == "xlsx":
-            # Imported lazily: CSV is the common case and should not pay
-            # for an Excel library at import time.
-            from openpyxl import Workbook
-
-            workbook = Workbook(write_only=True)
-            sheet = workbook.create_sheet("export")
-            sheet.append(columns)
-            for row in rows:
-                sheet.append(["" if value is None else value for value in row])
-            workbook.save(path)
-        else:
-            # utf-8-sig: a BOM so Excel detects UTF-8 and keeps accented
-            # titles intact; other readers skip it.
-            with path.open("w", newline="", encoding="utf-8-sig") as handle:
-                writer = csv.writer(handle)
-                writer.writerow(columns)
-                for row in rows:
-                    writer.writerow(["" if value is None else value for value in row])
-    except ImportError:
-        return {
-            "error": (
-                "openpyxl is not installed; it is a normal dependency of drupal-mcp-server, so "
-                "reinstall the package (or use format='csv')"
-            )
-        }
-    except OSError as exc:
-        return {"error": f"Could not write {path}: {exc}"}
-    return {
-        "file_path": str(path),
-        "rows": len(rows),
-        "columns": len(columns),
-        "file_size_kb": round(path.stat().st_size / 1024, 1),
-        "preview": [
-            {name: _preview_value(value) for name, value in zip(columns, row, strict=True)}
-            for row in rows[:_PREVIEW_ROWS]
-        ],
-    }
-
-
-def _drupal_root() -> str | None:
-    """Configured Drupal root, or None when the server does not know one."""
-    try:
-        return get_settings().DRUPAL_ROOT
-    except Exception:
-        return None
 
 
 async def _taxonomy_usage(
@@ -307,7 +107,7 @@ async def _taxonomy_usage(
     for storage in rows:
         if not isinstance(storage, dict):
             continue
-        attrs = _attrs(storage)
+        attrs = jsonapi_attrs(storage)
         settings = attrs.get("settings")
         target_type = settings.get("target_type") if isinstance(settings, dict) else None
         if target_type != "taxonomy_term":
@@ -349,6 +149,14 @@ async def _taxonomy_usage(
             + "; usage totals exclude them."
         )
     return counts, used_in, note
+
+
+def _drupal_root() -> str | None:
+    """Configured Drupal root, or None when the server does not know one."""
+    try:
+        return get_settings().DRUPAL_ROOT
+    except Exception:
+        return None
 
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
@@ -411,7 +219,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 truncated = True
                 break
             remaining = max(limit - len(rows), 0) if limit else 0
-            items, page_included, hit_cap = await _collect(
+            items, page_included, hit_cap = await jsonapi_collect(
                 jsonapi, f"node--{bundle}", params, remaining
             )
             truncated = truncated or hit_cap
@@ -421,7 +229,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 if row is None:
                     skipped += 1
                     continue
-                if not include_unpublished and not _attrs(item).get("status"):
+                if not include_unpublished and not jsonapi_attrs(item).get("status"):
                     continue
                 rows.append(row)
         if limit and len(rows) > limit:
@@ -482,7 +290,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not isinstance(limit, int) or isinstance(limit, bool) or limit < 0 or limit > 100000:
             return {"error": "limit must be an integer between 0 and 100000 (0 = no cap)"}
 
-        items, included, truncated = await _collect(
+        items, included, truncated = await jsonapi_collect(
             jsonapi, "user--user", {"include": "roles"}, limit
         )
         rows: list[list[Any]] = []
@@ -559,7 +367,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 truncated = True
                 break
             remaining = max(limit - len(rows), 0) if limit else 0
-            items, page_included, hit_cap = await _collect(
+            items, page_included, hit_cap = await jsonapi_collect(
                 jsonapi, f"media--{bundle}", {"include": "field_media_file,uid"}, remaining
             )
             truncated = truncated or hit_cap
@@ -665,7 +473,7 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 truncated = True
                 break
             remaining = max(limit - len(rows), 0) if limit else 0
-            items, page_included, hit_cap = await _collect(jsonapi, item_type, {}, remaining)
+            items, page_included, hit_cap = await jsonapi_collect(jsonapi, item_type, {}, remaining)
             truncated = truncated or hit_cap
             included.update(page_included)
             for item in items:
@@ -707,20 +515,20 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
 def _node_row(
     item: dict[str, Any], included: dict[str, dict[str, Any]], include_fields: bool
 ) -> list[Any] | None:
-    attrs = _attrs(item)
+    attrs = jsonapi_attrs(item)
     nid = attrs.get("drupal_internal__nid")
     if nid is None:
         return None
-    author_ids = _rel_ids(item, "uid")
-    author_attrs = _attrs(included[author_ids[0]]) if author_ids and author_ids[0] in included else {}
+    author_ids = jsonapi_rel_ids(item, "uid")
+    author_attrs = jsonapi_attrs(included[author_ids[0]]) if author_ids and author_ids[0] in included else {}
     path = attrs.get("path")
     alias = path.get("alias") if isinstance(path, dict) else None
     row: list[Any] = [
         nid,
         item.get("id"),
-        _bundle(item),
+        jsonapi_bundle(item),
         attrs.get("title"),
-        _flag(attrs.get("status"), "published", "unpublished"),
+        flag_label(attrs.get("status"), "published", "unpublished"),
         attrs.get("created"),
         attrs.get("changed"),
         attrs.get("langcode"),
@@ -739,27 +547,27 @@ def _node_row(
             "langcode",
             "path",
         }
-        extra = {key: _cap(value) for key, value in attrs.items() if key not in consumed}
+        extra = {key: cap_value(value) for key, value in attrs.items() if key not in consumed}
         row.append(json.dumps(extra, ensure_ascii=False, default=str))
     return row
 
 
 def _user_row(item: dict[str, Any], included: dict[str, dict[str, Any]]) -> list[Any] | None:
-    attrs = _attrs(item)
+    attrs = jsonapi_attrs(item)
     uid = attrs.get("drupal_internal__uid")
     if uid is None:
         return None
     role_names: list[str] = []
-    for role_id in _rel_ids(item, "roles"):
+    for role_id in jsonapi_rel_ids(item, "roles"):
         role = included.get(role_id)
-        role_attrs = _attrs(role) if role else {}
-        label = role_attrs.get("label") or role_attrs.get("name") or (_bundle(role) if role else None)
+        role_attrs = jsonapi_attrs(role) if role else {}
+        label = role_attrs.get("label") or role_attrs.get("name") or (jsonapi_bundle(role) if role else None)
         role_names.append(str(label) if label else role_id)
     return [
         uid,
         attrs.get("name"),
         attrs.get("mail"),
-        _flag(attrs.get("status"), "active", "blocked"),
+        flag_label(attrs.get("status"), "active", "blocked"),
         ", ".join(role_names),
         attrs.get("created"),
         attrs.get("access"),
@@ -769,12 +577,12 @@ def _user_row(item: dict[str, Any], included: dict[str, dict[str, Any]]) -> list
 
 
 def _media_row(item: dict[str, Any], included: dict[str, dict[str, Any]]) -> list[Any] | None:
-    attrs = _attrs(item)
+    attrs = jsonapi_attrs(item)
     mid = attrs.get("drupal_internal__mid")
     if mid is None:
         return None
-    owner_ids = _rel_ids(item, "uid")
-    owner_attrs = _attrs(included[owner_ids[0]]) if owner_ids and owner_ids[0] in included else {}
+    owner_ids = jsonapi_rel_ids(item, "uid")
+    owner_attrs = jsonapi_attrs(included[owner_ids[0]]) if owner_ids and owner_ids[0] in included else {}
     filename: Any = None
     uri: Any = None
     relationships = item.get("relationships")
@@ -782,18 +590,18 @@ def _media_row(item: dict[str, Any], included: dict[str, dict[str, Any]]) -> lis
         for relationship in relationships:
             if filename is not None:
                 break
-            for rel_id in _rel_ids(item, relationship):
+            for rel_id in jsonapi_rel_ids(item, relationship):
                 resource = included.get(rel_id)
                 if resource and str(resource.get("type", "")).startswith("file--"):
-                    file_attrs = _attrs(resource)
+                    file_attrs = jsonapi_attrs(resource)
                     filename = file_attrs.get("filename")
                     uri = file_attrs.get("uri")
                     break
     return [
         mid,
-        _bundle(item),
+        jsonapi_bundle(item),
         attrs.get("name"),
-        _flag(attrs.get("status"), "active", "disabled"),
+        flag_label(attrs.get("status"), "active", "disabled"),
         attrs.get("created"),
         attrs.get("changed"),
         owner_attrs.get("name"),
@@ -808,7 +616,7 @@ def _term_row(
     used_in: dict[str, list[str]] | None,
     verdict_ok: bool,
 ) -> list[Any] | None:
-    attrs = _attrs(item)
+    attrs = jsonapi_attrs(item)
     tid = attrs.get("drupal_internal__tid")
     if tid is None:
         return None
@@ -824,11 +632,11 @@ def _term_row(
         safe = "" if not verdict_ok else ("yes" if count == 0 else "no")
     return [
         tid,
-        _bundle(item),
+        jsonapi_bundle(item),
         attrs.get("name"),
         attrs.get("description"),
         attrs.get("weight"),
-        _flag(attrs.get("status"), "active", "disabled"),
+        flag_label(attrs.get("status"), "active", "disabled"),
         count,
         fields,
         safe,
@@ -843,8 +651,8 @@ def _finish_export(
     rows: list[list[Any]],
     drupal_root: str | None,
 ) -> dict[str, Any]:
-    path, error = _safe_export_path(output_path, default_stem, fmt, drupal_root)
+    path, error = safe_export_path(output_path, default_stem, fmt, drupal_root)
     if error:
         return {"error": error}
     assert path is not None
-    return _write_file(path, columns, rows, fmt)
+    return write_file(path, columns, rows, fmt)
