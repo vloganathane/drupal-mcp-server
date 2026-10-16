@@ -1,0 +1,1724 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="MCP server for Drupal operations - JSON:API, GraphQL, Drush, AI-powered migration">
+      
+      
+        <meta name="author" content="Loganathane V">
+      
+      
+      
+        <link rel="prev" href="../adr/0004-http-transport/">
+      
+      
+        <link rel="next" href="../SECURITY/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Changelog - Drupal MCP Server</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#changelog" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Drupal MCP Server" class="md-header__button md-logo" aria-label="Drupal MCP Server" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Drupal MCP Server
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Changelog
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Drupal MCP Server" class="md-nav__button md-logo" aria-label="Drupal MCP Server" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Drupal MCP Server
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tools
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tools
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/content/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Content
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/users/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Users
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/devops/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DevOps
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CONTRIBUTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docstring_standard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docstring Standard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_4" id="__nav_5_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADRs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ADRs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/0001-use-fastmcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0001 FastMCP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/0002-pydantic-settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0002 Pydantic Settings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/0003-subprocess-drush/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0003 Subprocess Drush
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/0004-http-transport/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0004 HTTP Transport
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Project
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#unreleased" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [Unreleased]
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[Unreleased]">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010-2026-10-13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.1.0] - 2026-10-13
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.1.0] - 2026-10-13">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SECURITY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CODE_OF_CONDUCT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code of Conduct
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#unreleased" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [Unreleased]
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[Unreleased]">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010-2026-10-13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.1.0] - 2026-10-13
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.1.0] - 2026-10-13">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="changelog">Changelog<a class="headerlink" href="#changelog" title="Permanent link">&para;</a></h1>
+<p>All notable changes to this project will be documented in this file.</p>
+<p>The format is based on <a href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a>,
+and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
+<h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
+<h3 id="security">Security<a class="headerlink" href="#security" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Fix command injection vulnerabilities in code audit and security audit tools</li>
+<li>Fix SQL injection in database query tools</li>
+<li>Fix path traversal in media upload tool</li>
+<li>Add input validation for URLs, queue names, and file paths</li>
+<li>Add authentication check to /mcp/tools/list endpoint</li>
+</ul>
+<h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Add <code>moderation_transition_delete</code>, giving <code>moderation_transition_create</code> the
+  counterpart it never had. The tool count is now 367</li>
+<li>Add Lando support to SiteManager</li>
+<li>Add subprocess timeout to DrushClient</li>
+<li>Add OAuth token fetching to AuthManager</li>
+<li>Create shared tools/_utils.py with ensure_dict, validate_pagination, build_pagination_params</li>
+<li>Add pagination validation to list tools</li>
+<li>Add input validation to accessibility and performance tools</li>
+<li>Add LICENSE, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md</li>
+<li>Add GitHub issue and PR templates</li>
+</ul>
+<h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Correct what the sweep asks for, not just how it reads the answer. Every
+  parameter ending in <code>id</code> had been answered with the fixture node's id, so
+  <code>view_id</code>, <code>menu_id</code>, <code>webform_id</code> and eighty-odd others were all sent one
+  node number and answered a lookup miss: <strong>84 of 174 refusals</strong> in the run
+  before this were the harness asking the wrong question, not tools refusing,
+  and a miss says nothing about whether a tool works. Of 367 tools, 192 declare
+  no id-shaped parameter, 93 read-only ones now get a real id for their own
+  resource — with the tool's own name deciding where one parameter covers
+  several, since <code>config_id</code> is a field config, a metatag config or a search
+  index depending on who is asking — and 82 mutating ones deliberately keep
+  junk ids, because <code>views_update</code> with a real view id would save the view back
+  with the harness's synthesised arguments and every later <code>views_execute</code>
+  would then run against a view this run broke. The remaining 8 read-only tools
+  keep junk because the site has no such entity to name. The fixture node also
+  re-checks and re-provisions itself: <code>delete_node</code> runs mid-sweep and took the
+  node with it, which alone 404'd <code>revision_list</code>, <code>revision_get</code>,
+  <code>revision_revert</code>, <code>revision_diff</code>, <code>translation_status</code>, <code>translation_add</code>,
+  <code>moderation_transition_execute</code>, <code>layout_builder_override_remove</code> and
+  <code>accessibility_aria_validate</code></li>
+<li>Keep <code>feeds_log_list</code> an explicit refusal rather than implement it. Feeds 3.x
+  has no log table, no <code>feeds*</code> service and no log entity to read, so there is
+  nothing behind it to query; the tool names <code>imports_import_status</code>, which does
+  answer, instead of returning an empty list that would read as "no log entries"</li>
+<li>
+<p>Definitive full re-sweep (OK 195 / REJECTED 156 / BLOCKED 7 /
+  UPSTREAM 4 / DEAD 0 / SKIPPED 5, 367 total); no tool that used to work
+  regressed and nothing is dead. Harness follow-up fixes (<code>entity_id</code> and
+  revision-id handling) pushed six more tools past their lookup so they reach
+  their own logic, where they report honestly.</p>
+</li>
+<li>
+<p>Re-sweep all 366 tools against the provisioned site. BLOCKED fell from 71 to
+  5, OK rose from 156 to 181, and nothing is dead. 25 tools that could not be
+  reached at all now run; 41 reach Drupal and are turned away with a reason
+  instead of stopping at a 404. The five still BLOCKED are two <code>feeds_feed</code>
+  tools needing a feed type with a <code>feeds_item</code> field, two <code>moderation_state</code>
+  tools for a resource Drupal never exposes, and <code>split_config</code> needing a
+  <code>./config/sync</code> directory. The one UPSTREAM is <code>revision_delete</code>, since
+  JSON:API has no revision collection endpoint</p>
+</li>
+<li>Correct the sweep's own accounting. Six tools — <code>translation_add</code>,
+  <code>translation_update</code>, the three <code>interface_translation_*</code> tools and
+  <code>config_translation_add</code> — were reported OK on every run while never being
+  called once. When arguments fail FastMCP's validation the answer is prose
+  rather than JSON, and nothing in the classifier matched it, so the
+  fall-through said pass; the server logged <code>missing_argument</code> for each and
+  the report showed a green result. A refused call now counts as refused,
+  through the SDK's own <code>isError</code> signal rather than a guess at wording. The
+  sweep also stopped filling <code>langcode</code> with a junk value (JSON:API
+  write-protects that field on a multilingual site whatever it says, so
+  <code>create_term</code> answered 403 about a permission instead of running),
+  started giving <code>ddev_exec</code> a command the container has, gave
+  <code>drush_watchdog</code> the enum and the number drush wants, and names a queue
+  that exists</li>
+<li>Provision the live test site with the modules the tools assume are there:
+  media, comment, contact, language, config_translation, workflows,
+  content_moderation and commerce plus its submodules from core and contrib,
+  and token, pathauto, redirect, metatag, paragraphs, search_api, facets,
+  webform, feeds and graphql from drupal.org, with phpstan, drupal-check,
+  phpcodesniffer and coder for the code-quality tools. Drupal's entity types
+  went from 26 to 78 and the JSON:API index from 27 resources to 76, which
+  turned most of the sweep's BLOCKED bucket into a real verdict. The site is
+  also multilingual now -- English and French -- because a single-language site
+  cannot exercise translation behaviour, and that is what surfaced the langcode
+  bug below</li>
+<li>
+<p>Add three live suites. <code>tests/live/install_modules.py</code> provisions the modules
+  the sweep needs using the server's own <code>composer_require</code> and <code>drush_command</code>
+  tools, so bootstrapping the site is also a test of them; <code>resource_check.py</code>
+  asks Drupal for the entity types it knows and flags any resource name our
+  tools ask for that cannot exist, which is how the <code>views_view</code> and
+  <code>moderation_state</code> bugs were found; <code>mcp_call.py</code> is a one-call driver for
+  operating the site through the server instead of a shell</p>
+</li>
+<li>
+<p>Gate CI coverage on the code testable offline (non-tool core ≥70%) instead of
+  the total: 86% of statements live in the tool modules, which only a live sweep
+  can exercise, so a single total threshold is unreachable by construction.
+  <code>coverage.xml</code> is now actually generated, which the Codecov step already
+  required with <code>fail_ci_if_error: true</code></p>
+</li>
+<li>Extend <code>layout_builder_override_remove</code> with an optional <code>entity_id</code>, since an
+  override belongs to an entity and the old signature could never name one</li>
+<li>Document what live testing found, and how a failure arrives, in
+  <code>tests/live/README.md</code> and the README's Development section</li>
+<li>Extract _ensure_dict from 35+ tool modules into shared utility</li>
+<li>Remove duplicate service implementations (ai.py, migration.py, site.py)</li>
+<li>Clean up unused imports across all tool modules</li>
+<li>Update ARTIFACT.md to reflect actual project state</li>
+</ul>
+<h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Make an issued OAuth token worth issuing. HTTP transport with OAuth enabled
+  refused everyone: <code>load_access_token</code> returned the dict the token was stored
+  in where the declared type is FastMCP's <code>AccessToken</code>, so the first thing the
+  bearer middleware did with a good token -- <code>auth_info.expires_at</code> -- raised
+  <code>AttributeError: 'dict' object has no attribute 'expires_at'</code> and the request
+  was refused exactly as a forged one would be. That made the defect invisible
+  by construction, because the fail-closed path and the fail-for-everyone path
+  are the same 401: the only OAuth behaviour anyone had ever observed was the
+  reassuring one, and the 401 that read as security working was also masking an
+  unusable transport. <code>expires_at</code> was stored as a float from <code>time.time()</code>
+  while <code>AccessToken.expires_at</code> is an int, so pydantic would have refused it
+  regardless. Verified three ways -- unit tests over authorize/exchange/load,
+  an ASGI test against FastMCP's real HTTP app (401 unauthenticated, 200 for
+  the issued token, 401 for a forged one), and a replay of the old
+  implementation that reproduces the AttributeError</li>
+<li>Implement twelve tools that refused or had never been written. The five
+  <code>moderation_transition_*</code> tools all read <code>$wf-&gt;get("transitions")</code>, a key the
+  workflow entity has never had — transitions live on
+  <code>Workflow::getTypePlugin()-&gt;getTransitions()</code> — so <code>list</code> answered
+  <code>count: 0</code> against a five-transition workflow, which reads as a pass because
+  an empty list is not an error, <code>get</code> reported "No transition with id 7" for a
+  transition present by name, and <code>execute</code>, <code>create</code> and the new <code>delete</code> were
+  unreachable behind the same mistake. The four <code>interface_translation_*</code> tools
+  read <code>TranslationString::getLanguage()</code> and <code>getTranslation()</code>, methods that
+  class does not have; they now go through <code>locale.storage</code>, and a live round
+  trip verified the list (13666 French rows, with search and context filters),
+  add, update and delete, including a source string carrying a non-ASCII
+  character and a <code>$</code>. Writing a translation also dispatches
+  <code>LocaleEvents::SAVE_TRANSLATION</code> through <code>_locale_refresh_translations()</code>,
+  which invalidates the <code>locale</code> cache tag every <code>LocaleLookup</code> row depends on
+  — <code>invalidateByPrefix</code> and <code>cache_clear_all</code> do not exist in Drupal 11. The
+  three <code>webform_handler_*</code> tools answered <code>absent_entity</code> because they had
+  never been written; they now use <code>plugin.manager.webform.handler</code> with
+  <code>Webform::addWebformHandler</code> / <code>updateWebformHandler</code> / <code>deleteWebformHandler</code>,
+  take <code>webform_id</code> to disambiguate a handler id that is unique per webform
+  rather than site-wide, replace configuration keys whole so omitted ones keep
+  their current values, and locate handlers through
+  <code>getHandlers()-&gt;getInstanceIds()</code> instead of <code>Webform::getHandler()</code>, which
+  throws <code>PluginNotFoundException</code> for an unseen id rather than returning NULL.
+  A <code>contact</code> form started this with two handlers and ended with two after a
+  full create/update/delete — the point of a round trip</li>
+<li>Hand structured values to <code>php:eval</code> as base64 rather than as JSON, which is
+  not PHP: it emits <code>\uXXXX</code> and PHP has no such escape, so non-ASCII mangles
+  silently; <code>$</code> interpolates into the code; and <code>{"k":1}</code> is a parse error.
+  <code>_utils.php_text()</code> and <code>php_json()</code> carry a string as <code>base64_decode(...)</code>
+  and an array as <code>json_decode(base64_decode(...), TRUE)</code></li>
+<li>Stop chasing the login redirect to a URL the site invented. Drupal answers a
+  good login with 303 to the account page, built from the scheme and host it
+  saw the request arrive on, so when the site reported itself as plain <code>http</code>
+  while the client was on HTTPS the redirect was fetched as HTTP against a TLS
+  port, nginx answered 400, and the session cookie that same response had just
+  issued was discarded — leaving only a startup warning. Every write then fell
+  back to basic auth, which Drupal's mutating endpoints reject, on any site
+  whose self-issued URL disagrees with the client's behind a proxy or a
+  misconfigured base_url. The POST is no longer followed, because only its
+  status and its cookie were ever wanted; bad credentials still fail, since
+  Drupal refuses them with 200 and no cookie</li>
+<li>Make the sweep follow the site's links on the origin it was given. Drupal
+  answers <code>http://</code> when reached through a port-mapped HTTPS endpoint, and the
+  harness followed those verbatim — plain HTTP to a TLS listener, which nginx
+  refuses with 400 — so a whole run died before calling a single tool.
+  <code>filter_check.py</code> hardcoded its base URL while every other live script honours
+  <code>DRUPAL_BASE_URL</code>, so it could not be pointed at all</li>
+<li>Ask whether a node exists in a way JSON:API can answer. The check built the
+  resource <em>name</em> into the path (<code>/jsonapi/node--article/7</code>, where the resource
+  lives at <code>/jsonapi/node/article</code>) and asked for an internal id where rows are
+  addressed by uuid, so it 404'd for nodes that exist and reported every fixture
+  as gone — which would have had the harness re-provisioning on every check
+  instead of only when <code>delete_node</code> removed one</li>
+<li>Make three tools answer with the reason instead of a bare error.
+  <code>views_execute</code> could never have run: it asked for a <code>views.views</code> service
+  that does not exist (the executable is built from the view's config entity by
+  <code>views.executable</code>), read the row's entity through a magic property that
+  <code>isset()</code> always reports as absent, and took no care over the display. It now
+  loads the view, checks the display against the ones the view actually has --
+  reporting the rest when the caller's is wrong -- and reads <code>_entity</code>.
+  <code>graphql_query</code> and <code>graphql_schema_get</code> returned a raw 404 whenever the site
+  had no GraphQL server, which is the state a plain install leaves it in, since
+  the module ships no default; they now say that, and name the config entity
+  and the permission that fix it. <code>paragraphs_item_list</code> returned a bare 404
+  for a bundle that does not exist, which reads as "paragraphs are missing"
+  rather than "that type is not configured here"; it now lists the types the
+  site does have</li>
+<li>Fix eleven hard-coded JSON:API filters that Drupal rejected outright, each
+  returning an empty result on every call on every site. <code>commerce_product</code>,
+  <code>commerce_promotion</code> and <code>commerce_shipping_method</code> filtered on <code>store</code> where
+  the field is the plural <code>stores</code>, and <code>commerce_order</code> on <code>store</code> where it is
+  the <code>store_id</code> reference; all four needed the <code>.id</code> specifier that entity
+  references require. <code>webform_submission</code> filtered on <code>webform</code> where the field
+  is <code>webform_id</code>, also a reference. <code>paragraphs_item_list</code> filtered on
+  <code>paragraphs_type</code>, which is not a field at all -- a paragraph's type is its
+  bundle, so it now addresses <code>paragraph--{type}</code>. <code>pathauto_pattern_list</code>
+  filtered on <code>entity_type</code> and <code>bundle</code>, which live in a pattern's id as
+  <code>{entity_type}--{bundle}</code>, so it now filters on <code>id</code> when it has both.
+  <code>comments_thread_list</code> filtered on <code>pid</code> for top-level comments, but <code>pid</code> is
+  a reference to the parent comment, so it 400'd -- and <code>pid.id = 0</code> would have
+  returned nothing, since no comment has id 0; the whole thread is returned now,
+  with each row's <code>pid</code> available for building the tree. <code>facets_facet_list</code>
+  filtered on <code>index</code>, but a facet attaches to a facet source rather than to an
+  index, so it lists facets and reports their <code>facet_source_id</code></li>
+<li>Stop sending <code>langcode: "en"</code> in create payloads. Four tools did this. It is
+  harmless on a single-language site, but once a second language exists the
+  field is writable only with translation permission, so every create failed
+  403 "the current user is not allowed to POST the selected field (langcode)" --
+  including an ordinary authenticated user creating a term in the site's own
+  language. The field is now sent only when the caller asks for a language</li>
+<li>Fix <code>drush_command</code> option rendering, which made every confirmation-answering
+  call fail. Boolean options were emitted as <code>--key=value</code>, but drush flags take
+  no value, so <code>options={"yes": True}</code> -- the documented way to install a module
+  -- was rejected with "The --yes option does not accept a value" and nothing
+  was installed while the tool reported success. A <code>False</code> was worse: it emitted
+  the bare flag, so asking <em>not</em> to confirm silently suppressed confirmation on
+  destructive commands. Zero-valued options were also mangled, <code>--count=0</code>
+  becoming a bare <code>--count</code>. Booleans are now bare flags, <code>False</code> omits the
+  option, and everything else keeps its value</li>
+<li>Return an <code>error</code> from <code>drush_command</code> when Drush exits non-zero. It handed
+  back the raw result with no <code>error</code> key, so the generic escape hatch -- the
+  tool an agent reaches for first -- still presented a failed command as an
+  empty success, even though <code>ensure_dict</code> already fixed this for the 224
+  specialised call sites</li>
+<li>Split several packages in <code>composer_require</code>. They arrived as one argv token,
+  so composer read <code>drupal/pathauto</code> as a version constraint on <code>drupal/token</code>
+  and refused the whole request with "Could not parse version constraint"</li>
+<li>Ask for <code>view</code>, not <code>views_view</code>: the entity type has been <code>view</code> since
+  Drupal 8, so all six views tools 404'd on a site with Views installed and
+  healthy, and read as "module not installed"</li>
+<li>Ask for <code>content_moderation_state</code>, not <code>moderation_state</code>, in the moderation
+  tools. The node <em>field</em> is still called <code>moderation_state</code> and is unchanged</li>
+<li>Ask for <code>facets_facet</code>, not <code>search_api_facet</code>, in the facet tools</li>
+<li>Rewrite <code>config_translation_list</code> and <code>config_translation_add</code>, which targeted
+  three mechanisms that do not exist between them: a <code>config_translation</code>
+  JSON:API resource, a <code>config:translation:add</code> Drush command (Drush has no
+  translation command category at all), and <code>$entity-&gt;addTranslation()</code> on a
+  config entity, which implements no <code>TranslatableInterface</code>. The list reports
+  the mappers this site has. The add resolves <code>{entity_type}/{entity_id}</code>
+  through the config translation mapper to the config object the entity is
+  stored as -- <code>node_type</code> and <code>article</code> become <code>node.type.article</code> -- and
+  writes a language config override for the target language, which is where
+  Drupal keeps config translations. Verified live: the French <code>name</code> and
+  <code>description</code> land on the override while the base config keeps its own</li>
+<li>
+<p>Drop a dead <code>get_resource("jsonapi")</code> call from <code>nextjs_helpers_generate</code>. It
+  requested <code>/jsonapi/jsonapi</code>, a path that does not exist, and the 404 aborted
+  the whole tool for a value the generator never used</p>
+</li>
+<li>
+<p>Implement the six <code>layout_builder_*</code> tools against the real API; they asked
+  JSON:API for a resource that has never existed and returned an opaque 404 on
+  every call, so reading, writing and reverting layouts now go through Drush to
+  <code>entity_view_display</code> and <code>OverridesSectionStorage</code></p>
+</li>
+<li>Fix <code>DrushClient._flatten</code> shlex-splitting list arguments, which made
+  <code>db_tables</code>, <code>db_query</code>, <code>db_count</code>, <code>drush_php_eval</code> and every <code>ev</code> tool fail
+  with "Too many arguments"</li>
+<li>Report a failed Drush run as an <code>error</code>: <code>ensure_dict</code> passed
+  <code>{returncode: 1, data: {}, stderr}</code> through untouched, byte for byte an empty
+  success, so 224 call sites presented broken commands as empty results</li>
+<li>Return real tool schemas from <code>/mcp/tools/list</code>, which reported
+  <code>input_schema: {}</code> for all 366 tools</li>
+<li>Fix <code>cron_list</code> (called Drupal 7's <code>drupal_get_cron_jobs()</code>, removed in
+  Drupal 8), <code>queue_create</code> (a shell escape in PHP that never passes through a
+  shell, so PHP died with a ParseError) and <code>queue_delete</code> (a second argument on
+  all three paths when <code>queue:delete</code> accepts exactly one)</li>
+<li>Route <code>queue_create</code> and <code>queue_delete</code> around <code>drush queue:delete</code>, which
+  resolves only registered queue services and answered "Queue not found" for a
+  queue this server had just created</li>
+<li>Fix <code>permission_audit</code> and <code>menu_link_list</code> filtering on fields Drupal does
+  not expose (<code>filter[name]</code> on <code>user_role</code>, <code>filter[menu]</code> on
+  <code>menu_link_content</code>), a 400 on every call on every site</li>
+<li>Validate whole statements in <code>db_query</code>; a <code>SELECT 1; DROP TABLE x</code> passed the
+  <code>startswith("SELECT")</code> guard and dropped the table</li>
+<li>Stop stacking log handlers on repeated <code>setup_logging</code> calls</li>
+</ul>
+<h3 id="removed">Removed<a class="headerlink" href="#removed" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Remove dead register_all_tools function from tools/<strong>init</strong>.py</li>
+<li>Remove duplicate _find_tool_path definition in security_audit.py</li>
+</ul>
+<h2 id="010-2026-10-13">[0.1.0] - 2026-10-13<a class="headerlink" href="#010-2026-10-13" title="Permanent link">&para;</a></h2>
+<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Initial release with 35+ MCP tools across all major Drupal categories</li>
+<li>FastMCP server with stdio and HTTP transports</li>
+<li>JSON:API and GraphQL clients with authentication</li>
+<li>Drush command execution via subprocess</li>
+<li>Multi-provider AI support (Ollama, OpenAI, Anthropic, NVIDIA NIM)</li>
+<li>Content management, user management, taxonomy, views, paragraphs tools</li>
+<li>DevOps tools for DDEV/Lando, Composer, database queries</li>
+<li>Migration tools for D7 to D10 upgrades</li>
+<li>Security audit and code quality tools</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
