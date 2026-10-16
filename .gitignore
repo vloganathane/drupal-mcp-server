@@ -56,6 +56,9 @@ htmlcov/
 # Ruff
 .ruff_cache/
 
+# mkdocs build output
+site/
+
 # Environment
 .env
 .env.local

@@ -32,10 +32,16 @@ nav:
       - Content: tools/content.md
       - Users: tools/users.md
       - DevOps: tools/devops.md
+  - Migration: migration.md
   - Development:
       - Architecture: architecture.md
       - Contributing: CONTRIBUTING.md
       - Docstring Standard: docstring_standard.md
+      - ADRs:
+          - 0001 FastMCP: adr/0001-use-fastmcp.md
+          - 0002 Pydantic Settings: adr/0002-pydantic-settings.md
+          - 0003 Subprocess Drush: adr/0003-subprocess-drush.md
+          - 0004 HTTP Transport: adr/0004-http-transport.md
   - Project:
       - Changelog: CHANGELOG.md
       - Security: SECURITY.md

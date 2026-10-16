@@ -362,10 +362,10 @@ displays have Layout Builder enabled; `layout_builder_get`,
 
 ## Documentation
 
-- [Contributing Guide](CONTRIBUTING.md)
-- [Changelog](CHANGELOG.md)
-- [Security Policy](SECURITY.md)
-- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Contributing Guide](docs/CONTRIBUTING.md)
+- [Changelog](docs/CHANGELOG.md)
+- [Security Policy](docs/SECURITY.md)
+- [Code of Conduct](docs/CODE_OF_CONDUCT.md)
 - [Architecture](docs/architecture.md)
 - [Migration Guide](docs/migration.md)
 - [Docstring Standard](docs/docstring_standard.md)
