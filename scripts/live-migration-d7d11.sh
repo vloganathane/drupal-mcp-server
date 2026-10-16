@@ -37,7 +37,7 @@ create_source() {
         --account-name=admin \
         --account-pass=admin \
         -y
-    ddev drush cr
+    ddev drush cc all
     cd "$REPO_ROOT"
 }
 
@@ -88,6 +88,7 @@ create_target() {
     ddev config --project-type=drupal11 --project-name="$TARGET_NAME" --php-version=8.3 --docroot=web --auto
     ddev start
     ddev composer create drupal/recommended-project --prefer-dist --no-interaction
+    ddev composer require drush/drush --no-interaction
     ddev config --docroot=web --project-name="$TARGET_NAME"
     ddev restart
     ddev drush site:install standard \
@@ -95,7 +96,8 @@ create_target() {
         --account-name=admin \
         --account-pass=admin \
         -y
-    ddev drush en migrate migrate_plus migrate_tools -y
+    ddev composer require drupal/migrate_tools drupal/migrate_plus --no-interaction
+    ddev drush en migrate migrate_drupal migrate_plus migrate_tools -y
     ddev drush cr
     cd "$REPO_ROOT"
 }
