@@ -7,15 +7,24 @@ on:
       - 'docs/**'
       - 'mkdocs.yml'
       - 'README.md'
+      - '.github/workflows/docs.yml'
   pull_request:
     paths:
       - 'docs/**'
       - 'mkdocs.yml'
       - 'README.md'
+      - '.github/workflows/docs.yml'
 
 jobs:
   docs:
     runs-on: ubuntu-latest
+    # peaceiris/actions-gh-pages pushes the built site to the gh-pages
+    # branch, which requires write access. The repo's default workflow
+    # token is read-only, so grant it explicitly here.
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
 
     steps:
     - uses: actions/checkout@v4
@@ -38,3 +47,6 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./site
+        # The recreated repo has no GitHub Pages site yet; create it on
+        # first deploy instead of failing with a 404.
+        enable_or_create_pages: true
