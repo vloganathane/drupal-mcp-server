@@ -1,6 +1,6 @@
 # Drupal MCP Server
 
-A Model Context Protocol (MCP) server for Drupal operations. Provides 380 tools across 37 modules for site analysis, migration, content management, configuration, commerce, headless, DevOps, security, and more.
+A Model Context Protocol (MCP) server for Drupal operations. Provides 392 tools across 38 modules for site analysis, migration, content management, configuration, commerce, headless, DevOps, security, and more.
 
 ## Quick Links
 
@@ -11,8 +11,8 @@ A Model Context Protocol (MCP) server for Drupal operations. Provides 380 tools 
 
 ## Features at a Glance
 
-A sample of the catalog — the full list of all 380 tools lives in the
-[README's Tools section](https://github.com/vloganathane/drupal-mcp-server#tools-380-total).
+A sample of the catalog — the full list of all 392 tools lives in the
+[README's Tools section](https://github.com/vloganathane/drupal-mcp-server#tools-392-total).
 
 | Category | Tools | Description |
 |----------|-------|-------------|
@@ -23,6 +23,7 @@ A sample of the catalog — the full list of all 380 tools lives in the
 | Migration | 17 | Plans, batch import, reconciliation between Drupal sites |
 | AI | 4 | Content analysis, field mapping, planning |
 | Module Dev | 12 | Scaffolding for modules, plugins, forms |
+| Codebase | 12 | Local codebase index, hook search, unused module detection |
 
 ## Example: Create a Node
 

@@ -25,6 +25,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (client-side issue-queue relevance scoring, usage-ranked module lists by
   category, local-index + drupal.org recommendations), plus the `DRUPAL_ROOT`
   and `DRUPAL_MODULES_PATH` settings for local codebase analysis
+- Add a local codebase index with 12 `codebase_*` tools: functionality
+  search, module inventory/descriptions, unused and redundant module
+  detection, hook implementation lookup, and safe module file/tree/function
+  reading (all reads confined to `DRUPAL_ROOT`)
 - Add `moderation_transition_delete`, giving `moderation_transition_create` the
   counterpart it never had. The tool count is now 367
 - Add Lando support to SiteManager

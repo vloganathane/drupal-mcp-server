@@ -15,6 +15,7 @@ from drupal_mcp_server import __version__
 from drupal_mcp_server.auth import AuthManager
 from drupal_mcp_server.auth.mcp_oauth import DrupalOAuthProvider
 from drupal_mcp_server.clients import DrushClient, GraphQLClient, JSONAPIClient
+from drupal_mcp_server.codebase import CodebaseService
 from drupal_mcp_server.config import get_settings
 from drupal_mcp_server.services import AIService, MigrationService, SiteManager
 from drupal_mcp_server.tools import (
@@ -22,6 +23,7 @@ from drupal_mcp_server.tools import (
     ai,
     analysis,
     code_audit,
+    codebase,
     comments,
     commerce,
     contact,
@@ -90,16 +92,19 @@ def create_server(auth_manager: AuthManager | None = None) -> FastMCP:
         settings=settings, jsonapi_client=jsonapi_client,
         drush_client=drush_client, ai_service=ai_service, site_manager=site_manager,
     )
+    codebase_service = CodebaseService(
+        root=settings.DRUPAL_ROOT, modules_path=settings.DRUPAL_MODULES_PATH,
+    )
     mcp = FastMCP(
         name=settings.MCP_SERVER_NAME,
         version=__version__,
         instructions="Drupal MCP Server - JSON:API, GraphQL, Drush, AI-powered migration.",
     )
-    for module in [analysis, migration, content, config_tools, devops, ai, taxonomy, users, database, views, paragraphs, menus, fields, revisions, redirects, scheduler, code_audit, security_audit, drupal_org, moderation, module_dev, theme_dev, layout_builder, search_api, multilingual, media_enhanced, pathauto, metatag, commerce, webform, headless, testing, accessibility, performance, contact, comments, feeds]:
+    for module in [analysis, migration, content, config_tools, devops, ai, taxonomy, users, database, views, paragraphs, menus, fields, revisions, redirects, scheduler, code_audit, codebase, security_audit, drupal_org, moderation, module_dev, theme_dev, layout_builder, search_api, multilingual, media_enhanced, pathauto, metatag, commerce, webform, headless, testing, accessibility, performance, contact, comments, feeds]:
         module.register_tools(
             mcp, jsonapi_client=jsonapi_client, graphql_client=graphql_client,
             drush_client=drush_client, ai_service=ai_service, site_manager=site_manager,
-            migration_service=migration_service,
+            migration_service=migration_service, codebase_service=codebase_service,
         )
     
     # Add dynamic tool discovery endpoint

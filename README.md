@@ -7,7 +7,7 @@
 [![PyPI downloads](https://img.shields.io/pypi/dm/drupal-mcp-server.svg)](https://pypi.org/project/drupal-mcp-server/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/vloganathane/drupal-mcp-server/blob/main/LICENSE)
 
-A Model Context Protocol (MCP) server for Drupal operations. Provides **380 tools across 37 modules** for site analysis, migration, content management, configuration, commerce, headless, DevOps, security, and more.
+A Model Context Protocol (MCP) server for Drupal operations. Provides **392 tools across 38 modules** for site analysis, migration, content management, configuration, commerce, headless, DevOps, security, and more.
 
 ## Why Use This?
 
@@ -161,7 +161,7 @@ Set `MCP_TRANSPORT` to one of:
 - `sse` (for Server-Sent Events)
 - `streamable-http` (for Streamable HTTP)
 
-## Tools (380 total)
+## Tools (392 total)
 
 ### Accessibility (5)
 - `accessibility_axe_scan` — Run axe-core accessibility scan
@@ -192,6 +192,11 @@ Set `MCP_TRANSPORT` to one of:
 - `security_audit` — Security-focused code audit
 - `composer_audit` — Composer dependency audit
 - `code_quality_report` — Combined code quality report
+
+### Codebase (12)
+- `codebase_index_refresh`, `codebase_search`, `codebase_module_list`, `codebase_module_describe`
+- `codebase_unused_modules`, `codebase_redundancy_check`, `codebase_hooks_find`, `codebase_paths_list`
+- `codebase_files_list`, `codebase_directory_tree`, `codebase_file_read`, `codebase_function_read`
 
 ### Comments (10)
 - `comment_list`, `comment_get`, `comment_create`, `comment_update`, `comment_delete`
@@ -482,7 +487,7 @@ python tests/live/queue_test.py           # 18 cron/queue cases, ~60s
 python tests/live/filter_check.py         # every hard-coded JSON:API filter
 python tests/live/resource_check.py       # every resource name, asked of Drupal
 python tests/live/install_modules.py      # the modules the tools assume, ~10 min
-python tests/live/sweep.py                # all 380 tools, ~30 min
+python tests/live/sweep.py                # all 392 tools, ~30 min
 python tests/live/mcp_call.py content_list '{}'  # one call, for spot checks
 ```
 
