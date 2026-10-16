@@ -807,6 +807,89 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#theme-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Theme Analysis
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Theme Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#theme_active" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        theme_active
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#theme_info-theme_regions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        theme_info / theme_regions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#theme_blocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        theme_blocks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#theme_templates-theme_template_overrides" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        theme_templates / theme_template_overrides
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#template_suggestions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        template_suggestions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view_template_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        view_template_info
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1671,6 +1754,89 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#theme-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Theme Analysis
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Theme Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#theme_active" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        theme_active
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#theme_info-theme_regions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        theme_info / theme_regions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#theme_blocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        theme_blocks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#theme_templates-theme_template_overrides" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        theme_templates / theme_template_overrides
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#template_suggestions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        template_suggestions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view_template_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        view_template_info
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1689,9 +1855,9 @@
 
 
 <h1 id="tools-reference">Tools Reference<a class="headerlink" href="#tools-reference" title="Permanent link">&para;</a></h1>
-<p>Selected tools from the 404-tool catalog, documented with their parameters,
+<p>Selected tools from the 412-tool catalog, documented with their parameters,
 return values, and errors. The complete list lives in the
-<a href="https://github.com/vloganathane/drupal-mcp-server#tools-404-total">README's Tools section</a>.</p>
+<a href="https://github.com/vloganathane/drupal-mcp-server#tools-412-total">README's Tools section</a>.</p>
 <h2 id="content-management">Content Management<a class="headerlink" href="#content-management" title="Permanent link">&para;</a></h2>
 <h3 id="create_node">create_node<a class="headerlink" href="#create_node" title="Permanent link">&para;</a></h3>
 <p>Create a single node of the specified bundle with given fields.</p>
@@ -2152,6 +2318,216 @@ owner, and the managed file's filename/URI, with a <code>media_type</code> filte
 <code>safe_to_delete</code> verdict computed from one COUNT query per field storage
 targeting taxonomy terms (<code>vocabulary</code> filter, <code>include_usage=false</code> to
 skip the counts). All four accept <code>format="xlsx"</code> for an Excel workbook.</p>
+<h2 id="theme-analysis">Theme Analysis<a class="headerlink" href="#theme-analysis" title="Permanent link">&para;</a></h2>
+<p>Read-only theming inspection, the counterpart of the theme_dev tools that
+create things. Theme metadata comes from <code>drush pm:list</code> plus a YAML parse
+of the theme's own <code>info.yml</code>, block placements from the <code>block--block</code>
+JSON:API collection, and template walks resolve every path inside
+DRUPAL_ROOT first — symlinks and <code>..</code> segments that leave the docroot are
+rejected before any read. Tools that inspect files say so in their error
+when DRUPAL_ROOT is not configured.</p>
+<h3 id="theme_active">theme_active<a class="headerlink" href="#theme_active" title="Permanent link">&para;</a></h3>
+<p><strong>Parameters:</strong> (none)</p>
+<p><strong>Returns:</strong> <code>default</code>, <code>admin</code> (from <code>system.theme</code>), <code>enabled</code> (name,
+label, package, path, version per theme), <code>enabled_count</code>,
+<code>disabled_count</code></p>
+<p><strong>Errors:</strong>
+- <code>error</code> — Drush not available, or the theme list came back empty</p>
+<h3 id="theme_info-theme_regions">theme_info / theme_regions<a class="headerlink" href="#theme_info-theme_regions" title="Permanent link">&para;</a></h3>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>theme_name</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>—</td>
+<td>Theme machine name (e.g. 'olivero')</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>theme_info</code> merges <code>pm:list</code> (status, version, path) with the
+parsed info.yml: <code>label</code>, <code>description</code>, <code>core_version_requirement</code>,
+<code>hidden</code>, <code>regions</code> (in declaration order), <code>libraries</code>, <code>dependencies</code>,
+and <code>base_theme</code> — the chain of parents followed upward as far as the
+site allows, each with <code>found: false</code> when a parent is not installed.
+<code>theme_regions</code> returns each region with <code>block_count</code> and its <code>blocks</code>
+(id, label, plugin, weight, status), <code>total_blocks</code>, and
+<code>blocks_in_unknown_regions</code> (placements whose region the info.yml no
+longer defines — they will not render).</p>
+<p><strong>Errors:</strong>
+- <code>error</code> — invalid machine name, theme not installed (with <code>available</code>),
+  its directory or info.yml missing under DRUPAL_ROOT, or no JSON:API
+  client (<code>theme_regions</code> needs one for placements)</p>
+<h3 id="theme_blocks">theme_blocks<a class="headerlink" href="#theme_blocks" title="Permanent link">&para;</a></h3>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>theme_name</code></td>
+<td>string</td>
+<td>No</td>
+<td>—</td>
+<td>Only this theme's placements</td>
+</tr>
+<tr>
+<td><code>region</code></td>
+<td>string</td>
+<td>No</td>
+<td>—</td>
+<td>Only this region (e.g. 'sidebar')</td>
+</tr>
+<tr>
+<td><code>search</code></td>
+<td>string</td>
+<td>No</td>
+<td>—</td>
+<td>1–64 chars; case-insensitive substring of label or plugin</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>blocks</code> (id, theme, region, label, plugin, weight, status,
+<code>visibility_rules</code> count), <code>total</code>, <code>filters</code> — sorted by theme, region,
+weight, label</p>
+<p><strong>Errors:</strong>
+- <code>error</code> — invalid identifier, empty/oversized <code>search</code>, or no JSON:API
+  client</p>
+<h3 id="theme_templates-theme_template_overrides">theme_templates / theme_template_overrides<a class="headerlink" href="#theme_templates-theme_template_overrides" title="Permanent link">&para;</a></h3>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>theme_name</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>—</td>
+<td>Theme machine name</td>
+</tr>
+<tr>
+<td><code>pattern</code></td>
+<td>string</td>
+<td>No</td>
+<td>—</td>
+<td><code>theme_templates</code> only: 1–64 char case-insensitive substring of the template name (e.g. 'node--', 'views')</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>theme_templates</code> gives <code>count</code> and <code>templates</code>
+(docroot-relative <code>path</code> + <code>bytes</code>) plus <code>truncated</code> when the walk hit
+its file cap. <code>theme_template_overrides</code> indexes every Twig file in the
+docroot once (excluding the theme itself) and splits the theme's
+templates into <code>overrides</code> (same-named core/module files it shadows, with
+their <code>sources</code>) and <code>theme_only</code> (theme originals), alongside
+<code>docroot_templates_scanned</code>.</p>
+<p><strong>Errors:</strong>
+- <code>error</code> — invalid machine name, bad pattern, theme not installed, its
+  directory missing, or DRUPAL_ROOT not configured</p>
+<h3 id="template_suggestions">template_suggestions<a class="headerlink" href="#template_suggestions" title="Permanent link">&para;</a></h3>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>entity_type</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>—</td>
+<td>e.g. 'node', 'block', 'taxonomy_term', 'user', 'field', 'page'</td>
+</tr>
+<tr>
+<td><code>bundle</code></td>
+<td>string</td>
+<td>No</td>
+<td>—</td>
+<td>e.g. 'article'; unknown entity types still get the generic chain</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>suggestions</code> most-specific first (bracketed parts are
+placeholders Drupal fills in — <code>node--article--123.html.twig</code> beats
+<code>node--article.html.twig</code>), each with a <code>description</code> and
+<code>in_checked_theme</code>: whether the default theme already ships that file,
+so you know which name creating one would take effect. <code>checked_in</code> names
+the theme that was checked; when DRUPAL_ROOT is unset the check is
+skipped and a <code>note</code> says so instead of guessing.</p>
+<p><strong>Errors:</strong>
+- <code>error</code> — invalid <code>entity_type</code> or <code>bundle</code></p>
+<h3 id="view_template_info">view_template_info<a class="headerlink" href="#view_template_info" title="Permanent link">&para;</a></h3>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>view_name</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>—</td>
+<td>View machine name (from <code>views_list</code>)</td>
+</tr>
+<tr>
+<td><code>display_id</code></td>
+<td>string</td>
+<td>No</td>
+<td>—</td>
+<td>Display machine name; without it every display gets a suggestion</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>label</code> and <code>displays</code> from the JSON:API view collection
+(the view's <code>drupal_internal__id</code> is the machine name, and the embedded
+<code>display</code> dict is the real one — Views config names differ between
+Drupal generations, <code>view.*</code> on older sites and <code>views.view.*</code> on
+Drupal 11.4+, so the entity collection is the stable source), then
+<code>suggestions</code> (<code>views-view--NAME--DISPLAY</code> → <code>views-view--NAME</code> →
+<code>views-view</code>, marked <code>in_checked_theme</code> against the default theme when
+DRUPAL_ROOT allows) and <code>checked_in</code>.</p>
+<p><strong>Errors:</strong>
+- <code>error</code> — invalid identifier, no JSON:API client, view not found (with
+  the <code>available</code> views the site has), or an unknown <code>display_id</code> (with
+  the <code>displays</code> the view has)</p>
 
 
 

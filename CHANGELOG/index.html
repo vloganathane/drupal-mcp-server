@@ -1439,6 +1439,34 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
+<li>Wave 4 of the drupal-scout-mcp port — 8 read-only theme analysis tools
+  (412 total, 41 modules): <code>theme_active</code> (default/admin/enabled themes
+  from <code>system.theme</code> + <code>pm:list</code>), <code>theme_info</code> (pm:list metadata merged
+  with a safe YAML parse of the theme's info.yml — regions in declaration
+  order, libraries, dependencies, and the base-theme chain followed
+  upward), <code>theme_regions</code> (regions with their block placements and
+  counts, empty regions visible, placements in regions the theme no
+  longer defines flagged), <code>theme_blocks</code> (every <code>block.block.*</code>
+  placement with theme/region/search filters — search matches labels and
+  plugins, folding scout's separate <code>search_blocks</code> into one tool),
+  <code>theme_templates</code> (pruned <code>*.html.twig</code> walk with sizes),
+  <code>theme_template_overrides</code> (one docroot-wide index splits templates
+  that shadow same-named core/module files from theme originals),
+  <code>template_suggestions</code> (the Twig suggestion chain per entity type, each
+  marked with whether the default theme already ships that file), and
+  <code>view_template_info</code> (the chain for a view display, looked up in the
+  JSON:API view collection by its machine id — Views config names differ
+  between Drupal generations, <code>view.*</code> on older sites and <code>views.view.*</code>
+  on Drupal 11.4+, so the entity collection is the stable source — with
+  an unknown display_id erroring with the display list and an unknown
+  view listing the ones the site has). Every file path resolves inside
+  DRUPAL_ROOT before a read — symlinks and <code>..</code> segments that leave the
+  docroot are rejected — and no caller input reaches a shell; theme
+  blocks come from JSON:API rather than scout's interpolated <code>drush ev</code></li>
+<li>The shared JSON:API helpers (<code>jsonapi_collect</code>, <code>jsonapi_attrs</code>,
+  <code>jsonapi_bundle</code>, <code>jsonapi_rel_ids</code>), <code>flag_label</code>, and the export
+  path/write helpers moved from the exports module into <code>_utils</code> so both
+  waves page collections and confine destinations the same way</li>
 <li>Wave 3 of the drupal-scout-mcp port — 4 export tools (404 total, 40
   modules): <code>export_nodes</code>, <code>export_users</code>, <code>export_media</code>,
   <code>export_taxonomy</code> write CSV (UTF-8 with BOM) or Excel files
