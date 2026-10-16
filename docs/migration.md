@@ -2,14 +2,16 @@
 
 ## Live migration test harnesses
 
-Two DDEV-based live test scripts are included:
+DDEV-based live test scripts are included. They spin up throwaway Drupal sites in `/tmp` (not inside the repo) and are meant for local verification, not CI.
 
-### D9 to D11 with the generic JSON:API engine
+### JSON:API engine smoke test (D10 source → D11 target)
 ```bash
-scripts/live-migration-d9d11.sh up
-python scripts/live-migration-d9d11-run.py
-scripts/live-migration-d9d11.sh down
+scripts/live-migration-d9d11.sh up      # provisions both sites, seeds source data, writes .env.d9d11
+venv/bin/python scripts/live-migration-d9d11-run.py
+scripts/live-migration-d9d11.sh down    # deletes both DDEV projects
 ```
+
+The script enables `jsonapi` + `basic_auth` on both sites, turns off JSON:API read-only mode on the target, and writes source/target credentials to `.env.d9d11` (gitignored). The runner walks the full engine path: analyze → plan → dry run → live run → reconcile, and asserts source/target counts match.
 
 ### D7 to D11 legacy DB migration
 ```bash
@@ -18,15 +20,15 @@ scripts/live-migration-d7d11.sh up
 scripts/live-migration-d7d11.sh down
 ```
 
-The D7 harness uses the standard Drupal Migrate model, where the target reads the D7 database directly. The D9/D11 harness exercises the MCP JSON:API migration engine.
+The D7 harness uses the standard Drupal Migrate model, where the target reads the D7 database directly (D7 predates JSON:API). The D9/D11 harness exercises the MCP JSON:API migration engine.
 
 ## End-to-end migration engine
 
-The server now supports persisted migration plans and wave-based imports.
+The server supports persisted migration plans and wave-based imports.
 
 Recommended flow:
 
-1. `analyze_source_site(source_url=..., resource_type=...)`
+1. `analyze_source_site(source_url=..., resource_type=..., username=..., password=...)`
 2. `create_migration_plan(...)`
 3. `run_migration(migration_id, entity_types=[...], dry_run=true)`
 4. Review the returned per-wave results and `migration_status(...)`
@@ -35,9 +37,15 @@ Recommended flow:
 
 Supported first-class orchestration today:
 - Users, taxonomy, nodes/articles, media, and any other JSON:API resource type through `run_migration_wave`
-- Idempotent create/update by tracked legacy IDs
-- Relationship UUID remapping when source and target ID maps are available
-- Source pagination and target-side persistence of migration state
+- Idempotent create/update by tracked legacy IDs — re-running a wave updates tracked records instead of duplicating them
+- Source-side authentication (`username`/`password` in the plan's `source` block, or per call), needed because JSON:API field access hides attributes (user name/mail, for example) from anonymous requests
+- JSON:API filters per resource type (`source.filters`) to exclude records the target should not receive — the anonymous user, staged content, and so on
+- Relationship UUID remapping: references to records migrated earlier in the run are rewritten to their new target UUIDs
+- Schema-drift tolerance: bundle pointers and revision bookkeeping are dropped, computed sub-fields (`body.processed`, `body.summary`) are stripped, and any attribute or relationship a target rejects by name is dropped and the record retried (see `dropped_fields` in `migration_status`)
+- Ordered waves with per-record error reporting; a failed wave stops the run by default (`continue_on_error=true` overrides)
+- Source pagination, record counting, and target-side persistence of migration state
+
+`reconcile_migration_counts` compares the recorded source counts against live target counts (JSON:API exposes no total-count metadata, so both sides are counted by walking the collection).
 
 Remaining specialized work usually includes bespoke field-transform and content-block migration rules for a particular site.
 

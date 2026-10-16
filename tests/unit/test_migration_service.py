@@ -110,3 +110,137 @@ class TestMigrationService:
         assert "create_migration_plan" in names
         assert "migrate_records" in names
         assert "analyze_source_site" in names
+
+
+class TestSchemaDrift:
+    """Source and target schemas differ; the engine must adapt per record."""
+
+    def test_sanitize_strips_computed_and_internal(self, tmp_path):
+        attributes = {
+            "title": "Hello",
+            "body": {"value": "<p>x</p>", "format": "basic_html", "processed": "<p>x</p>", "summary": None},
+            "drupal_internal__nid": 7,
+            "changed": "2026-01-01",
+        }
+        service = MigrationService(storage_dir=tmp_path)
+        clean = service._sanitize_attributes(attributes)
+        assert "drupal_internal__nid" not in clean
+        # Computed sub-props are removed but the writable value/format stay.
+        assert set(clean["body"]) == {"value", "format"}
+        # Audit timestamps are left to the adaptive retry, since they are
+        # writable on nodes and worth preserving.
+        assert clean["changed"] == "2026-01-01"
+        assert clean["title"] == "Hello"
+
+    @pytest.mark.asyncio
+    async def test_drops_offending_attribute_and_retries(self, tmp_path):
+        mock_jsonapi = AsyncMock()
+        # First attempt: field does not exist. Second: succeeds.
+        mock_jsonapi.create_resource.side_effect = [
+            Exception(
+                "Client error '422' — The attribute comment does not exist "
+                "on the node--article resource type."
+            ),
+            {"data": {"id": "node-1", "type": "node--article"}},
+        ]
+        service = MigrationService(storage_dir=tmp_path, jsonapi_client=mock_jsonapi)
+        service.create_plan("s1", entities=["node--article"])
+
+        result = await service.migrate_records(
+            "s1",
+            "node--article",
+            [{"id": "1", "title": "T", "comment": {"status": 2}}],
+        )
+
+        assert result["created"] == 1
+        assert result["failed"] == 0
+        # The retried payload no longer carries the offending attribute.
+        retried_payload = mock_jsonapi.create_resource.call_args_list[1].args[1]
+        assert "comment" not in retried_payload.get("attributes", {})
+
+    @pytest.mark.asyncio
+    async def test_drops_offending_relationship_and_retries(self, tmp_path):
+        mock_jsonapi = AsyncMock()
+        mock_jsonapi.create_resource.side_effect = [
+            Exception(
+                "Client error '422' — The attribute field_image does not exist "
+                "on the node--article resource type."
+            ),
+            {"data": {"id": "node-1", "type": "node--article"}},
+        ]
+        service = MigrationService(storage_dir=tmp_path, jsonapi_client=mock_jsonapi)
+        service.create_plan("s2", entities=["node--article"])
+
+        result = await service.migrate_records(
+            "s2",
+            "node--article",
+            [
+                {
+                    "id": "1",
+                    "attributes": {"title": "T"},
+                    "relationships": {"field_image": {"data": None}},
+                }
+            ],
+        )
+
+        assert result["created"] == 1
+        retried_payload = mock_jsonapi.create_resource.call_args_list[1].args[1]
+        assert "field_image" not in retried_payload.get("relationships", {})
+
+    @pytest.mark.asyncio
+    async def test_gives_up_when_nothing_actionable(self, tmp_path):
+        mock_jsonapi = AsyncMock()
+        mock_jsonapi.create_resource.side_effect = Exception("Client error '500' — boom")
+        service = MigrationService(storage_dir=tmp_path, jsonapi_client=mock_jsonapi)
+        service.create_plan("s3", entities=["node--article"])
+
+        result = await service.migrate_records(
+            "s3", "node--article", [{"id": "1", "title": "T"}]
+        )
+
+        assert result["failed"] == 1
+        # A single attempt: the error named no field to drop.
+        assert mock_jsonapi.create_resource.call_count == 1
+
+
+class TestRelationshipMapping:
+    """Relationships must be remapped, or dropped when unresolvable."""
+
+    def test_bundle_and_revision_relationships_are_dropped(self):
+        relationships = {
+            "node_type": {"data": {"type": "node_type--node_type", "id": "src-uuid"}},
+            "revision_uid": {"data": {"type": "user--user", "id": "src-user"}},
+            "uid": {"data": {"type": "user--user", "id": "src-user"}},
+        }
+        plan = {
+            "state": {
+                "entities": {
+                    "user--user": {"records": {"src-user": "target-user"}},
+                }
+            }
+        }
+        mapped = MigrationService._map_relationships(relationships, plan)
+        # Bundle pointer and revision bookkeeping are gone; the author is
+        # remapped to the target UUID.
+        assert "node_type" not in mapped
+        assert "revision_uid" not in mapped
+        assert mapped["uid"]["data"] == {"type": "user--user", "id": "target-user"}
+
+    def test_unmappable_and_virtual_references_are_dropped(self):
+        relationships = {
+            "field_tags": {"data": [{"type": "taxonomy_term--tags", "id": "not-migrated"}]},
+            "parent": {"data": [{"type": "taxonomy_term--departures", "id": "virtual"}]},
+            "field_image": {"data": None},
+        }
+        plan = {"state": {"entities": {}}}
+        mapped = MigrationService._map_relationships(relationships, plan)
+        # Unmappable source UUIDs would 404 on the target, so they are
+        # dropped; the explicit null (clear the field) is preserved.
+        assert "field_tags" not in mapped
+        assert "parent" not in mapped
+        assert mapped["field_image"]["data"] is None
+
+    def test_empty_relationship_list_is_preserved(self):
+        relationships = {"field_tags": {"data": []}}
+        mapped = MigrationService._map_relationships(relationships, {"state": {"entities": {}}})
+        assert mapped["field_tags"]["data"] == []

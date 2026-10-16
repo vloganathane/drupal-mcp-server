@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Bring up a D9 source and D11 target for live end-to-end migration testing
+# Bring up a D10 source and D11 target for live end-to-end migration testing
 # through drupal-mcp-server's generic migration engine.
 
 set -euo pipefail
@@ -9,7 +9,7 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 SMOKE_ROOT="${LIVE_SMOKEROOT:-/tmp/drupal-mcp-live-d9d11}"
 SOURCE_DIR="${SMOKE_ROOT}/source"
 TARGET_DIR="${SMOKE_ROOT}/target"
-SOURCE_NAME="drupal-mcp-d9-source"
+SOURCE_NAME="drupal-mcp-d10-source"
 TARGET_NAME="drupal-mcp-d11-target"
 SOURCE_URL="https://${SOURCE_NAME}.ddev.site"
 TARGET_URL="https://${TARGET_NAME}.ddev.site"
@@ -31,13 +31,14 @@ run_ddev() {
 }
 
 create_source() {
-    echo "==> Creating D9 source site"
+    echo "==> Creating D10 source site"
     rm -rf "$SOURCE_DIR"
     mkdir -p "$SOURCE_DIR"
     cd "$SOURCE_DIR"
-    ddev config --project-type=drupal9 --project-name="$SOURCE_NAME" --php-version=8.1 --docroot=web --auto
+    ddev config --project-type=drupal10 --project-name="$SOURCE_NAME" --php-version=8.1 --docroot=web --auto
     ddev start
-    ddev composer create drupal/recommended-project --prefer-dist --no-interaction
+    ddev composer create drupal/recommended-project:^10.3 --prefer-dist --no-interaction
+    ddev composer require drush/drush:^12 --no-interaction
     ddev config --docroot=web --project-name="$SOURCE_NAME"
     ddev restart
     ddev drush site:install standard \
@@ -45,7 +46,8 @@ create_source() {
         --account-name=admin \
         --account-pass=admin \
         -y
-    ddev drush en jsonapi -y
+    ddev drush en jsonapi basic_auth -y
+    ddev drush cset jsonapi.settings read_only false -y
     ddev drush cr
     cd "$REPO_ROOT"
 }
@@ -57,7 +59,8 @@ create_target() {
     cd "$TARGET_DIR"
     ddev config --project-type=drupal11 --project-name="$TARGET_NAME" --php-version=8.3 --docroot=web --auto
     ddev start
-    ddev composer create drupal/recommended-project --prefer-dist --no-interaction
+    ddev composer create drupal/recommended-project:^11.0 --prefer-dist --no-interaction
+    ddev composer require drush/drush:^13 --no-interaction
     ddev config --docroot=web --project-name="$TARGET_NAME"
     ddev restart
     ddev drush site:install standard \
@@ -65,69 +68,80 @@ create_target() {
         --account-name=admin \
         --account-pass=admin \
         -y
-    ddev drush en jsonapi -y
+    ddev drush en jsonapi basic_auth -y
+    ddev drush cset jsonapi.settings read_only false -y
     ddev drush cr
     cd "$REPO_ROOT"
 }
 
 seed_source() {
     echo "==> Seeding complex source data"
-    run_ddev "$SOURCE_DIR" exec drush php-eval '
-    $user = \\Drupal\\user\\Entity\\User::create([
-      "name" => "source_editor",
-      "mail" => "source_editor@example.com",
-      "status" => 1,
-    ]);
-    $user->save();
+    local seed_file
+    seed_file="$(mktemp)"
+    cat > "$seed_file" <<'PHP'
+<?php
+$user = \Drupal\user\Entity\User::create([
+  "name" => "source_editor",
+  "mail" => "source_editor@example.com",
+  "status" => 1,
+]);
+$user->save();
 
-    $vocab = \\Drupal\\taxonomy\\Entity\\Vocabulary::create([
-      "vid" => "departures",
-      "name" => "Departures",
-    ]);
-    $vocab->save();
+$vocab = \Drupal\taxonomy\Entity\Vocabulary::create([
+  "vid" => "departures",
+  "name" => "Departures",
+]);
+$vocab->save();
 
-    foreach (["North", "South"] as $name) {
-      $term = \\Drupal\\taxonomy\\Entity\\Term::create([
-        "vid" => "departures",
-        "name" => $name,
-      ]);
-      $term->save();
-    }
+foreach (["North", "South"] as $name) {
+  $term = \Drupal\taxonomy\Entity\Term::create([
+    "vid" => "departures",
+    "name" => $name,
+  ]);
+  $term->save();
+}
 
-    foreach (["Article one", "Article two"] as $title) {
-      $node = \\Drupal\\node\\Entity\\Node::create([
-        "type" => "article",
-        "title" => $title,
-        "body" => [
-          "value" => "<p>Source body for " . $title . "</p>",
-          "format" => "basic_html",
-        ],
-        "uid" => $user->id(),
-      ]);
-      $node->save();
-    }
+foreach (["Article one", "Article two"] as $title) {
+  $node = \Drupal\node\Entity\Node::create([
+    "type" => "article",
+    "title" => $title,
+    "body" => [
+      "value" => "<p>Source body for " . $title . "</p>",
+      "format" => "basic_html",
+    ],
+    "uid" => $user->id(),
+  ]);
+  $node->save();
+}
 
-    $page = \\Drupal\\node\\Entity\\Node::create([
-      "type" => "page",
-      "title" => "Source landing page",
-      "body" => [
-        "value" => "<p>Landing page body</p>",
-        "format" => "basic_html",
-      ],
-      "uid" => $user->id(),
-    ]);
-    $page->save();
-    print "Seeded user, taxonomy, article and page records.\\n";
-    '
+$page = \Drupal\node\Entity\Node::create([
+  "type" => "page",
+  "title" => "Source landing page",
+  "body" => [
+    "value" => "<p>Landing page body</p>",
+    "format" => "basic_html",
+  ],
+  "uid" => $user->id(),
+]);
+$page->save();
+print "Seeded user, taxonomy, article and page records.\n";
+PHP
+    (
+        cd "$SOURCE_DIR"
+        cp "$seed_file" .ddev/seed-migration.php
+        ddev drush php-script .ddev/seed-migration.php
+    )
+    rm -f "$seed_file"
 }
 
 write_env() {
     cat > "${REPO_ROOT}/.env.d9d11" <<EOF
 # Generated by scripts/live-migration-d9d11.sh
 DRUPAL_BASE_URL=${TARGET_URL}
-DRUPAL_BASIC_AUTH_USER=admin
-DRUPAL_BASIC_AUTH_PASSWORD=admin
+DRUPAL_USERNAME=admin
+DRUPAL_PASSWORD=admin
 DRUPAL_API_TOKEN=
+DRUPAL_VERIFY_SSL=false
 EOF
     echo "Wrote ${REPO_ROOT}/.env.d9d11"
 }
@@ -142,7 +156,7 @@ case "${1:-up}" in
         seed_source
         write_env
         echo ""
-        echo "D9 -> D11 live migration sites are ready:"
+        echo "D10 -> D11 live migration sites are ready:"
         echo "  Source: ${SOURCE_URL}"
         echo "  Target: ${TARGET_URL}"
         echo "  Credentials: admin / admin"
@@ -156,7 +170,7 @@ case "${1:-up}" in
         done
         rm -rf "$SMOKE_ROOT"
         rm -f "${REPO_ROOT}/.env.d9d11"
-        echo "Removed D9/D11 live migration sites."
+        echo "Removed D10/D11 live migration sites."
         ;;
     seed)
         require ddev

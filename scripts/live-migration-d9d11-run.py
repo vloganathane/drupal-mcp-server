@@ -30,7 +30,7 @@ async def fetch_source(url: str, resource_type: str, user: str, password: str) -
 
 async def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--source-url", default=os.getenv("LIVE_SOURCE_URL", "https://drupal-mcp-d9-source.ddev.site"))
+    parser.add_argument("--source-url", default=os.getenv("LIVE_SOURCE_URL", "https://drupal-mcp-d10-source.ddev.site"))
     parser.add_argument("--source-user", default=os.getenv("LIVE_SOURCE_USER", "admin"))
     parser.add_argument("--source-password", default=os.getenv("LIVE_SOURCE_PASSWORD", "admin"))
     parser.add_argument("--target-env", default=os.getenv("LIVE_TARGET_ENV", ".env.d9d11"))
@@ -50,10 +50,30 @@ async def main() -> None:
     jsonapi = JSONAPIClient(settings, auth_manager)
     service = MigrationService(settings=settings, jsonapi_client=jsonapi)
 
+    # Source credentials let the engine read fields (user name/mail) that
+    # JSON:API field access hides from anonymous requests.
+    source_user = args.source_user
+    source_password = args.source_password
+
     resource_types = ["user--user", "taxonomy_term--departures", "node--article", "node--page"]
+
+    # The source's anonymous user (uid 0) has no writable name/mail, and
+    # ``admin`` already exists on the target, so migrate neither. JSON:API
+    # filters express this as "uid greater than 1".
+    uid_filter = {
+        "filter[uid][condition][path]": "drupal_internal__uid",
+        "filter[uid][condition][operator]": ">",
+        "filter[uid][condition][value]": "1",
+    }
+
     service.create_plan(
         args.migration_id,
-        source={"url": args.source_url},
+        source={
+            "url": args.source_url,
+            "username": source_user,
+            "password": source_password,
+            "filters": {"user--user": uid_filter},
+        },
         target={"url": settings.DRUPAL_BASE_URL},
         entities=resource_types,
         notes="D9 to D11 live engine smoke test",
@@ -61,20 +81,38 @@ async def main() -> None:
 
     for resource_type in resource_types:
         print(f"Analyzing {resource_type}...")
-        await service.analyze_source_site(
+        analysis = await service.analyze_source_site(
             source_url=args.source_url,
             resource_type=resource_type,
             token=None,
             migration_id=args.migration_id,
             verify_tls=False,
+            username=source_user,
+            password=source_password,
         )
+        print(f"  count={analysis.get('count')} attrs={len(analysis.get('attributes', []))}")
 
     print("Dry run:")
-    dry_result = await service.run_migration(args.migration_id, entity_types=resource_types, dry_run=True, verify_tls=False)
+    dry_result = await service.run_migration(
+        args.migration_id,
+        entity_types=resource_types,
+        dry_run=True,
+        verify_tls=False,
+        source_username=source_user,
+        source_password=source_password,
+    )
     print(dry_result["totals"])
 
     print("Live run:")
-    live_result = await service.run_migration(args.migration_id, entity_types=resource_types, dry_run=False, verify_tls=False)
+    live_result = await service.run_migration(
+        args.migration_id,
+        entity_types=resource_types,
+        dry_run=False,
+        verify_tls=False,
+        source_username=source_user,
+        source_password=source_password,
+        continue_on_error=True,
+    )
     print(live_result["totals"])
     if live_result.get("totals", {}).get("failed"):
         for item in live_result.get("results", []):

@@ -433,8 +433,15 @@ function {module_name}_migrate_api() {{
         resource_type: str = "node--article",
         token: str | None = None,
         verify_tls: bool = True,
+        username: str | None = None,
+        password: str | None = None,
     ) -> dict[str, Any]:
-        """Analyze a source Drupal JSON:API resource type and optionally store counts in a plan."""
+        """Analyze a source Drupal JSON:API resource type and optionally store counts in a plan.
+
+        ``username``/``password`` authenticate to the source site: JSON:API
+        field access hides attributes (user name/mail, for example) from
+        anonymous requests, so unauthenticated analysis under-reports.
+        """
         if not migration_service:
             return {"error": "Migration service not available"}
         if not source_url:
@@ -446,6 +453,8 @@ function {module_name}_migrate_api() {{
                 token=token,
                 migration_id=migration_id,
                 verify_tls=verify_tls,
+                username=username,
+                password=password,
             )
         except Exception as exc:  # noqa: BLE001
             return {"error": str(exc)}
@@ -474,8 +483,16 @@ function {module_name}_migrate_api() {{
         dry_run: bool = False,
         source_token: str | None = None,
         verify_tls: bool = True,
+        source_username: str | None = None,
+        source_password: str | None = None,
+        field_mapping: dict[str, str] | None = None,
     ) -> dict[str, Any]:
-        """Fetch and migrate one resource type from the plan's source site into the target site."""
+        """Fetch and migrate one resource type from the plan's source site into the target site.
+
+        ``source_username``/``source_password`` authenticate to the source
+        site. Credentials may instead be stored in the plan's ``source`` block
+        (``username``/``password``), which keeps waves self-contained.
+        """
         if not migration_service:
             return {"error": "Migration service not available"}
         try:
@@ -486,6 +503,9 @@ function {module_name}_migrate_api() {{
                 dry_run=dry_run,
                 source_token=source_token,
                 verify_tls=verify_tls,
+                source_username=source_username,
+                source_password=source_password,
+                field_mapping=field_mapping,
             )
         except Exception as exc:  # noqa: BLE001
             return {"error": str(exc)}
@@ -497,8 +517,16 @@ function {module_name}_migrate_api() {{
         dry_run: bool = False,
         source_token: str | None = None,
         verify_tls: bool = True,
+        source_username: str | None = None,
+        source_password: str | None = None,
+        continue_on_error: bool = False,
     ) -> dict[str, Any]:
-        """Run an ordered end-to-end migration for one or all planned entity types."""
+        """Run an ordered end-to-end migration for one or all planned entity types.
+
+        Waves run in the order given (dependencies first). A failed wave stops
+        the run by default, since a schema or auth problem tends to repeat;
+        set ``continue_on_error`` to attempt the remaining types anyway.
+        """
         if not migration_service:
             return {"error": "Migration service not available"}
         try:
@@ -508,6 +536,9 @@ function {module_name}_migrate_api() {{
                 dry_run=dry_run,
                 source_token=source_token,
                 verify_tls=verify_tls,
+                source_username=source_username,
+                source_password=source_password,
+                continue_on_error=continue_on_error,
             )
         except Exception as exc:  # noqa: BLE001
             return {"error": str(exc)}
