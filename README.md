@@ -140,7 +140,7 @@ Set `MCP_TRANSPORT` to one of:
 - `sse` (for Server-Sent Events)
 - `streamable-http` (for Streamable HTTP)
 
-## Tools (367 total)
+## Tools (377 total)
 
 ### Accessibility (5)
 - `accessibility_axe_scan` — Run axe-core accessibility scan
@@ -460,7 +460,7 @@ python tests/live/queue_test.py           # 18 cron/queue cases, ~60s
 python tests/live/filter_check.py         # every hard-coded JSON:API filter
 python tests/live/resource_check.py       # every resource name, asked of Drupal
 python tests/live/install_modules.py      # the modules the tools assume, ~10 min
-python tests/live/sweep.py                # all 367 tools, ~30 min
+python tests/live/sweep.py                # all 377 tools, ~30 min
 python tests/live/mcp_call.py content_list '{}'  # one call, for spot checks
 ```
 

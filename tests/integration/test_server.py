@@ -96,6 +96,60 @@ def test_readme_tools_section_matches_the_registered_tools() -> None:
     assert sum(int(n) for _, n, _ in sections) == len(registered)
 
 
+def test_headline_tool_counts_match_the_registered_tools() -> None:
+    """The headline counts live in three files and had drifted apart: the
+    README's Tools header said 367 while its own section counts summed to
+    377, and the docs site still claimed "35+ tools". Each number a reader
+    sees first is checked against the server itself.
+    """
+    import re
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2]
+    registered = len(asyncio.run(create_server().list_tools()))
+
+    readme = (root / "README.md").read_text(encoding="utf-8")
+    header = re.search(r"^## Tools \((\d+) total\)$", readme, re.M)
+    assert header, "the README's Tools header could not be parsed"
+    assert int(header.group(1)) == registered, (
+        f"the README's Tools header says {header.group(1)} "
+        f"but {registered} tools are registered"
+    )
+
+    index = (root / "docs" / "index.md").read_text(encoding="utf-8")
+    intro = re.search(r"Provides (\d+) tools", index)
+    assert intro, "docs/index.md no longer states a tool count"
+    assert int(intro.group(1)) == registered, (
+        f"docs/index.md says {intro.group(1)} tools "
+        f"but {registered} are registered"
+    )
+
+    # The docs homepage's sample table quotes per-category counts taken from
+    # the README's sections; a row whose count no longer matches its section
+    # means the two have drifted apart again.
+    sections = dict(
+        (name.lower(), int(declared))
+        for name, declared, _ in re.findall(
+            r"^### (.+?) \((\d+)\)\n((?:- .*\n|`.*\n)*)", readme, re.M
+        )
+    )
+    rows = re.findall(r"^\| ([A-Za-z][A-Za-z ]+?) \| (\d+) \|", index, re.M)
+    assert rows, "the docs/index.md feature table could not be parsed"
+    stale = []
+    for category, declared in rows:
+        matches = [
+            count
+            for name, count in sections.items()
+            if name.startswith(category.lower())
+        ]
+        if len(matches) != 1 or matches[0] != int(declared):
+            stale.append(
+                f"{category} says {declared}, README section says "
+                f"{matches if len(matches) == 1 else 'no unique match'}"
+            )
+    assert stale == [], stale
+
+
 def test_http_transport_accepts_a_token_it_issued_and_refuses_the_others() -> None:
     """OAuth's positive half, checked where the promise is actually made.
 

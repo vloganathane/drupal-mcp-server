@@ -1,6 +1,8 @@
 # Tools Reference
 
-All 35+ tools organized by category.
+Selected tools from the 377-tool catalog, documented with their parameters,
+return values, and errors. The complete list lives in the
+[README's Tools section](https://github.com/vloganathane/drupal-mcp-server#tools-377-total).
 
 ## Content Management
 
