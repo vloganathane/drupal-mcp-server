@@ -47,6 +47,3 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./site
-        # The recreated repo has no GitHub Pages site yet; create it on
-        # first deploy instead of failing with a 404.
-        enable_or_create_pages: true
