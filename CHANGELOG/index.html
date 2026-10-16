@@ -1439,6 +1439,23 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
+<li>Wave 3 of the drupal-scout-mcp port — 4 export tools (404 total, 40
+  modules): <code>export_nodes</code>, <code>export_users</code>, <code>export_media</code>,
+  <code>export_taxonomy</code> write CSV (UTF-8 with BOM) or Excel files
+  (<code>openpyxl</code>, new runtime dependency) and return only the path,
+  row/column counts, size, and a three-row preview. Destination paths are
+  confined to the Drupal root, the system temp directory, or the home
+  directory; data is paged per bundle over JSON:API (never through the
+  shared merged offset, which skips rows), and taxonomy usage counts come
+  from one validated <code>GROUP BY</code> query per field storage targeting
+  taxonomy terms, with unreadable tables reported in a note instead of
+  failing the export (and a <code>safe_to_delete</code> verdict withheld entirely
+  whenever the counts are incomplete). Entries with no internal id —
+  Drupal's uid-0 anonymous user serves only a display_name — are skipped
+  and counted as <code>skipped_without_id</code>, and an unreadable status stays
+  empty in the CSV rather than being presented as "blocked"</li>
+<li><code>sql_output</code>/<code>sql_rows</code> moved from the analysis module into <code>_utils</code> so
+  the export tools parse <code>drush sql:query</code> text the same way</li>
 <li>Wave 2 of the drupal-scout-mcp port — 8 tools (400 total, 39 modules):</li>
 <li>Status section (4): <code>status_report</code> (drush core:requirements, severity
     filter), <code>database_updates</code> (read-only pending DB updates),

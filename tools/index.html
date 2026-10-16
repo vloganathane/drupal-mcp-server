@@ -768,6 +768,45 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#exports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exports
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Exports">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#export_nodes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        export_nodes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#export_users-export_media-export_taxonomy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        export_users / export_media / export_taxonomy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1593,6 +1632,45 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#exports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exports
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Exports">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#export_nodes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        export_nodes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#export_users-export_media-export_taxonomy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        export_users / export_media / export_taxonomy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1611,9 +1689,9 @@
 
 
 <h1 id="tools-reference">Tools Reference<a class="headerlink" href="#tools-reference" title="Permanent link">&para;</a></h1>
-<p>Selected tools from the 400-tool catalog, documented with their parameters,
+<p>Selected tools from the 404-tool catalog, documented with their parameters,
 return values, and errors. The complete list lives in the
-<a href="https://github.com/vloganathane/drupal-mcp-server#tools-400-total">README's Tools section</a>.</p>
+<a href="https://github.com/vloganathane/drupal-mcp-server#tools-404-total">README's Tools section</a>.</p>
 <h2 id="content-management">Content Management<a class="headerlink" href="#content-management" title="Permanent link">&para;</a></h2>
 <h3 id="create_node">create_node<a class="headerlink" href="#create_node" title="Permanent link">&para;</a></h3>
 <p>Create a single node of the specified bundle with given fields.</p>
@@ -1994,6 +2072,86 @@ path alias table, then the resolved target is parsed the same way.</p>
 <p><strong>Returns:</strong> <code>found</code>, the resolved <code>internal_path</code>, <code>entity_type</code>,
 <code>entity_id</code>, the full <code>entity</code> resource, and the <code>alias</code> row when one was
 used</p>
+<hr />
+<h2 id="exports">Exports<a class="headerlink" href="#exports" title="Permanent link">&para;</a></h2>
+<p>Bulk inventories written to a file: the tool returns only the path,
+row/column counts, file size, and a three-row preview, so a 5,000-node
+export never travels through the conversation. Data comes from JSON:API
+pagination (newlines and accents survive intact), and the destination is
+confined to the Drupal root, the system temp directory, or your home
+directory — never anywhere else. Entries with no internal id — Drupal's
+uid-0 anonymous user is the usual one — are skipped and counted in the
+response's <code>skipped_without_id</code> field.</p>
+<h3 id="export_nodes">export_nodes<a class="headerlink" href="#export_nodes" title="Permanent link">&para;</a></h3>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>content_type</code></td>
+<td>string</td>
+<td>No</td>
+<td>—</td>
+<td>Limit to one bundle (e.g. 'article')</td>
+</tr>
+<tr>
+<td><code>include_unpublished</code></td>
+<td>boolean</td>
+<td>No</td>
+<td>False</td>
+<td>Also export unpublished nodes</td>
+</tr>
+<tr>
+<td><code>include_fields</code></td>
+<td>boolean</td>
+<td>No</td>
+<td>False</td>
+<td>Add a <code>fields</code> column of remaining values as JSON (capped at 5000 chars per value)</td>
+</tr>
+<tr>
+<td><code>limit</code></td>
+<td>integer</td>
+<td>No</td>
+<td>0</td>
+<td>Rows to write (0 = no cap, max 100000)</td>
+</tr>
+<tr>
+<td><code>output_path</code></td>
+<td>string</td>
+<td>No</td>
+<td>—</td>
+<td>Destination <code>.csv</code>/<code>.xlsx</code>; defaults to <code>{Drupal root}/exports/</code> or <code>/tmp/drupal-mcp-exports/</code></td>
+</tr>
+<tr>
+<td><code>format</code></td>
+<td>string</td>
+<td>No</td>
+<td><code>csv</code></td>
+<td><code>csv</code> (UTF-8 with BOM) or <code>xlsx</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>file_path</code>, <code>rows</code>, <code>columns</code>, <code>file_size_kb</code>, <code>preview</code>
+(first 3 rows), <code>filters</code>, <code>truncated</code> (row/page cap stopped the export)</p>
+<p><strong>Errors:</strong>
+- <code>error</code> — invalid bundle/format/limit, a path outside the safe roots,
+  or no JSON:API client</p>
+<h3 id="export_users-export_media-export_taxonomy">export_users / export_media / export_taxonomy<a class="headerlink" href="#export_users-export_media-export_taxonomy" title="Permanent link">&para;</a></h3>
+<p>Same contract per entity: <code>export_users</code> includes blocked accounts (their
+status column says so) plus role labels; <code>export_media</code> adds bundle,
+owner, and the managed file's filename/URI, with a <code>media_type</code> filter;
+<code>export_taxonomy</code> adds <code>usage_count</code>, the <code>used_in</code> fields, and a
+<code>safe_to_delete</code> verdict computed from one COUNT query per field storage
+targeting taxonomy terms (<code>vocabulary</code> filter, <code>include_usage=false</code> to
+skip the counts). All four accept <code>format="xlsx"</code> for an Excel workbook.</p>
 
 
 
