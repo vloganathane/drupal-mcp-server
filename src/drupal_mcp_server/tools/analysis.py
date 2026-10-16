@@ -9,6 +9,7 @@ from typing import Any
 from fastmcp import FastMCP
 
 from ..validation import validate_identifier, validate_single_select
+from ._utils import sql_output, sql_rows
 
 # Internal routes that resolve straight to an entity id.
 _ROUTES = [
@@ -85,51 +86,6 @@ def _like_literal(value: str) -> str:
         .replace("'", "\\'")
     )
     return f"'%{escaped}%'"
-
-
-def _sql_output(result: dict[str, Any]) -> tuple[str, str | None]:
-    """Raw stdout text and an error reason from a `sql:query` result.
-
-    `sql:query` has no --format option at all, so the client cannot parse
-    the rows itself: stdout arrives as raw text under ``{"output": ...}``
-    (or an empty dict when the query returned nothing).
-    """
-    data = result.get("data")
-    if isinstance(data, dict) and isinstance(data.get("output"), str):
-        return data["output"], None
-    if isinstance(data, str):
-        return data, None
-    if result.get("returncode"):
-        return "", str(result.get("stderr", "")).strip() or "query failed"
-    return "", None
-
-
-def _sql_rows(output: str, columns: list[str]) -> list[dict[str, Any]]:
-    """Parse `drush sql:query` output: tab-separated values, no header row.
-
-    Values arrive as text, and NULL is printed as those four characters, so
-    a NULL langcode reads back as None. A value containing a tab splits into
-    extra fields, which are joined back into the last column rather than
-    shifting the rest of the row.
-    """
-    rows: list[dict[str, Any]] = []
-    for line in output.splitlines():
-        if not line.strip():
-            continue
-        parts = line.split("\t")
-        if len(parts) > len(columns):
-            parts = parts[: len(columns) - 1] + [
-                "\t".join(parts[len(columns) - 1 :])
-            ]
-        while len(parts) < len(columns):
-            parts.append("")
-        rows.append(
-            {
-                column: (None if value == "NULL" else value)
-                for column, value in zip(columns, parts, strict=False)
-            }
-        )
-    return rows
 
 
 async def _fetch_all_field_configs(
@@ -796,9 +752,9 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             result = await drush.run("sql:query", [union])
         except Exception as exc:  # noqa: BLE001 - reported as data
             result = {"returncode": 1, "stderr": str(exc)}
-        text, error = _sql_output(result)
+        text, error = sql_output(result)
         if error is None:
-            _group(_sql_rows(text, columns))
+            _group(sql_rows(text, columns))
         else:
             # One missing table takes the whole UNION down (a site without
             # media or comments is common), so retry each type on its own
@@ -812,11 +768,11 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 except Exception as exc:  # noqa: BLE001 - a missing table is data
                     skipped[kind] = str(exc)[:200]
                     continue
-                text, error = _sql_output(result)
+                text, error = sql_output(result)
                 if error is not None:
                     skipped[kind] = error[:200]
                     continue
-                _group(_sql_rows(text, columns))
+                _group(sql_rows(text, columns))
 
         payload: dict[str, Any] = {
             "query": term,
@@ -866,9 +822,9 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 result = await drush.run("sql:query", [sql])
             except Exception as exc:  # noqa: BLE001 - reported below
                 result = {"returncode": 1, "stderr": str(exc)}
-            text, error = _sql_output(result)
+            text, error = sql_output(result)
             rows = (
-                _sql_rows(text, ["id", "alias", "path", "langcode"])
+                sql_rows(text, ["id", "alias", "path", "langcode"])
                 if error is None
                 else []
             )

@@ -88,3 +88,5 @@ config/sync/
 .omc
 .pi
 .mutagen-*
+# export tools' default destination when DRUPAL_ROOT points at the repo
+exports/

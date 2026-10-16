@@ -140,6 +140,51 @@ async def run_composer(args: list[str], tail: int | None = 4000) -> dict[str, An
     return payload
 
 
+def sql_output(result: dict[str, Any]) -> tuple[str, str | None]:
+    """Raw stdout text and an error reason from a `sql:query` result.
+
+    `sql:query` has no --format option at all, so the client cannot parse
+    the rows itself: stdout arrives as raw text under ``{"output": ...}``
+    (or an empty dict when the query returned nothing).
+    """
+    data = result.get("data")
+    if isinstance(data, dict) and isinstance(data.get("output"), str):
+        return data["output"], None
+    if isinstance(data, str):
+        return data, None
+    if result.get("returncode"):
+        return "", str(result.get("stderr", "")).strip() or "query failed"
+    return "", None
+
+
+def sql_rows(output: str, columns: list[str]) -> list[dict[str, Any]]:
+    """Parse `drush sql:query` output: tab-separated values, no header row.
+
+    Values arrive as text, and NULL is printed as those four characters, so
+    a NULL langcode reads back as None. A value containing a tab splits into
+    extra fields, which are joined back into the last column rather than
+    shifting the rest of the row.
+    """
+    rows: list[dict[str, Any]] = []
+    for line in output.splitlines():
+        if not line.strip():
+            continue
+        parts = line.split("\t")
+        if len(parts) > len(columns):
+            parts = parts[: len(columns) - 1] + [
+                "\t".join(parts[len(columns) - 1 :])
+            ]
+        while len(parts) < len(columns):
+            parts.append("")
+        rows.append(
+            {
+                column: (None if value == "NULL" else value)
+                for column, value in zip(columns, parts, strict=False)
+            }
+        )
+    return rows
+
+
 def drush_output(result: dict[str, Any]) -> str:
     """Human-readable output from a DrushClient result.
 

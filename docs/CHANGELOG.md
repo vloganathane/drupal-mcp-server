@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Wave 3 of the drupal-scout-mcp port — 4 export tools (404 total, 40
+  modules): `export_nodes`, `export_users`, `export_media`,
+  `export_taxonomy` write CSV (UTF-8 with BOM) or Excel files
+  (`openpyxl`, new runtime dependency) and return only the path,
+  row/column counts, size, and a three-row preview. Destination paths are
+  confined to the Drupal root, the system temp directory, or the home
+  directory; data is paged per bundle over JSON:API (never through the
+  shared merged offset, which skips rows), and taxonomy usage counts come
+  from one validated `GROUP BY` query per field storage targeting
+  taxonomy terms, with unreadable tables reported in a note instead of
+  failing the export (and a `safe_to_delete` verdict withheld entirely
+  whenever the counts are incomplete). Entries with no internal id —
+  Drupal's uid-0 anonymous user serves only a display_name — are skipped
+  and counted as `skipped_without_id`, and an unreadable status stays
+  empty in the CSV rather than being presented as "blocked"
+- `sql_output`/`sql_rows` moved from the analysis module into `_utils` so
+  the export tools parse `drush sql:query` text the same way
 - Wave 2 of the drupal-scout-mcp port — 8 tools (400 total, 39 modules):
   - Status section (4): `status_report` (drush core:requirements, severity
     filter), `database_updates` (read-only pending DB updates),

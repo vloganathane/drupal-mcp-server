@@ -1,8 +1,8 @@
 # Tools Reference
 
-Selected tools from the 400-tool catalog, documented with their parameters,
+Selected tools from the 404-tool catalog, documented with their parameters,
 return values, and errors. The complete list lives in the
-[README's Tools section](https://github.com/vloganathane/drupal-mcp-server#tools-400-total).
+[README's Tools section](https://github.com/vloganathane/drupal-mcp-server#tools-404-total).
 
 ## Content Management
 
@@ -216,3 +216,46 @@ path alias table, then the resolved target is parsed the same way.
 **Returns:** `found`, the resolved `internal_path`, `entity_type`,
 `entity_id`, the full `entity` resource, and the `alias` row when one was
 used
+
+---
+
+## Exports
+
+Bulk inventories written to a file: the tool returns only the path,
+row/column counts, file size, and a three-row preview, so a 5,000-node
+export never travels through the conversation. Data comes from JSON:API
+pagination (newlines and accents survive intact), and the destination is
+confined to the Drupal root, the system temp directory, or your home
+directory — never anywhere else. Entries with no internal id — Drupal's
+uid-0 anonymous user is the usual one — are skipped and counted in the
+response's `skipped_without_id` field.
+
+### export_nodes
+
+**Parameters:**
+
+| Name | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `content_type` | string | No | — | Limit to one bundle (e.g. 'article') |
+| `include_unpublished` | boolean | No | False | Also export unpublished nodes |
+| `include_fields` | boolean | No | False | Add a `fields` column of remaining values as JSON (capped at 5000 chars per value) |
+| `limit` | integer | No | 0 | Rows to write (0 = no cap, max 100000) |
+| `output_path` | string | No | — | Destination `.csv`/`.xlsx`; defaults to `{Drupal root}/exports/` or `/tmp/drupal-mcp-exports/` |
+| `format` | string | No | `csv` | `csv` (UTF-8 with BOM) or `xlsx` |
+
+**Returns:** `file_path`, `rows`, `columns`, `file_size_kb`, `preview`
+(first 3 rows), `filters`, `truncated` (row/page cap stopped the export)
+
+**Errors:**
+- `error` — invalid bundle/format/limit, a path outside the safe roots,
+  or no JSON:API client
+
+### export_users / export_media / export_taxonomy
+
+Same contract per entity: `export_users` includes blocked accounts (their
+status column says so) plus role labels; `export_media` adds bundle,
+owner, and the managed file's filename/URI, with a `media_type` filter;
+`export_taxonomy` adds `usage_count`, the `used_in` fields, and a
+`safe_to_delete` verdict computed from one COUNT query per field storage
+targeting taxonomy terms (`vocabulary` filter, `include_usage=false` to
+skip the counts). All four accept `format="xlsx"` for an Excel workbook.
