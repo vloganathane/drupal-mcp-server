@@ -1395,6 +1395,14 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
   local MCP clients (Claude Code, Claude Desktop, Cursor, Codex CLI,
   OpenCode, Windsurf, Pi, Hermes Agent, OpenClaw), with <code>--print</code>/<code>--json</code>
   for scripted setup and an AI Coding Agents guide</li>
+<li>Add <code>module_issues_search</code>, <code>module_popular</code>, and <code>module_recommendation</code>
+  (client-side issue-queue relevance scoring, usage-ranked module lists by
+  category, local-index + drupal.org recommendations), plus the <code>DRUPAL_ROOT</code>
+  and <code>DRUPAL_MODULES_PATH</code> settings for local codebase analysis</li>
+<li>Add a local codebase index with 12 <code>codebase_*</code> tools: functionality
+  search, module inventory/descriptions, unused and redundant module
+  detection, hook implementation lookup, and safe module file/tree/function
+  reading (all reads confined to <code>DRUPAL_ROOT</code>)</li>
 <li>Add <code>moderation_transition_delete</code>, giving <code>moderation_transition_create</code> the
   counterpart it never had. The tool count is now 367</li>
 <li>Add Lando support to SiteManager</li>

@@ -1728,11 +1728,11 @@
 </code></pre></div>
 <p>The script enables <code>jsonapi</code> + <code>basic_auth</code> on both sites, turns off JSON:API read-only mode on the target, and writes source/target credentials to <code>.env.d9d11</code> (gitignored). The runner walks the full engine path: analyze → plan → dry run → live run → reconcile, and asserts source/target counts match.</p>
 <h3 id="d7-to-d11-legacy-db-migration">D7 to D11 legacy DB migration<a class="headerlink" href="#d7-to-d11-legacy-db-migration" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>scripts/live-migration-d7d11.sh<span class="w"> </span>up
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1"># configure the D11 target's source database using the printed D7 credentials</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>scripts/live-migration-d7d11.sh<span class="w"> </span>down
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>scripts/live-migration-d7d11.sh<span class="w"> </span>up<span class="w">        </span><span class="c1"># provisions both sites, seeds source data, writes .env.d7d11</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>scripts/live-migration-d7d11.sh<span class="w"> </span>migrate<span class="w">   </span><span class="c1"># wires the target's 'migrate' DB connection, imports, verifies</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>scripts/live-migration-d7d11.sh<span class="w"> </span>down<span class="w">      </span><span class="c1"># deletes both DDEV projects</span>
 </code></pre></div>
-<p>The D7 harness uses the standard Drupal Migrate model, where the target reads the D7 database directly (D7 predates JSON:API). The D9/D11 harness exercises the MCP JSON:API migration engine.</p>
+<p>The D7 harness uses the standard Drupal Migrate model, where the target reads the D7 database directly (D7 predates JSON:API). <code>migrate</code> is idempotent: it points core's <code>d7_*</code> sources at the source database via <code>$databases['migrate']</code>, runs the dependency-ordered imports (<code>d7_filter_format</code> → <code>d7_user_role</code> → <code>d7_user</code> → <code>d7_node_type</code> → <code>d7_node:article</code> → <code>d7_taxonomy_vocabulary</code> → <code>d7_taxonomy_term:departures</code>), and exits non-zero unless every one of them is Idle at full import, then prints the migrated article, body, author, and term for eyeball verification. The D9/D11 harness exercises the MCP JSON:API migration engine.</p>
 <h2 id="end-to-end-migration-engine">End-to-end migration engine<a class="headerlink" href="#end-to-end-migration-engine" title="Permanent link">&para;</a></h2>
 <p>The server supports persisted migration plans and wave-based imports.</p>
 <p>Recommended flow:</p>
