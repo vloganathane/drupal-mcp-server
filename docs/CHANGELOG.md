@@ -9,6 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Wave 5 of the drupal-scout-mcp port — 2 local security tools
+  (414 total, 41 modules): `code_security_scan` runs scout's
+  zero-dependency pattern engine (XSS, SQL injection, command injection,
+  path traversal, hardcoded secrets, access control, CSRF, deprecated
+  API — 8 families, category/severity filters, per-finding file/line/
+  snippet/fix recommendation) with its Drupal-aware false-positive table
+  (EntityQuery conditions, stream wrappers, escapeshellarg, example
+  secrets, comment lines), so a site without PHPStan gets concrete
+  findings; counts stay complete when `max_findings` truncates the list.
+  `route_access_audit` is the routing half of scout's anonymous-exploit
+  scan done properly per route: every `*.routing.yml` route classified
+  as anonymous / permission / role / entity / custom / denied / **missing**
+  with its controller mapped to the declaring file. Targets confine to
+  DRUPAL_ROOT and prune vendor, tests, and contrib from the default scan;
+  symlinks are skipped. Two accuracy corrections over scout's registry:
+  `t(` is a live D8+ function (scout flagged every translation call as a
+  Drupal 7 leftover) and scout's CSRF `$request` pattern was escaped so
+  it could never match PHP. Scout's `verify_vulnerability` was not
+  ported — it returns static advice rather than site-specific data —
+  and the optional tree-sitter AST layer is skipped: the pattern pass
+  carries the signal.
 - Wave 4 of the drupal-scout-mcp port — 8 read-only theme analysis tools
   (412 total, 41 modules): `theme_active` (default/admin/enabled themes
   from `system.theme` + `pm:list`), `theme_info` (pm:list metadata merged

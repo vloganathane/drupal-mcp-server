@@ -7,7 +7,7 @@
 [![PyPI downloads](https://img.shields.io/pypi/dm/drupal-mcp-server.svg)](https://pypi.org/project/drupal-mcp-server/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/vloganathane/drupal-mcp-server/blob/main/LICENSE)
 
-A Model Context Protocol (MCP) server for Drupal operations. Provides **412 tools across 41 modules** for site analysis, migration, content management, configuration, commerce, headless, DevOps, security, and more.
+A Model Context Protocol (MCP) server for Drupal operations. Provides **414 tools across 41 modules** for site analysis, migration, content management, configuration, commerce, headless, DevOps, security, and more.
 
 ## Why Use This?
 
@@ -161,7 +161,7 @@ Set `MCP_TRANSPORT` to one of:
 - `sse` (for Server-Sent Events)
 - `streamable-http` (for Streamable HTTP)
 
-## Tools (412 total)
+## Tools (414 total)
 
 ### Accessibility (5)
 - `accessibility_axe_scan` — Run axe-core accessibility scan
@@ -355,7 +355,7 @@ displays have Layout Builder enabled; `layout_builder_get`,
 - `search_api_index_list`, `search_api_index_get`, `search_api_index_create`, `search_api_index_update`
 - `search_api_index_reindex`, `search_api_index_clear`, `search_api_facet_list`, `search_api_facet_create`
 
-### Security Audit (8)
+### Security Audit (10)
 - `security_scan` — PHPStan with security extensions
 - `dependency_scan` — Composer audit
 - `config_security_check` — Drupal config security
@@ -364,6 +364,8 @@ displays have Layout Builder enabled; `layout_builder_get`,
 - `xss_scan` — XSS vulnerability detection
 - `csp_audit` — Content Security Policy audit
 - `file_permissions_audit` — File permissions audit
+- `code_security_scan` — Local pattern scan, nothing to install
+- `route_access_audit` — Route access control classification
 
 ### Status (4)
 - `status_report` — The site's status report (/admin/reports/status), read-only
@@ -504,7 +506,7 @@ python tests/live/queue_test.py           # 18 cron/queue cases, ~60s
 python tests/live/filter_check.py         # every hard-coded JSON:API filter
 python tests/live/resource_check.py       # every resource name, asked of Drupal
 python tests/live/install_modules.py      # the modules the tools assume, ~10 min
-python tests/live/sweep.py                # all 412 tools, ~30 min
+python tests/live/sweep.py                # all 414 tools, ~30 min
 python tests/live/mcp_call.py content_list '{}'  # one call, for spot checks
 ```
 

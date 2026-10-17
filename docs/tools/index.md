@@ -1,8 +1,8 @@
 # Tools Reference
 
-Selected tools from the 412-tool catalog, documented with their parameters,
+Selected tools from the 414-tool catalog, documented with their parameters,
 return values, and errors. The complete list lives in the
-[README's Tools section](https://github.com/vloganathane/drupal-mcp-server#tools-412-total).
+[README's Tools section](https://github.com/vloganathane/drupal-mcp-server#tools-414-total).
 
 ## Content Management
 
@@ -385,3 +385,58 @@ DRUPAL_ROOT allows) and `checked_in`.
 - `error` — invalid identifier, no JSON:API client, view not found (with
   the `available` views the site has), or an unknown `display_id` (with
   the `displays` the view has)
+
+## Security Scanners
+
+Zero-dependency local analysis: PHP/JS/Drupal files are matched against a
+curated pattern registry with Drupal-aware false-positive rules, so a site
+without PHPStan (which `security_scan` needs) still gets concrete
+findings. Targets are confined to DRUPAL_ROOT — symlinks and escaping
+paths are rejected, and `vendor/`, `node_modules/`, `tests/`, `dist/`, and
+`contrib/` are pruned from the default scan.
+
+### code_security_scan
+
+**Parameters:**
+
+| Name | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `module` | string | No | — | Module machine name (e.g. 'webform'); exclusive with `path` |
+| `path` | string | No | — | Directory relative to DRUPAL_ROOT (e.g. 'themes/custom/mytheme') |
+| `categories` | array | No | all | Registry keys: 'xss', 'sql_injection', 'command_injection', 'path_traversal', 'hardcoded_secrets', 'access_control', 'csrf', 'deprecated_api' |
+| `severity` | string | No | — | `high`, `medium`, or `low` — only that level |
+| `max_findings` | integer | No | 50 | Rows returned (1–500), highest severity first |
+
+With no target, the site's own `modules/` and `themes/` directories are
+scanned (contrib and core excluded).
+
+**Returns:** `findings` (file, line, `category`, `pattern`, `severity`,
+description, `recommendation`, trimmed `snippet`), `counts`
+(`by_category`/`by_severity` cover the **whole** run even when
+`findings` truncates), `files_scanned`,
+`false_positives_filtered` (EntityQuery conditions, stream wrappers,
+`escapeshellarg`, comments with example secrets, and similar safe APIs
+are recognized), `truncated`, and a `note` when rows were cut.
+
+**Errors:**
+- `error` — both `module` and `path`, an unknown category (with
+  `available`), a bad severity or `max_findings`, a module/path not found
+  inside DRUPAL_ROOT, or no DRUPAL_ROOT configured
+
+### route_access_audit
+
+**Parameters:** same target shape as `code_security_scan` (`module` or
+`path`, defaulting to the site's own code).
+
+**Returns:** `routes` — every route from every `*.routing.yml` with its
+`name`, `route` path, `controller`, `controller_file` (the file declaring
+the class, when it can be found), and an `access` classification:
+`anonymous` (`access: TRUE`), `permission:NAME`, `role:NAME`, `entity`,
+`custom`, `denied`, or **`missing`** — no requirement at all, which is
+the finding, since Drupal then falls back to whatever the controller
+does. Plus `counts` per access kind, `anonymous_routes`,
+`routes_missing_access`, and `parse_errors` for unreadable YAML.
+
+**Errors:**
+- `error` — both targets passed, module/path not found inside
+  DRUPAL_ROOT, or no DRUPAL_ROOT configured
