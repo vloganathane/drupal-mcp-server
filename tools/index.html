@@ -890,6 +890,45 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#security-scanners" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security Scanners
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Security Scanners">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#code_security_scan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        code_security_scan
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#route_access_audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        route_access_audit
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1837,6 +1876,45 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#security-scanners" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security Scanners
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Security Scanners">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#code_security_scan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        code_security_scan
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#route_access_audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        route_access_audit
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1855,9 +1933,9 @@
 
 
 <h1 id="tools-reference">Tools Reference<a class="headerlink" href="#tools-reference" title="Permanent link">&para;</a></h1>
-<p>Selected tools from the 412-tool catalog, documented with their parameters,
+<p>Selected tools from the 414-tool catalog, documented with their parameters,
 return values, and errors. The complete list lives in the
-<a href="https://github.com/vloganathane/drupal-mcp-server#tools-412-total">README's Tools section</a>.</p>
+<a href="https://github.com/vloganathane/drupal-mcp-server#tools-414-total">README's Tools section</a>.</p>
 <h2 id="content-management">Content Management<a class="headerlink" href="#content-management" title="Permanent link">&para;</a></h2>
 <h3 id="create_node">create_node<a class="headerlink" href="#create_node" title="Permanent link">&para;</a></h3>
 <p>Create a single node of the specified bundle with given fields.</p>
@@ -2528,6 +2606,90 @@ DRUPAL_ROOT allows) and <code>checked_in</code>.</p>
 - <code>error</code> — invalid identifier, no JSON:API client, view not found (with
   the <code>available</code> views the site has), or an unknown <code>display_id</code> (with
   the <code>displays</code> the view has)</p>
+<h2 id="security-scanners">Security Scanners<a class="headerlink" href="#security-scanners" title="Permanent link">&para;</a></h2>
+<p>Zero-dependency local analysis: PHP/JS/Drupal files are matched against a
+curated pattern registry with Drupal-aware false-positive rules, so a site
+without PHPStan (which <code>security_scan</code> needs) still gets concrete
+findings. Targets are confined to DRUPAL_ROOT — symlinks and escaping
+paths are rejected, and <code>vendor/</code>, <code>node_modules/</code>, <code>tests/</code>, <code>dist/</code>, and
+<code>contrib/</code> are pruned from the default scan.</p>
+<h3 id="code_security_scan">code_security_scan<a class="headerlink" href="#code_security_scan" title="Permanent link">&para;</a></h3>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>module</code></td>
+<td>string</td>
+<td>No</td>
+<td>—</td>
+<td>Module machine name (e.g. 'webform'); exclusive with <code>path</code></td>
+</tr>
+<tr>
+<td><code>path</code></td>
+<td>string</td>
+<td>No</td>
+<td>—</td>
+<td>Directory relative to DRUPAL_ROOT (e.g. 'themes/custom/mytheme')</td>
+</tr>
+<tr>
+<td><code>categories</code></td>
+<td>array</td>
+<td>No</td>
+<td>all</td>
+<td>Registry keys: 'xss', 'sql_injection', 'command_injection', 'path_traversal', 'hardcoded_secrets', 'access_control', 'csrf', 'deprecated_api'</td>
+</tr>
+<tr>
+<td><code>severity</code></td>
+<td>string</td>
+<td>No</td>
+<td>—</td>
+<td><code>high</code>, <code>medium</code>, or <code>low</code> — only that level</td>
+</tr>
+<tr>
+<td><code>max_findings</code></td>
+<td>integer</td>
+<td>No</td>
+<td>50</td>
+<td>Rows returned (1–500), highest severity first</td>
+</tr>
+</tbody>
+</table>
+<p>With no target, the site's own <code>modules/</code> and <code>themes/</code> directories are
+scanned (contrib and core excluded).</p>
+<p><strong>Returns:</strong> <code>findings</code> (file, line, <code>category</code>, <code>pattern</code>, <code>severity</code>,
+description, <code>recommendation</code>, trimmed <code>snippet</code>), <code>counts</code>
+(<code>by_category</code>/<code>by_severity</code> cover the <strong>whole</strong> run even when
+<code>findings</code> truncates), <code>files_scanned</code>,
+<code>false_positives_filtered</code> (EntityQuery conditions, stream wrappers,
+<code>escapeshellarg</code>, comments with example secrets, and similar safe APIs
+are recognized), <code>truncated</code>, and a <code>note</code> when rows were cut.</p>
+<p><strong>Errors:</strong>
+- <code>error</code> — both <code>module</code> and <code>path</code>, an unknown category (with
+  <code>available</code>), a bad severity or <code>max_findings</code>, a module/path not found
+  inside DRUPAL_ROOT, or no DRUPAL_ROOT configured</p>
+<h3 id="route_access_audit">route_access_audit<a class="headerlink" href="#route_access_audit" title="Permanent link">&para;</a></h3>
+<p><strong>Parameters:</strong> same target shape as <code>code_security_scan</code> (<code>module</code> or
+<code>path</code>, defaulting to the site's own code).</p>
+<p><strong>Returns:</strong> <code>routes</code> — every route from every <code>*.routing.yml</code> with its
+<code>name</code>, <code>route</code> path, <code>controller</code>, <code>controller_file</code> (the file declaring
+the class, when it can be found), and an <code>access</code> classification:
+<code>anonymous</code> (<code>access: TRUE</code>), <code>permission:NAME</code>, <code>role:NAME</code>, <code>entity</code>,
+<code>custom</code>, <code>denied</code>, or <strong><code>missing</code></strong> — no requirement at all, which is
+the finding, since Drupal then falls back to whatever the controller
+does. Plus <code>counts</code> per access kind, <code>anonymous_routes</code>,
+<code>routes_missing_access</code>, and <code>parse_errors</code> for unreadable YAML.</p>
+<p><strong>Errors:</strong>
+- <code>error</code> — both targets passed, module/path not found inside
+  DRUPAL_ROOT, or no DRUPAL_ROOT configured</p>
 
 
 

@@ -1439,6 +1439,27 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
+<li>Wave 5 of the drupal-scout-mcp port — 2 local security tools
+  (414 total, 41 modules): <code>code_security_scan</code> runs scout's
+  zero-dependency pattern engine (XSS, SQL injection, command injection,
+  path traversal, hardcoded secrets, access control, CSRF, deprecated
+  API — 8 families, category/severity filters, per-finding file/line/
+  snippet/fix recommendation) with its Drupal-aware false-positive table
+  (EntityQuery conditions, stream wrappers, escapeshellarg, example
+  secrets, comment lines), so a site without PHPStan gets concrete
+  findings; counts stay complete when <code>max_findings</code> truncates the list.
+  <code>route_access_audit</code> is the routing half of scout's anonymous-exploit
+  scan done properly per route: every <code>*.routing.yml</code> route classified
+  as anonymous / permission / role / entity / custom / denied / <strong>missing</strong>
+  with its controller mapped to the declaring file. Targets confine to
+  DRUPAL_ROOT and prune vendor, tests, and contrib from the default scan;
+  symlinks are skipped. Two accuracy corrections over scout's registry:
+  <code>t(</code> is a live D8+ function (scout flagged every translation call as a
+  Drupal 7 leftover) and scout's CSRF <code>$request</code> pattern was escaped so
+  it could never match PHP. Scout's <code>verify_vulnerability</code> was not
+  ported — it returns static advice rather than site-specific data —
+  and the optional tree-sitter AST layer is skipped: the pattern pass
+  carries the signal.</li>
 <li>Wave 4 of the drupal-scout-mcp port — 8 read-only theme analysis tools
   (412 total, 41 modules): <code>theme_active</code> (default/admin/enabled themes
   from <code>system.theme</code> + <code>pm:list</code>), <code>theme_info</code> (pm:list metadata merged
