@@ -1073,6 +1073,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#031-2026-10-17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.3.1] - 2026-10-17
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.3.1] - 2026-10-17">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#030-2026-10-17" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1146,7 +1174,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#fixed" class="md-nav__link">
+  <a href="#fixed_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         Fixed
@@ -1310,6 +1338,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#031-2026-10-17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.3.1] - 2026-10-17
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.3.1] - 2026-10-17">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#030-2026-10-17" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1383,7 +1439,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#fixed" class="md-nav__link">
+  <a href="#fixed_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         Fixed
@@ -1459,6 +1515,20 @@
 <p>The format is based on <a href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a>,
 and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
+<h2 id="031-2026-10-17">[0.3.1] - 2026-10-17<a class="headerlink" href="#031-2026-10-17" title="Permanent link">&para;</a></h2>
+<h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Make <code>uvx drupal-mcp-server</code> actually run the server. The package
+  shipped only a <code>drupal-mcp</code> executable, and current uv refuses to
+  guess when the tool name differs from the package name ("Use <code>uvx
+  --from drupal-mcp-server drupal-mcp</code> instead"), so the documented
+  no-install command — including the PATH fallback the installer
+  writes into client configs — failed to start. A <code>drupal-mcp-server</code>
+  console-script alias now runs the same entry point, and the
+  installer's fallback, help text, README and AI-agents guide name the
+  unambiguous <code>uvx --from drupal-mcp-server drupal-mcp</code> form, which
+  works on every uv version.</li>
+</ul>
 <h2 id="030-2026-10-17">[0.3.0] - 2026-10-17<a class="headerlink" href="#030-2026-10-17" title="Permanent link">&para;</a></h2>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
@@ -1676,7 +1746,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <li>Clean up unused imports across all tool modules</li>
 <li>Update ARTIFACT.md to reflect actual project state</li>
 </ul>
-<h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
+<h3 id="fixed_1">Fixed<a class="headerlink" href="#fixed_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Make an issued OAuth token worth issuing. HTTP transport with OAuth enabled
   refused everyone: <code>load_access_token</code> returned the dict the token was stored

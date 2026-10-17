@@ -1394,7 +1394,7 @@ per client, so the server ships a self-installer that does it for you.</p>
 </tr>
 <tr>
 <td><code>--command CMD</code></td>
-<td>Launch command override, e.g. <code>--command 'uvx drupal-mcp-server'</code></td>
+<td>Launch command override, e.g. <code>--command 'uvx --from drupal-mcp-server drupal-mcp'</code></td>
 </tr>
 <tr>
 <td><code>--scope local\|user\|project</code></td>
@@ -1465,8 +1465,8 @@ per client, so the server ships a self-installer that does it for you.</p>
 </table>
 <p>The launch command is the absolute path to the <code>drupal-mcp</code> script when it is
 on <code>PATH</code> (GUI clients like Claude Desktop launch servers with a sanitized
-environment, so a bare name can fail there); otherwise <code>uvx drupal-mcp-server</code>
-runs it straight from PyPI.</p>
+environment, so a bare name can fail there); otherwise
+<code>uvx --from drupal-mcp-server drupal-mcp</code> runs it straight from PyPI.</p>
 <p>Existing configs are merged, never clobbered: other servers in the same file
 survive, a server of the same name is replaced (so re-running is idempotent),
 and a config that fails to parse is left untouched with an error instead of
@@ -1582,7 +1582,7 @@ first, then verify with <code>openclaw mcp doctor drupal --probe</code>.</p>
 </div>
 <h2 id="no-local-install">No local install?<a class="headerlink" href="#no-local-install" title="Permanent link">&para;</a></h2>
 <p>Point any client at PyPI directly:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>drupal-mcp<span class="w"> </span>install<span class="w"> </span>--command<span class="w"> </span><span class="s1">'uvx drupal-mcp-server'</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>drupal-mcp<span class="w"> </span>install<span class="w"> </span>--command<span class="w"> </span><span class="s1">'uvx --from drupal-mcp-server drupal-mcp'</span>
 </code></pre></div>
 <h2 id="verify">Verify<a class="headerlink" href="#verify" title="Permanent link">&para;</a></h2>
 <p>After installing, restart the client and ask it something that must touch
