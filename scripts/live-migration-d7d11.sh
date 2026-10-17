@@ -210,6 +210,17 @@ case "${1:-up}" in
         rm -f "${REPO_ROOT}/.env.d7d11"
         echo "Removed D7/D11 live sites."
         ;;
+    source)
+        require ddev
+        require docker
+        mkdir -p "$SMOKE_ROOT"
+        if [ -d "${SOURCE_DIR}/.ddev" ]; then
+            echo "D7 source already exists at ${SOURCE_DIR} (use 'seed' to re-seed)"
+        else
+            create_source
+            seed_source
+        fi
+        ;;
     seed)
         require ddev
         seed_source
@@ -231,7 +242,7 @@ case "${1:-up}" in
         done
         ;;
     *)
-        echo "Usage: $0 {up|down|seed|migrate|status}" >&2
+        echo "Usage: $0 {up|down|source|seed|migrate|status}" >&2
         exit 1
         ;;
 esac
