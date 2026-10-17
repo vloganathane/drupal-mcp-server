@@ -1070,7 +1070,18 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="[Unreleased]">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#030-2026-10-17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.3.0] - 2026-10-17
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.3.0] - 2026-10-17">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1296,7 +1307,18 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="[Unreleased]">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#030-2026-10-17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.3.0] - 2026-10-17
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.3.0] - 2026-10-17">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1437,6 +1459,7 @@
 <p>The format is based on <a href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a>,
 and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
+<h2 id="030-2026-10-17">[0.3.0] - 2026-10-17<a class="headerlink" href="#030-2026-10-17" title="Permanent link">&para;</a></h2>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Wave 5 of the drupal-scout-mcp port — 2 local security tools
@@ -1450,7 +1473,9 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
   findings; counts stay complete when <code>max_findings</code> truncates the list.
   <code>route_access_audit</code> is the routing half of scout's anonymous-exploit
   scan done properly per route: every <code>*.routing.yml</code> route classified
-  as anonymous / permission / role / entity / custom / denied / <strong>missing</strong>
+  as anonymous / permission / role / entity / custom / a named
+  underscore requirement / an alias (whose definition may live in a
+  PHP route provider this YAML pass cannot read) / denied / <strong>missing</strong>,
   with its controller mapped to the declaring file. Targets confine to
   DRUPAL_ROOT and prune vendor, tests, and contrib from the default scan;
   symlinks are skipped. Two accuracy corrections over scout's registry:
@@ -1459,7 +1484,13 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
   it could never match PHP. Scout's <code>verify_vulnerability</code> was not
   ported — it returns static advice rather than site-specific data —
   and the optional tree-sitter AST layer is skipped: the pattern pass
-  carries the signal.</li>
+  carries the signal. Live testing on D11.4.10's core node module
+  (115 files) caught five accuracy bugs before release: JS template
+  literals matched the PHP backtick-shell pattern, Drupal's <code>{table}</code> /
+  <code>-&gt;...Table()</code> placeholder concatenation read as SQL injection,
+  unrecognized underscore requirements and alias-only entries were both
+  reported as missing access (node went from five "missing" routes to
+  zero real ones), and a zero-file scan read as a clean bill of health.</li>
 <li>Wave 4 of the drupal-scout-mcp port — 8 read-only theme analysis tools
   (412 total, 41 modules): <code>theme_active</code> (default/admin/enabled themes
   from <code>system.theme</code> + <code>pm:list</code>), <code>theme_info</code> (pm:list metadata merged
