@@ -114,45 +114,53 @@ docroot: {docroot}
 
     @mcp.tool()
     async def ddev_start(project_name: str = ".") -> dict[str, Any]:
-        """Start DDEV project."""
+        """Start the DDEV project under ``project_name``.
+
+        ``project_name`` is the project *directory* (default ``.``): DDEV
+        resolves the project from the working directory it runs in, so this
+        must be the directory containing ``.ddev``. Passing another project's
+        path starts that project, not the server's own directory.
+        """
         if not site_manager:
             return {"error": "Site manager not available"}
-        return await site_manager.ddev_start()  # type: ignore[no-any-return]
+        return await site_manager.ddev_start(cwd=project_name)  # type: ignore[no-any-return]
 
     @mcp.tool()
     async def ddev_stop(project_name: str = ".") -> dict[str, Any]:
-        """Stop DDEV project."""
+        """Stop the DDEV project under ``project_name`` (a directory)."""
         if not site_manager:
             return {"error": "Site manager not available"}
-        return await site_manager.ddev_stop()  # type: ignore[no-any-return]
+        return await site_manager.ddev_stop(cwd=project_name)  # type: ignore[no-any-return]
 
     @mcp.tool()
     async def ddev_exec(command: str, project_name: str = ".") -> dict[str, Any]:
-        """Execute command in DDEV container."""
+        """Run ``command`` in the container of the DDEV project under
+        ``project_name`` (a directory containing ``.ddev``)."""
         if not site_manager:
             return {"error": "Site manager not available"}
-        return await site_manager.ddev_exec(command)  # type: ignore[no-any-return]
+        return await site_manager.ddev_exec(command, cwd=project_name)  # type: ignore[no-any-return]
 
     @mcp.tool()
     async def lando_start(project_name: str = ".") -> dict[str, Any]:
-        """Start Lando project."""
+        """Start the Lando project under ``project_name`` (a directory)."""
         if not site_manager:
             return {"error": "Site manager not available"}
-        return await site_manager.lando_start()  # type: ignore[no-any-return]
+        return await site_manager.lando_start(cwd=project_name)  # type: ignore[no-any-return]
 
     @mcp.tool()
     async def lando_stop(project_name: str = ".") -> dict[str, Any]:
-        """Stop Lando project."""
+        """Stop the Lando project under ``project_name`` (a directory)."""
         if not site_manager:
             return {"error": "Site manager not available"}
-        return await site_manager.lando_stop()  # type: ignore[no-any-return]
+        return await site_manager.lando_stop(cwd=project_name)  # type: ignore[no-any-return]
 
     @mcp.tool()
     async def lando_exec(command: str, project_name: str = ".") -> dict[str, Any]:
-        """Execute command in Lando container."""
+        """Run ``command`` in the container of the Lando project under
+        ``project_name`` (a directory)."""
         if not site_manager:
             return {"error": "Site manager not available"}
-        return await site_manager.lando_exec(command)  # type: ignore[no-any-return]
+        return await site_manager.lando_exec(command, cwd=project_name)  # type: ignore[no-any-return]
 
     @mcp.tool()
     async def lando_setup(

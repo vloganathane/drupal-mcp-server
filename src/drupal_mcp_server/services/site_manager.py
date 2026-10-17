@@ -1,5 +1,6 @@
 """DDEV/Lando site management service."""
 import asyncio
+import os
 from typing import Any
 
 
@@ -10,6 +11,19 @@ class SiteManager:
         self._ddev = settings.DDEV_BINARY
 
     async def _run(self, cmd: list[str], cwd: str | None = None) -> dict[str, Any]:
+        # A missing directory would raise FileNotFoundError out of
+        # create_subprocess_exec; answer like every other tool failure.
+        if cwd is not None and not os.path.isdir(cwd):
+            return {
+                "returncode": 2,
+                "stdout": "",
+                "stderr": (
+                    f"Project directory not found: {cwd!r}. project_name is a "
+                    "directory — pass the path containing .ddev (for example "
+                    "'/path/to/site'), not a registered project name."
+                ),
+                "command": " ".join(cmd),
+            }
         proc = await asyncio.create_subprocess_exec(
             *cmd,
             stdout=asyncio.subprocess.PIPE,

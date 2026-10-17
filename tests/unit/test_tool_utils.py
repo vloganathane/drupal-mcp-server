@@ -103,7 +103,7 @@ def test_drush_output_reads_parsed_data_not_a_missing_stdout_key():
     assert drush_output({"data": {}}) == ""
 
 
-def _register_devops(tmp_path: Path) -> dict[str, Any]:
+def _register_devops(tmp_path: Path, site_manager: Any = None) -> dict[str, Any]:
     from drupal_mcp_server.tools import devops
 
     class FakeMCP:
@@ -118,8 +118,80 @@ def _register_devops(tmp_path: Path) -> dict[str, Any]:
             return decorate
 
     mcp = FakeMCP()
-    devops.register_tools(mcp, site_manager=object(), drush_client=None)  # type: ignore[arg-type]
+    devops.register_tools(
+        mcp,
+        site_manager=site_manager if site_manager is not None else object(),
+        drush_client=None,
+    )  # type: ignore[arg-type]
     return mcp.fns
+
+
+def test_ddev_and_lando_tools_run_in_the_named_project_directory(tmp_path: Path):
+    """project_name was accepted and then dropped: every ddev/lando call ran
+    in the MCP server's own working directory, so ddev_start('/other/site')
+    started the wrong project (or failed against a directory with no .ddev)."""
+    import asyncio
+
+    recorded: list[dict[str, Any]] = []
+
+    class RecordingSiteManager:
+        async def ddev_start(self, cwd: str | None = None) -> dict[str, Any]:
+            recorded.append({"tool": "ddev_start", "cwd": cwd})
+            return {"returncode": 0}
+
+        async def ddev_stop(self, cwd: str | None = None) -> dict[str, Any]:
+            recorded.append({"tool": "ddev_stop", "cwd": cwd})
+            return {"returncode": 0}
+
+        async def ddev_exec(self, command: str, cwd: str | None = None) -> dict[str, Any]:
+            recorded.append({"tool": "ddev_exec", "cwd": cwd, "command": command})
+            return {"returncode": 0}
+
+        async def lando_start(self, cwd: str | None = None) -> dict[str, Any]:
+            recorded.append({"tool": "lando_start", "cwd": cwd})
+            return {"returncode": 0}
+
+        async def lando_stop(self, cwd: str | None = None) -> dict[str, Any]:
+            recorded.append({"tool": "lando_stop", "cwd": cwd})
+            return {"returncode": 0}
+
+        async def lando_exec(self, command: str, cwd: str | None = None) -> dict[str, Any]:
+            recorded.append({"tool": "lando_exec", "cwd": cwd, "command": command})
+            return {"returncode": 0}
+
+    fns = _register_devops(tmp_path, site_manager=RecordingSiteManager())
+    project = str(tmp_path / "site")
+    asyncio.run(fns["ddev_start"](project_name=project))
+    asyncio.run(fns["ddev_stop"](project_name=project))
+    asyncio.run(fns["ddev_exec"]("ls", project_name=project))
+    asyncio.run(fns["lando_start"](project_name=project))
+    asyncio.run(fns["lando_stop"](project_name=project))
+    asyncio.run(fns["lando_exec"]("ls", project_name=project))
+
+    assert recorded == [
+        {"tool": "ddev_start", "cwd": project},
+        {"tool": "ddev_stop", "cwd": project},
+        {"tool": "ddev_exec", "cwd": project, "command": "ls"},
+        {"tool": "lando_start", "cwd": project},
+        {"tool": "lando_stop", "cwd": project},
+        {"tool": "lando_exec", "cwd": project, "command": "ls"},
+    ]
+
+
+def test_site_manager_answers_cleanly_for_a_missing_project_directory(tmp_path: Path):
+    """A bare FileNotFoundError from create_subprocess_exec is not an answer
+    a caller can act on."""
+    import asyncio
+    from types import SimpleNamespace
+
+    from drupal_mcp_server.services.site_manager import SiteManager
+
+    manager = SiteManager(SimpleNamespace(DDEV_BINARY="ddev"))
+    result = asyncio.run(manager.ddev_start(cwd=str(tmp_path / "nope")))
+
+    assert result["returncode"] != 0
+    assert "Project directory not found" in result["stderr"]
+    assert ".ddev" in result["stderr"]
 
 
 def test_ddev_setup_refuses_to_overwrite_an_existing_config(tmp_path: Path):
