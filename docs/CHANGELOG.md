@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-17
+
 ### Added
 
 - Wave 5 of the drupal-scout-mcp port — 2 local security tools
@@ -20,7 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   findings; counts stay complete when `max_findings` truncates the list.
   `route_access_audit` is the routing half of scout's anonymous-exploit
   scan done properly per route: every `*.routing.yml` route classified
-  as anonymous / permission / role / entity / custom / denied / **missing**
+  as anonymous / permission / role / entity / custom / a named
+  underscore requirement / an alias (whose definition may live in a
+  PHP route provider this YAML pass cannot read) / denied / **missing**,
   with its controller mapped to the declaring file. Targets confine to
   DRUPAL_ROOT and prune vendor, tests, and contrib from the default scan;
   symlinks are skipped. Two accuracy corrections over scout's registry:
@@ -29,7 +33,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   it could never match PHP. Scout's `verify_vulnerability` was not
   ported — it returns static advice rather than site-specific data —
   and the optional tree-sitter AST layer is skipped: the pattern pass
-  carries the signal.
+  carries the signal. Live testing on D11.4.10's core node module
+  (115 files) caught five accuracy bugs before release: JS template
+  literals matched the PHP backtick-shell pattern, Drupal's `{table}` /
+  `->...Table()` placeholder concatenation read as SQL injection,
+  unrecognized underscore requirements and alias-only entries were both
+  reported as missing access (node went from five "missing" routes to
+  zero real ones), and a zero-file scan read as a clean bill of health.
 - Wave 4 of the drupal-scout-mcp port — 8 read-only theme analysis tools
   (412 total, 41 modules): `theme_active` (default/admin/enabled themes
   from `system.theme` + `pm:list`), `theme_info` (pm:list metadata merged
