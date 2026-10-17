@@ -60,8 +60,11 @@ class JSONAPIClient(DrupalBaseClient):
         try:
             index = await self.get_index()
         except Exception:
-            self._index_paths = {}
-            return self._index_paths
+            # Deliberately not cached: a transient failure (or JSON:API not
+            # being enabled yet) must not keep every bare-type lookup on the
+            # shorthand /jsonapi/<type> path, which core does not serve, for
+            # the life of the server process.
+            return {}
         mapping: dict[str, str] = {}
         links = index.get("links", {}) if isinstance(index, dict) else {}
         prefix = f"/{self._api_path}/"

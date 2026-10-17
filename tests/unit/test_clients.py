@@ -84,6 +84,55 @@ def test_jsonapi_client_exists():
 
 
 @pytest.mark.asyncio
+async def test_path_map_does_not_cache_a_failed_index(monkeypatch: pytest.MonkeyPatch):
+    """A dead JSON:API on the first call (module not enabled yet, server
+    restarting) must not lock bare-type lookups onto the shorthand
+    /jsonapi/<type> path, which core does not serve, forever."""
+    index_up = {"value": False}
+    index_body = json.dumps(
+        {
+            "links": {
+                "self": {"href": "https://example.test/jsonapi"},
+                "taxonomy_vocabulary--taxonomy_vocabulary": {
+                    "href": (
+                        "https://example.test/jsonapi/"
+                        "taxonomy_vocabulary/taxonomy_vocabulary"
+                    )
+                },
+            }
+        }
+    ).encode()
+
+    def responder(entry: dict[str, Any]) -> FakeResponse:
+        url = entry["url"].rstrip("/")
+        if url.endswith("/jsonapi") and index_up["value"]:
+            return FakeResponse(200, index_body)
+        if url.endswith("/taxonomy_vocabulary/taxonomy_vocabulary"):
+            return FakeResponse(200, b'{"data": []}')
+        return FakeResponse(404, b"<html>not found</html>")
+
+    client = JSONAPIClient(FakeSettings())
+    seen = _capture(monkeypatch, responder=responder)
+
+    # First attempt: JSON:API answers 404 for the index.
+    assert await client._path_map() == {}
+    assert client._index_paths is None  # nothing cached
+
+    # JSON:API comes up; the very next call recovers the real mapping.
+    index_up["value"] = True
+    paths = await client._path_map()
+    assert paths["taxonomy_vocabulary--taxonomy_vocabulary"] == (
+        "taxonomy_vocabulary/taxonomy_vocabulary"
+    )
+
+    # A bare type now resolves to the canonical collection URL.
+    await client.get_resource("taxonomy_vocabulary")
+    assert seen["url"] == (
+        "https://example.test/jsonapi/taxonomy_vocabulary/taxonomy_vocabulary"
+    )
+
+
+@pytest.mark.asyncio
 async def test_get_by_id_accepts_params(monkeypatch: pytest.MonkeyPatch):
     """get_by_id must accept params, or every *_get tool raises TypeError."""
     client = JSONAPIClient(FakeSettings())
