@@ -38,7 +38,7 @@ With no arguments it:
 | `--env KEY=VALUE` | Extra environment variable (repeatable) |
 | `--dotenv PATH` | Env file to read (default `./.env` if present) |
 | `--name NAME` | Server name inside the client config (default `drupal`) |
-| `--command CMD` | Launch command override, e.g. `--command 'uvx drupal-mcp-server'` |
+| `--command CMD` | Launch command override, e.g. `--command 'uvx --from drupal-mcp-server drupal-mcp'` |
 | `--scope local\|user\|project` | Claude Code configuration scope |
 | `--global` | OpenCode: write the global config instead of the project one |
 
@@ -58,8 +58,8 @@ With no arguments it:
 
 The launch command is the absolute path to the `drupal-mcp` script when it is
 on `PATH` (GUI clients like Claude Desktop launch servers with a sanitized
-environment, so a bare name can fail there); otherwise `uvx drupal-mcp-server`
-runs it straight from PyPI.
+environment, so a bare name can fail there); otherwise
+`uvx --from drupal-mcp-server drupal-mcp` runs it straight from PyPI.
 
 Existing configs are merged, never clobbered: other servers in the same file
 survive, a server of the same name is replaced (so re-running is idempotent),
@@ -197,7 +197,7 @@ against the client's current CLI or docs:
 Point any client at PyPI directly:
 
 ```bash
-drupal-mcp install --command 'uvx drupal-mcp-server'
+drupal-mcp install --command 'uvx --from drupal-mcp-server drupal-mcp'
 ```
 
 ## Verify

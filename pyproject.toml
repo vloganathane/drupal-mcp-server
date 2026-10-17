@@ -1,6 +1,6 @@
 [project]
 name = "drupal-mcp-server"
-version = "0.3.0"
+version = "0.3.1"
 description = "MCP server for Drupal operations - JSON:API, GraphQL, Drush, AI-powered migration"
 readme = "README.md"
 license = {text = "MIT"}
@@ -50,6 +50,9 @@ all = [
 
 [project.scripts]
 drupal-mcp = "drupal_mcp_server.cli:main"
+# Alias so `uvx drupal-mcp-server` works: uvx runs the executable named
+# after the package, and current uv refuses to guess when it differs.
+drupal-mcp-server = "drupal_mcp_server.cli:main"
 
 [build-system]
 requires = ["hatchling"]

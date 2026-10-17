@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-10-17
+
+### Fixed
+
+- Make `uvx drupal-mcp-server` actually run the server. The package
+  shipped only a `drupal-mcp` executable, and current uv refuses to
+  guess when the tool name differs from the package name ("Use `uvx
+  --from drupal-mcp-server drupal-mcp` instead"), so the documented
+  no-install command — including the PATH fallback the installer
+  writes into client configs — failed to start. A `drupal-mcp-server`
+  console-script alias now runs the same entry point, and the
+  installer's fallback, help text, README and AI-agents guide name the
+  unambiguous `uvx --from drupal-mcp-server drupal-mcp` form, which
+  works on every uv version.
+
 ## [0.3.0] - 2026-10-17
 
 ### Added

@@ -152,7 +152,8 @@ def resolve_command(
     An absolute path wins when the console script is on PATH, because GUI
     clients (Claude Desktop, Cursor) launch servers with a sanitized
     environment that does not include the shell's PATH. Without the script,
-    `uvx drupal-mcp-server` runs straight from PyPI. Returns (argv, warnings).
+    `uvx --from drupal-mcp-server drupal-mcp` runs straight from PyPI.
+    Returns (argv, warnings).
     """
     environ = os.environ if environ is None else environ
     if override:
@@ -166,8 +167,9 @@ def resolve_command(
     if script:
         return [script], []
     if shutil.which("uvx", path=path):
-        return ["uvx", "drupal-mcp-server"], [
-            "drupal-mcp is not on PATH; the config will run `uvx drupal-mcp-server` instead"
+        return ["uvx", "--from", "drupal-mcp-server", "drupal-mcp"], [
+            "drupal-mcp is not on PATH; the config will run "
+            "`uvx --from drupal-mcp-server drupal-mcp` instead"
         ]
     return ["drupal-mcp"], [
         "drupal-mcp is not on PATH; the config points at the bare command and will "
@@ -685,7 +687,10 @@ def _print_list() -> None:
     "--command",
     "command_override",
     default=None,
-    help="Launch command (shlex-split), e.g. --command 'uvx drupal-mcp-server'.",
+    help=(
+        "Launch command (shlex-split), e.g. "
+        "--command 'uvx --from drupal-mcp-server drupal-mcp'."
+    ),
 )
 @click.option(
     "--env",

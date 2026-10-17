@@ -114,7 +114,7 @@ class TestCommandResolution:
     def test_uvx_fallback_when_script_missing(self, tmp_path):
         stub_cli(tmp_path, "uvx")
         argv, warnings = resolve_command(None, environ={"PATH": str(tmp_path / "bin")})
-        assert argv == ["uvx", "drupal-mcp-server"]
+        assert argv == ["uvx", "--from", "drupal-mcp-server", "drupal-mcp"]
         assert warnings and "uvx" in warnings[0]
 
     def test_bare_name_and_warning_when_nothing_found(self, tmp_path):

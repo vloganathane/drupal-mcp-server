@@ -104,7 +104,7 @@ config (preferring the client's own `mcp add` command when it has one).
 
 ```bash
 drupal-mcp install --client claude-code --print   # preview without writing
-drupal-mcp install --command 'uvx drupal-mcp-server'  # run from PyPI, no install
+drupal-mcp install --command 'uvx --from drupal-mcp-server drupal-mcp'  # run from PyPI, no install
 ```
 
 See the [AI Coding Agents guide](docs/agents.md) for per-client copy-paste
