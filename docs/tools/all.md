@@ -77,7 +77,7 @@ Content — 14 tools.
 | `update_node` | Update a single node by ID with given fields.<br>_Apply an editor's field changes to an existing page without rewriting the whole bundle_ | `{"nid": "123", "fields": {"title": "Hello"}}` | ✅ ddev · ⚠️ lando · 🧪 unit |
 | `delete_node` | Delete a single node by ID.<br>_Remove a draft or duplicate node as part of site cleanup after content review_ | `{"nid": "123"}` | ✅ ddev · ⚠️ lando · 🧪 unit |
 | [`query_nodes`](index.md#query_nodes) | Query nodes with filters, sorts, includes, and pagination.<br>_Build a listing page by filtering, sorting, and paginating nodes in one request_ | `{}` | ✅ ddev · 🧩 lando · 🧪 unit |
-| `upload_media` | Upload a file to the media library.<br>_Add a locally generated image or document to the media library for use in content_ | `{"file_path": "value"}` | ⚠️ ddev · 🧩 lando · 🧪 unit |
+| `upload_media` | Upload a file to the media library.<br>_Add a locally generated image or document to the media library for use in content_ | `{"file_path": "value"}` | 🧩 ddev · 🧩 lando · 🧪 unit |
 | `create_media` | Create media entity from a remote URL (image, video, document, etc.).<br>_Attach a remote video or image to content without downloading the file first_ | `{"media_type": "value", "source_url": "value", "name": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ not live-verified |
 | `clean_nodes_ai` | Clean duplicate or malformed nodes using AI. Requires confirm=True to execute deletions.<br>_Audit a bundle for duplicate or malformed nodes before a confirmed cleanup run_ | `{"entity_type": "node", "bundle": "article"}` | ⚠️ ddev · 🧩 lando · ❔ not live-verified |
 | `map_fields_ai` | Suggest AI-powered field mappings from a source field list to a target bundle.<br>_Plan a content migration by mapping legacy source fields onto a target content type_ | `{"source_fields": [], "target_bundle": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ not live-verified |
@@ -93,7 +93,7 @@ Users — 12 tools.
 
 | Tool | Description & use case | Example | Status |
 |------|------------------------|---------|--------|
-| [`create_user`](index.md#create_user) | Create a user account.<br>_Onboard a new team member with an account and roles in one step_ | `{"mail": "value", "name": "value"}` | ⚠️ ddev · ✅ lando · ❔ not live-verified |
+| [`create_user`](index.md#create_user) | Create a user account.<br>_Onboard a new team member with an account and roles in one step_ | `{"mail": "value", "name": "value"}` | ✅ ddev · ✅ lando · ❔ not live-verified |
 | `get_user` | Get a user by ID with optional relationship includes.<br>_Inspect a specific account including its relationships when handling a support request_ | `{"uid": "value"}` | ✅ ddev · ✅ lando · ❔ not live-verified |
 | `get_user_by_email` | Get a user by email address.<br>_Look up an account when only the person's email address is known_ | `{"mail": "value"}` | ✅ ddev · ✅ lando · ❔ not live-verified |
 | `update_user` | Update a user account.<br>_Correct account details like email or display name during user administration_ | `{"uid": "value", "fields": {"title": "Hello"}}` | ⚠️ ddev · ⚠️ lando · ❔ not live-verified |
@@ -118,9 +118,9 @@ Taxonomy — 10 tools.
 | `delete_vocabulary` | Delete a taxonomy vocabulary.<br>_Remove an obsolete classification scheme during a site restructuring_ | `{"vid": "1"}` | ⚠️ ddev · ⚠️ lando · ❔ not live-verified |
 | `list_vocabularies` | List all taxonomy vocabularies.<br>_Survey the site's classification schemes before tagging or migration work_ | `{}` | ✅ ddev · ✅ lando · ❔ not live-verified |
 | `create_term` | Create a taxonomy term in a vocabulary.<br>_Add a new topic to an existing vocabulary as part of ongoing content categorization_ | `{"vid": "1", "name": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
-| `get_term` | Get a taxonomy term by ID.<br>_Verify a term's ID or parent before assigning it to content_ | `{"vid": "1", "tid": "value"}` | ⚠️ ddev · ✅ lando · ❔ not live-verified |
+| `get_term` | Get a taxonomy term by ID.<br>_Verify a term's ID or parent before assigning it to content_ | `{"vid": "1", "tid": "value"}` | ✅ ddev · ✅ lando · ❔ not live-verified |
 | `update_term` | Update a taxonomy term.<br>_Rename or re-parent a term when the taxonomy structure evolves_ | `{"vid": "1", "tid": "value", "fields": {"title": "Hello"}}` | ⚠️ ddev · ⚠️ lando · ❔ not live-verified |
-| `delete_term` | Delete a taxonomy term.<br>_Prune an unused term while tidying up a taxonomy vocabulary_ | `{"vid": "1", "tid": "value"}` | ⚠️ ddev · ✅ lando · ❔ not live-verified |
+| `delete_term` | Delete a taxonomy term.<br>_Prune an unused term while tidying up a taxonomy vocabulary_ | `{"vid": "1", "tid": "value"}` | ✅ ddev · ✅ lando · ❔ not live-verified |
 | `list_terms` | List terms in a vocabulary with filters and pagination.<br>_Fetch a vocabulary's terms to populate a filter or autocomplete widget_ | `{"vid": "1"}` | ✅ ddev · ✅ lando · ❔ not live-verified |
 
 ## comments
@@ -129,12 +129,12 @@ Comments — 10 tools.
 
 | Tool | Description & use case | Example | Status |
 |------|------------------------|---------|--------|
-| `comment_list` | List comments.<br>_Review recent site comments, optionally scoped to one piece of content_ | `{}` | ⚠️ ddev · 🧩 lando · ❔ not live-verified |
+| `comment_list` | List comments.<br>_Review recent site comments, optionally scoped to one piece of content_ | `{}` | 🧩 ddev · 🧩 lando · ❔ not live-verified |
 | `comment_get` | Get a single comment by ID.<br>_Read one comment in full, including its author, when investigating a report_ | `{"comment_id": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ not live-verified |
-| `comment_create` | Create a new comment.<br>_Post a reply or moderation note onto an existing piece of content_ | `{"entity_type": "node", "entity_id": "value", "subject": "value", "body": "value"}` | ⚠️ ddev · 🧩 lando · ❔ not live-verified |
+| `comment_create` | Create a new comment.<br>_Post a reply or moderation note onto an existing piece of content_ | `{"entity_type": "node", "entity_id": "value", "subject": "value", "body": "value"}` | 🧩 ddev · 🧩 lando · ❔ not live-verified |
 | `comment_update` | Update a comment.<br>_Fix a typo or correct a status on a comment during moderation_ | `{"comment_id": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ not live-verified |
 | `comment_delete` | Delete a comment.<br>_Remove a comment confirmed as spam during routine moderation cleanup_ | `{"comment_id": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ not live-verified |
-| `comment_thread_list` | List comment thread for an entity.<br>_Reconstruct a full reply thread under an article to review a discussion_ | `{"entity_type": "node", "entity_id": "value"}` | ⚠️ ddev · 🧩 lando · ❔ not live-verified |
+| `comment_thread_list` | List comment thread for an entity.<br>_Reconstruct a full reply thread under an article to review a discussion_ | `{"entity_type": "node", "entity_id": "value"}` | 🧩 ddev · 🧩 lando · ❔ not live-verified |
 | `comment_approve` | Approve a comment (set status to published).<br>_Publish a pending comment after a moderator reviews it and finds it acceptable_ | `{"comment_id": "value"}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
 | `comment_unapprove` | Unapprove a comment (set status to unpublished).<br>_Hide a comment from public view pending further moderation review_ | `{"comment_id": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ not live-verified |
 | `comment_field_settings` | Get comment field settings for entity type/bundle.<br>_Check how comments are configured on a content type before adjusting moderation_ | `{"entity_type": "node", "bundle": "article"}` | ✅ ddev · ✅ lando · ❔ not live-verified |
@@ -320,7 +320,7 @@ Search API — 13 tools.
 
 | Tool | Description & use case | Example | Status |
 |------|------------------------|---------|--------|
-| `search_api_server_list` | List all Search API servers.<br>_Checking which search backends exist before wiring up a new index_ | `{}` | ⚠️ ddev · ✅ lando · ❔ not live-verified |
+| `search_api_server_list` | List all Search API servers.<br>_Checking which search backends exist before wiring up a new index_ | `{}` | ✅ ddev · ✅ lando · ❔ not live-verified |
 | `search_api_server_get` | Get a single Search API server by ID.<br>_Inspecting a server's backend settings when searches return unexpected results_ | `{"server_id": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ not live-verified |
 | `search_api_server_create` | Create a new Search API server.<br>_Standing up a search backend on a site that has none configured yet_ | `{"id": "1", "label": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ not live-verified |
 | `search_api_index_list` | List Search API indexes.<br>_Finding the right index to query or reindex before touching search config_ | `{}` | ✅ ddev · ✅ lando · ❔ not live-verified |
@@ -457,8 +457,8 @@ Commerce — 18 tools.
 | `commerce_order_update` | Update a commerce order.<br>_Correcting an order state after a refund was handled outside the site_ | `{"order_id": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ not live-verified |
 | `commerce_payment_gateway_list` | List payment gateways.<br>_Answering which payment methods the store can accept before checkout edits_ | `{}` | ✅ ddev · ✅ lando · ❔ not live-verified |
 | `commerce_payment_gateway_get` | Get a single payment gateway by ID.<br>_Checking a gateway's configuration before taking it out of test mode_ | `{"gateway_id": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ not live-verified |
-| `commerce_promotion_list` | List commerce promotions.<br>_Reviewing active discounts before the holiday sale schedule is finalised_ | `{}` | ✅ ddev · 🧩 lando · ❔ not live-verified |
-| `commerce_promotion_create` | Create a new commerce promotion.<br>_Setting up a launch discount for a promotion announced next week_ | `{"id": "1", "label": "value", "store_id": "value", "offer": {}}` | ⚠️ ddev · 🧩 lando · ❔ not live-verified |
+| `commerce_promotion_list` | List commerce promotions.<br>_Reviewing active discounts before the holiday sale schedule is finalised_ | `{}` | 🧩 ddev · 🧩 lando · ❔ not live-verified |
+| `commerce_promotion_create` | Create a new commerce promotion.<br>_Setting up a launch discount for a promotion announced next week_ | `{"id": "1", "label": "value", "store_id": "value", "offer": {}}` | 🧩 ddev · 🧩 lando · ❔ not live-verified |
 | `commerce_shipping_method_list` | List shipping methods.<br>_Checking delivery options before editing the checkout page_ | `{}` | ✅ ddev · ✅ lando · ❔ not live-verified |
 | `commerce_shipping_method_create` | Create a new shipping method.<br>_Adding a flat-rate shipping option for a new regional delivery zone_ | `{"id": "1", "label": "value", "store_id": "value", "plugin": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ not live-verified |
 
@@ -498,7 +498,7 @@ Devops — 20 tools.
 | `lando_start` | Start the Lando project under ``project_name`` (a directory).<br>_Bringing a Lando-based local site back up when the other tools report connection failures_ | `{}` | ⏭️ ddev · ⏭️ lando · 🧪 unit |
 | `lando_stop` | Stop the Lando project under ``project_name`` (a directory).<br>_Shutting down a Lando site's containers to free ports between sessions or before a reset_ | `{}` | ⏭️ ddev · ⏭️ lando · 🧪 unit |
 | `lando_exec` | Run ``command`` in the container of the Lando project under ``project_name`` (a directory).<br>_Running a one-off command inside the Lando container, such as a build step or file fix_ | `{"command": "status"}` | ⏭️ ddev · ⏭️ lando · 🧪 unit |
-| `lando_setup` | Generate .lando.yml for a local Drupal environment.<br>_Generating a starter .lando.yml for a Drupal project that has no Lando config yet_ | `{}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
+| `lando_setup` | Generate .lando.yml for a local Drupal environment.<br>_Generating a starter .lando.yml for a Drupal project that has no Lando config yet_ | `{}` | ✅ ddev · ⚠️ lando · 🧪 unit |
 | `acquia_deploy` | Deploy to Acquia Cloud via acquia-cli or Drush acquia integration.<br>_Shipping a tested branch to an Acquia environment, with database updates and cache rebuild included_ | `{"environment": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ not live-verified |
 | `backup_database` | Create database backup via Drush.<br>_Taking a database dump first, before running updates, imports or other risky changes_ | `{}` | ✅ ddev · ✅ lando · ❔ not live-verified |
 | `cache_rebuild` | Clear and rebuild all Drupal caches via Drush.<br>_After enabling a module or editing code, make the change take effect immediately instead of waiting_ | `{}` | ✅ ddev · ✅ lando · ❔ not live-verified |
@@ -550,7 +550,7 @@ Migration — 17 tools.
 | `run_migration_test` | Test migration with limited records.<br>_Importing only a handful of records to confirm mappings before committing to a full run_ | `{"migration_id": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ not live-verified |
 | `validate_migration` | Validate migration configuration.<br>_Confirming a migration is registered and seeing how many records it has already processed_ | `{"migration_id": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ not live-verified |
 | `rollback_migration` | Rollback a completed migration.<br>_Undoing a test import so the same migration can run again cleanly after its mapping is fixed_ | `{"migration_id": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ not live-verified |
-| `sync_media_files` | Sync media files between paths.<br>_Copying image files onto the new server before the content that references them is imported_ | `{"source_path": "value", "destination_path": "value"}` | ⚠️ ddev · ✅ lando · ❔ not live-verified |
+| `sync_media_files` | Sync media files between paths.<br>_Copying image files onto the new server before the content that references them is imported_ | `{"source_path": "value", "destination_path": "value"}` | ✅ ddev · ✅ lando · ❔ not live-verified |
 | `migrate_taxonomy` | Migrate taxonomy vocabularies and their terms.<br>_Rebuilding vocabularies and terms first so incoming content has somewhere to point_ | `{"vocabularies": {}}` | ✅ ddev · ✅ lando · ❔ not live-verified |
 | `create_migration_plan` | Create or replace a persisted migration plan.<br>_Starting a multi-day migration and needing one persisted record of scope, mappings, and notes_ | `{"migration_id": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `get_migration_plan` | Read a persisted migration plan and its tracked state.<br>_Picking a migration back up in a new session and needing its source, mappings, and tracked state_ | `{"migration_id": "value"}` | ✅ ddev · ✅ lando · ❔ not live-verified |

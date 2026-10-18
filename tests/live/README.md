@@ -262,39 +262,47 @@ one that dismantles the site it is measuring.
 
 ## Where the sweep stands
 
-Against the provisioned site, on the run that follows the module install, the
-resource-name fixes and the filter fixes:
+The committed baselines are environment snapshots, not aspirations:
 
-| | before | after |
+- `tests/live/sweep-results-ddev.json` — produced by the live-sweep CI job
+  (`.github/workflows/live-sweep.yml`) on a fresh throwaway DDEV site on
+  ubuntu-latest. Refresh it by re-running that workflow and downloading its
+  `sweep-results` artifact; every scheduled CI run is already gated against
+  the committed copy, so stale data fails visibly rather than silently.
+- `tests/live/sweep-results-lando.json` — a local Lando run of the same
+  sweep (see "Sweeping another environment"), kept for comparison.
+
+On the current baselines:
+
+| | ddev (CI, fresh site) | lando (local) |
 |---|---|---|
-| OK | 156 | **181** |
-| BLOCKED | 71 | **5** |
-| DEAD | 0 | **0** |
+| OK | **226** | **200** |
+| REJECTED | 162 | 179 |
+| BLOCKED | 15 | 24 |
+| UPSTREAM | 6 | 6 |
+| SKIPPED | 5 | 5 |
+| DEAD | 0 | 0 |
 
-25 tools that could not be reached at all now run, and 41 reach Drupal and are
-turned away with a reason instead of stopping at a 404. No tool that used to
-work now fails, and nothing is dead.
+199 tools are OK on both; 27 only on ddev and 1 only on lando. Those gaps are
+timing and environment drift, not known defects — which is why the CI gate
+(`compare_sweeps.py`) fails only on DEAD or a baseline-OK tool turning
+REJECTED/UPSTREAM, and reports timing-only slips as warnings.
 
-A definitive full re-sweep with the same tools and site recorded 195 OK /
-156 REJECTED / 7 BLOCKED / 4 UPSTREAM / 0 DEAD / 5 SKIPPED (367 total). After
-the follow-up harness fixes (`entity_id` and `revision_id` now count as
-node-id tools, so the fixture re-provisions; `revision_id` is derived from
-`drupal_internal__vid` instead of a hardcoded `1`) a targeted re-run pushed
-six more of those past their lookup and reached the tool body, all reporting
-honestly — still no dead tools, and no tool regressed.
+What each non-OK column means:
 
-What is left is five, all explained:
-
-- `feeds_feed_list` / `feeds_feed_create` — JSON:API exposes no `feeds_feed`
-  resource until a feed type exists with a `feeds_item` field on its target
-  bundle, which needs field configuration on that bundle and so cannot be
-  provisioned by installing a module
-- `moderation_state_list` / `moderation_state_create` — `content_moderation_state`
-  is never exposed through JSON:API, by Drupal's design
-- `split_config` — needs a `./config/sync` directory, which the site does not have
-
-The one `UPSTREAM` is `revision_delete`: JSON:API has no revision collection
-endpoint, so there is nothing to delete through it.
+- **SKIPPED (5)** — the `ENV_CONTROL` tools (`ddev_start`, `ddev_stop`,
+  `lando_start`, `lando_stop`, `lando_exec`): running them would stop the
+  site mid-sweep, so the harness never calls them;
+- **UPSTREAM (6)** — refusals that report a platform limitation rather than a
+  tool defect: `revision_delete` (JSON:API has no revision collection
+  endpoint), `code_security_scan` / `route_access_audit` (the probe passes
+  module *and* path, which the tools reject by design), and the three
+  `module_*` file-analysis tools (the probe's scratch file is not a module);
+- **REJECTED (162/179)** — mostly by design: spec refusals and mutating tools
+  handed junk ids, explained under "Which ids the sweep sends" above;
+- **BLOCKED (15/24)** — the probe budget (45s) expired, usually one slow
+  drush boot on a loaded machine. The ddev column is a shared CI runner;
+  the lando column is whatever the local machine was doing that day.
 
 ## Things that will bite you
 
