@@ -179,9 +179,13 @@ docroot: {docroot}
         if guarded:
             return {"error": guarded, "path": config_path, "project": project_name}
 
+        # Lando 3 reads the docroot from `config.webroot` only - a top-level
+        # `webroot:` key is silently dropped, so the recipe serves the wrong
+        # directory and every request 404s.
         lando_config = f"""name: {name}
 recipe: drupal{drupal_version}
-webroot: {webroot}
+config:
+  webroot: {webroot}
 """
         try:
             with open(config_path, "w") as f:

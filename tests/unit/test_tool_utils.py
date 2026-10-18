@@ -248,6 +248,21 @@ def test_lando_setup_also_refuses_to_overwrite(tmp_path: Path):
     assert config.read_text().startswith("name: hand-tuned")
 
 
+def test_lando_setup_writes_a_config_lando_accepts(tmp_path: Path):
+    """Lando 3 reads the docroot from `config.webroot` - a top-level
+    `webroot:` key is dropped silently, which leaves the recipe serving
+    the project root instead of Drupal and every request 404s."""
+    import asyncio
+
+    result = asyncio.run(_register_devops(tmp_path)["lando_setup"](str(tmp_path)))
+
+    assert result["status"] == "created"
+    written = (tmp_path / ".lando.yml").read_text()
+    assert written == f"name: {tmp_path.name}\nrecipe: drupal10\nconfig:\n  webroot: web\n"
+    # The docroot must nest under `config:`, never sit at the top level.
+    assert "\nwebroot:" not in written
+
+
 # --- Drush command names the sweep proved wrong ---------------------------
 
 
