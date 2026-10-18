@@ -506,6 +506,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Server">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#serving-over-http" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Serving over HTTP
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1423,6 +1440,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Server">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#serving-over-http" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Serving over HTTP
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1568,6 +1602,16 @@
 <td><code>true</code></td>
 <td>Set <code>false</code> for self-signed dev certificates (DDEV, Lando)</td>
 </tr>
+<tr>
+<td><code>DRUPAL_HTTP_TIMEOUT</code></td>
+<td><code>60</code></td>
+<td>Timeout in seconds for one outbound HTTP request to Drupal</td>
+</tr>
+<tr>
+<td><code>DRUPAL_HTTP_RETRIES</code></td>
+<td><code>2</code></td>
+<td>Extra attempts for <strong>GET</strong> requests on transient failures (timeout, connection reset, 502/503/504). Mutations are never retried: a timed-out POST may already have landed</td>
+</tr>
 </tbody>
 </table>
 <h2 id="authentication">Authentication<a class="headerlink" href="#authentication" title="Permanent link">&para;</a></h2>
@@ -1607,13 +1651,18 @@ keep working on sites that do not expose <code>/user/login</code>.</p>
 </tr>
 <tr>
 <td><code>MCP_HOST</code></td>
-<td><code>0.0.0.0</code></td>
-<td>HTTP bind host</td>
+<td><code>127.0.0.1</code></td>
+<td>HTTP bind host — loopback by default, see below</td>
 </tr>
 <tr>
 <td><code>MCP_PORT</code></td>
 <td><code>8000</code></td>
 <td>HTTP bind port</td>
+</tr>
+<tr>
+<td><code>MCP_ALLOW_INSECURE_HTTP</code></td>
+<td><code>false</code></td>
+<td>Permit an HTTP transport without OAuth (see below)</td>
 </tr>
 <tr>
 <td><code>MCP_SERVER_NAME</code></td>
@@ -1627,6 +1676,19 @@ keep working on sites that do not expose <code>/user/login</code>.</p>
 </tr>
 </tbody>
 </table>
+<h3 id="serving-over-http">Serving over HTTP<a class="headerlink" href="#serving-over-http" title="Permanent link">&para;</a></h3>
+<p>The tool surface executes drush, composer and shell commands, so an HTTP
+transport is not just an API — anyone who can reach the bind address can run
+commands. Two defaults protect against that:</p>
+<ul>
+<li><strong>the server refuses to start</strong> an <code>http</code>/<code>sse</code>/<code>streamable-http</code> transport
+  unless OAuth is configured (<code>DRUPAL_OAUTH_CLIENT_ID</code>/<code>CLIENT_SECRET</code>/<code>TOKEN_URL</code>).
+  Set <code>MCP_ALLOW_INSECURE_HTTP=1</code> to override — that is a deliberate
+  decision, not an oversight, and only sane on loopback behind a trusted network;</li>
+<li><strong><code>MCP_HOST</code> binds <code>127.0.0.1</code></strong> rather than every interface. Serving to the
+  network on purpose means setting <code>MCP_HOST</code> (and, typically, OAuth) on
+  purpose.</li>
+</ul>
 <h2 id="ai-providers">AI Providers<a class="headerlink" href="#ai-providers" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nv">DEFAULT_AI_PROVIDER</span><span class="o">=</span>ollama
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nv">AI_ENABLED</span><span class="o">=</span><span class="nb">true</span>
@@ -1669,6 +1731,11 @@ keep working on sites that do not expose <code>/user/login</code>.</p>
 <td><code>DRUSH_ALIAS</code></td>
 <td><code>@self</code></td>
 <td>Drush site alias</td>
+</tr>
+<tr>
+<td><code>DRUSH_TIMEOUT</code></td>
+<td><code>120</code></td>
+<td>Timeout in seconds for one drush command. Not retried: drush commands mutate</td>
 </tr>
 </tbody>
 </table>
