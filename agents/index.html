@@ -1615,7 +1615,7 @@ first, then verify with <code>openclaw mcp doctor drupal --probe</code>.</p>
 <h2 id="verify">Verify<a class="headerlink" href="#verify" title="Permanent link">&para;</a></h2>
 <p>After installing, restart the client and ask it something that must touch
 Drupal, for example <em>"list my content types"</em> (the agent should call
-<code>content_list</code>). Client-side checks also help:</p>
+<code>inventory_content_types</code>). Client-side checks also help:</p>
 <ul>
 <li>Claude Code: <code>/mcp</code> shows the server and its connection state</li>
 <li>OpenClaw: <code>openclaw mcp status --verbose</code>, then <code>openclaw mcp probe drupal</code></li>
