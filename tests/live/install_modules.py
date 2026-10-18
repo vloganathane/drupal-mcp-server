@@ -39,6 +39,8 @@ VENV = HERE / "venv"
 BASE = os.environ.get("DRUPAL_BASE_URL", "https://drupal-live.ddev.site")
 
 # Core modules first: already in the codebase, so `pm:install` alone is enough.
+# layout_builder is core too, and six tools read its display; without it the
+# setup only ever worked on a site where something else had enabled it.
 CORE = [
     "media",
     "media_library",
@@ -48,6 +50,7 @@ CORE = [
     "config_translation",
     "workflows",
     "content_moderation",
+    "layout_builder",
 ]
 
 # Contrib: the package has to be downloaded before Drupal can enable it, so
@@ -111,9 +114,40 @@ if ($role && !$role->hasPermission('execute default arbitrary graphql requests')
 print 'graphql server configured';
 """
 
+# Fixtures the tools assume but nothing in the module installs creates. Both
+# were found by the CI gate: the baseline site had them from earlier manual
+# testing, a pristine site does not, and six layout_builder_* plus two
+# paragraphs_* tools then refuse (as designed) on a setup that looked
+# complete. Idempotent, like GRAPHQL_SETUP, so re-running the wave is a no-op.
+FIXTURE_SETUP = r"""
+$pt = \Drupal::entityTypeManager()->getStorage('paragraphs_type');
+if (!$pt->load('basic')) {
+  $pt->create(['id' => 'basic', 'label' => 'Basic'])->save();
+  print "created paragraphs_type basic\n";
+}
+$d = \Drupal::entityTypeManager()->getStorage('entity_view_display');
+if (!$d->load('node.article.default')) {
+  $d->create([
+    'id' => 'node.article.default',
+    'targetEntityType' => 'node',
+    'bundle' => 'article',
+    'mode' => 'default',
+    'status' => TRUE,
+  ])->save();
+  print "created display node.article.default\n";
+}
+$display = $d->load('node.article.default');
+if (!$display->isLayoutBuilderEnabled() || !$display->isOverridable()) {
+  $display->enableLayoutBuilder();
+  $display->setOverridable(TRUE);
+  $display->save();
+  print "enabled layout builder on node.article.default\n";
+}
+"""
+
 WAVES: dict[str, dict[str, list[str]]] = {
     "core": {"install": CORE},
-    "contrib": {"require": CONTRIB, "install": CONTRIB},
+    "contrib": {"require": CONTRIB, "install": CONTRIB, "eval": [FIXTURE_SETUP]},
     # commerce_shipping is deliberately not a dependency of drupal/commerce
     # (shipping is optional), so its package has to be required explicitly -
     # otherwise pm:install fails with the misleading "missing modules

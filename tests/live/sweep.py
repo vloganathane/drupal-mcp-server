@@ -267,8 +267,13 @@ def value_for(name: str, t, spec: dict, tool: str = ""):
         return _OMIT
     # Drush's watchdog filters are an enumerated type and a severity number;
     # "sweep_value" is neither, so the command is refused before it runs.
+    # The type list is enumerated from the types actually logged on the site,
+    # so the value must be one a fresh install has already logged: "system"
+    # qualifies (install and cron write it immediately), while "access denied"
+    # only became valid on a long-lived site after enough 403s accumulated -
+    # it made this probe fail on a pristine CI site.
     if n == "type_filter":
-        return "access denied"
+        return "system"
     if n == "severity":
         return "7"
     if n in ("config_name",):
