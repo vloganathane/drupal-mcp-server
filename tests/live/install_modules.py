@@ -114,7 +114,14 @@ print 'graphql server configured';
 WAVES: dict[str, dict[str, list[str]]] = {
     "core": {"install": CORE},
     "contrib": {"require": CONTRIB, "install": CONTRIB},
-    "commerce": {"require": ["drupal/commerce"], "install": COMMERCE},
+    # commerce_shipping is deliberately not a dependency of drupal/commerce
+    # (shipping is optional), so its package has to be required explicitly -
+    # otherwise pm:install fails with the misleading "missing modules
+    # commerce_shipping" when the real gap is that no code was downloaded.
+    "commerce": {
+        "require": ["drupal/commerce", "drupal/commerce_shipping"],
+        "install": COMMERCE,
+    },
     "devtools": {"require": DEVTOOLS},
     "graphql": {"install": ["basic_auth"], "eval": [GRAPHQL_SETUP]},
 }
