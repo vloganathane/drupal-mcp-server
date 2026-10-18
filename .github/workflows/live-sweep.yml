@@ -1,0 +1,89 @@
+name: Live sweep
+
+# Gate the tool surface against a real Drupal: provision a throwaway DDEV
+# site, bootstrap it through the MCP server's own tools, sweep all 414
+# tools, and fail on regressions versus the committed DDEV baseline.
+#
+# Scheduled weekly and on demand only - the sequence takes most of an hour,
+# which is too heavy for every push. The Lando environment stays a manual
+# run (see tests/live/README.md).
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 1'   # Mondays 06:00 UTC
+
+jobs:
+  ddev:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up DDEV
+        uses: ddev/setup-ddev@v1
+
+      - name: Set up PHP for composer create-project
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          tools: composer:v2
+          coverage: none
+
+      - name: Cache composer downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer
+          key: composer-live-sweep
+          restore-keys: composer-live-sweep-
+
+      # The harness spawns venv/bin/drupal-mcp and venv/bin/python, so the
+      # virtualenv has to exist at the repository root exactly as it does
+      # for a local run (tests/live/README.md, Setup).
+      - name: Install the package into ./venv
+        run: |
+          python -m venv venv
+          venv/bin/pip install --upgrade pip
+          venv/bin/pip install -e ".[dev]" mcp
+
+      # The one step that is not an MCP tool: the package deliberately has
+      # no "create a Drupal project from scratch" tool.
+      - name: Create the Drupal project
+        run: |
+          mkdir drupal-live
+          cd drupal-live
+          composer create-project drupal/recommended-project . --no-interaction --no-progress
+
+      - name: Bootstrap the site through the MCP tools
+        run: venv/bin/python tests/live/bootstrap.py
+
+      - name: Seed fixtures
+        run: |
+          cd drupal-live
+          ddev exec bash -c 'cat > /tmp/seed.php' < ../tests/live/seed.php
+          ddev drush php-script /tmp/seed.php
+
+      - name: Install the modules the tools target
+        run: venv/bin/python tests/live/install_modules.py
+
+      - name: Sweep every tool
+        run: venv/bin/python tests/live/sweep.py
+
+      - name: Compare against the committed baseline
+        if: always()
+        run: >-
+          venv/bin/python tests/live/compare_sweeps.py
+          tests/live/sweep-results-ddev.json
+          tests/live/sweep-results.json
+
+      - name: Upload raw results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sweep-results
+          path: tests/live/sweep-results.json
+          if-no-files-found: ignore

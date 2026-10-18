@@ -146,7 +146,30 @@ and `ddev` running. They start the MCP server from `drupal-live/`, because the
 `ddev_*`, `lando_*` and `composer_*` tools run in their own working directory
 and `ddev drush` only resolves inside the project.
 
-## Sweeping another environment (Lando, plain local)
+## The CI job (automated regression gate)
+
+`.github/workflows/live-sweep.yml` runs the whole Setup + Running sequence
+against a fresh throwaway DDEV site on GitHub Actions — weekly, and on
+demand via `workflow_dispatch` (too heavy for every push: ~an hour end to
+end). Because `drupal-live/` is gitignored, the job provisions everything:
+`composer create-project`, `bootstrap.py`, the seed fixtures, the module
+waves, then the full sweep.
+
+The gate is `tests/live/compare_sweeps.py`, which diffs the fresh run
+against the committed `tests/live/sweep-results-ddev.json`:
+
+- **fatal**: any `DEAD` tool, a baseline-`OK` tool turning `REJECTED` or
+  `UPSTREAM` (semantics changed, not speed), or a baseline tool that was
+  never swept;
+- **warning only**: `OK -> BLOCKED/SKIPPED`, because a busy runner turns
+  slow tools into timeouts without anything being wrong — pass `--strict`
+  to make those fatal too;
+- `--allow tool,...` exempts a verdict known to differ between a pristine
+  CI site and a long-lived local one (record why wherever you list it).
+
+A passing job means every tool still behaves against stock Drupal with
+nothing but the documented setup behind it.
+
 
 The harness targets DDEV by default; two env vars point it anywhere else:
 
