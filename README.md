@@ -507,7 +507,7 @@ python tests/live/filter_check.py         # every hard-coded JSON:API filter
 python tests/live/resource_check.py       # every resource name, asked of Drupal
 python tests/live/install_modules.py      # the modules the tools assume, ~10 min
 python tests/live/sweep.py                # all 414 tools, ~30 min
-python tests/live/mcp_call.py content_list '{}'  # one call, for spot checks
+python tests/live/mcp_call.py list_vocabularies '{}'  # one call, for spot checks
 ```
 
 They need `ddev` running and the site in `drupal-live/`; `tests/live/README.md`

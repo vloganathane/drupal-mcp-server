@@ -204,7 +204,7 @@ drupal-mcp install --command 'uvx --from drupal-mcp-server drupal-mcp'
 
 After installing, restart the client and ask it something that must touch
 Drupal, for example *"list my content types"* (the agent should call
-`content_list`). Client-side checks also help:
+`inventory_content_types`). Client-side checks also help:
 
 - Claude Code: `/mcp` shows the server and its connection state
 - OpenClaw: `openclaw mcp status --verbose`, then `openclaw mcp probe drupal`

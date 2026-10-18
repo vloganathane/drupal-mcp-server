@@ -128,7 +128,7 @@ python tests/live/install_modules.py      # the modules the tools assume, ~10 mi
 python tests/live/sweep.py                # every tool, ~30 min
 python tests/live/sweep.py composer_      # only tools whose name contains that
 python tests/live/sweep.py create_node,update_node   # a specific set
-python tests/live/mcp_call.py content_list '{}'   # one call, for spot checks
+python tests/live/mcp_call.py list_vocabularies '{}'  # one call, for spot checks
 ```
 
 A narrowed run writes `sweep-results-partial.json`, not `sweep-results.json`:
