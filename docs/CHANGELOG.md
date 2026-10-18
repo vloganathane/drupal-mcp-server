@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-10-18
+
+### Fixed
+
+- `ddev_start`, `ddev_stop`, `ddev_exec`, `lando_start`, `lando_stop`
+  and `lando_exec` accepted `project_name` and then dropped it, so every
+  call ran in the MCP server's own working directory — `ddev_start`
+  against another site started the wrong project or failed. The
+  parameter is now forwarded as the subprocess working directory, the
+  directory semantics are documented, and a path that does not exist
+  returns a clean error.
+- `_path_map()` cached an empty mapping when `/jsonapi` was unreachable
+  (JSON:API not enabled yet, or the server restarting), permanently
+  degrading every bare-type lookup onto the shorthand path that core
+  does not serve. Failures are now left uncached, so the next call
+  recovers as soon as the resource index answers.
+- `lando_setup` wrote a top-level `webroot:` key, which Lando 3 drops
+  silently — the generated site then 404'd on every request. The
+  docroot is now nested under `config:`, where Lando reads it.
+
+### Documentation
+
+- Add a generated catalog of all 414 tools (`docs/tools/all.md`): one
+  page of per-module tables with each tool's description, drafted use
+  case, example call, and per-environment live-verification badges
+  (DDEV and Lando sweeps) plus unit-test coverage.
+  `scripts/generate_tool_docs.py` builds it from the tool source, the
+  hand-maintained `docs/tools/_tool_overrides.yaml` and the sweep
+  results, and CI fails when the page drifts from the code.
+
 ## [0.3.1] - 2026-10-17
 
 ### Fixed
