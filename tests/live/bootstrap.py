@@ -133,7 +133,11 @@ STEPS = [
     ("create content types", "drush_php_eval", {
         "code": (
             'foreach (["article" => "Article", "page" => "Basic page"] as $t => $l) {'
-            ' if (!\\Drupal\\node\\entity\\NodeType::load($t)) {'
+            # Entity, not entity: PSR-4 resolves the path from the class name
+            # verbatim, so the lowercase spelling only ever loaded by
+            # accident on a case-insensitive filesystem and fails as
+            # "class not found" on Linux CI.
+            ' if (!\\Drupal\\node\\Entity\\NodeType::load($t)) {'
             ' \\Drupal\\node\\Entity\\NodeType::create(['
             ' "type" => $t, "name" => $l, "new_revision" => TRUE])->save();'
             ' print "created $t ";'
@@ -159,20 +163,24 @@ def site_is_installed() -> bool:
 
     `site:install --yes` on an already-installed site does not refuse; it
     reinstalls and drops the data the other live tests depend on.
-    """
-    import ssl
-    import urllib.request
 
-    ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
-    req = urllib.request.Request(f"{BASE}/jsonapi",
-                                 headers={"Accept": "application/vnd.api+json"})
+    Drush inside the container decides this, never the public URL: a dev
+    router can 404 every path (DDEV's does after a reboot) while the site
+    is perfectly installed, and trusting that URL re-ran site:install
+    against a live site and wiped its data. A project whose containers are
+    not up yet - a fresh CI job - fails the command and reads as not
+    installed, which is exactly right at that point.
+    """
+    import subprocess
+
     try:
-        with urllib.request.urlopen(req, context=ctx, timeout=20) as r:
-            return r.status == 200
+        proc = subprocess.run(
+            ["ddev", "drush", "status", "--fields=bootstrap"],
+            cwd=PROJECT, capture_output=True, text=True, timeout=300,
+        )
     except Exception:
         return False
+    return proc.returncode == 0 and "Successful" in proc.stdout
 
 
 async def main() -> int:
@@ -225,10 +233,25 @@ async def main() -> int:
                 result = await call(session, tool, args)
                 elapsed = time.time() - start
 
-                err = result.get("error") if isinstance(result, dict) else None
+                err = None
+                if isinstance(result, dict):
+                    err = result.get("error")
+                    # ddev_*/lando_* answer with returncode/stdout/stderr and
+                    # never an "error" key - the same gotcha sweep.classify
+                    # documents - so a non-zero exit used to print PASS here
+                    # and hide exactly which step really broke.
+                    if (
+                        err is None
+                        and isinstance(result.get("returncode"), int)
+                        and result["returncode"] != 0
+                    ):
+                        msg = (result.get("stderr") or "").strip() or (
+                            result.get("stdout") or ""
+                        ).strip()
+                        err = f"returncode {result['returncode']}: {msg}"
                 if err:
                     failed += 1
-                    print(f"  [FAIL] {label:32s} {elapsed:6.1f}s  {str(err)[:90]}")
+                    print(f"  [FAIL] {label:32s} {elapsed:6.1f}s  {str(err)[:240]}")
                 else:
                     passed += 1
                     print(f"  [PASS] {label:32s} {elapsed:6.1f}s")
