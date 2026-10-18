@@ -24,8 +24,12 @@ jobs:
         with:
           python-version: "3.12"
 
+      # Install only: bootstrap.py runs ddev_setup + ddev_start itself, and
+      # .ddev/ does not exist yet at this point in the job.
       - name: Set up DDEV
-        uses: ddev/setup-ddev@v1
+        uses: ddev/github-action-setup-ddev@v1
+        with:
+          autostart: false
 
       - name: Set up PHP for composer create-project
         uses: shivammathur/setup-php@v2
