@@ -30,6 +30,7 @@ nav:
       - AI Coding Agents: agents.md
   - Tools:
       - Overview: tools/index.md
+      - All Tools (414): tools/all.md
       - Content: tools/content.md
       - Users: tools/users.md
       - DevOps: tools/devops.md

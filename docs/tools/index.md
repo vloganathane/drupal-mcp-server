@@ -1,7 +1,9 @@
 # Tools Reference
 
 Selected tools from the 414-tool catalog, documented with their parameters,
-return values, and errors. The complete list lives in the
+return values, and errors. The [All Tools](all.md) page lists every tool
+with its description, use case, example call, and live-test status; the
+complete list also lives in the
 [README's Tools section](https://github.com/vloganathane/drupal-mcp-server#tools-414-total).
 
 ## Content Management

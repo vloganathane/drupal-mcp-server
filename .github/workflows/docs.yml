@@ -8,12 +8,20 @@ on:
       - 'mkdocs.yml'
       - 'README.md'
       - '.github/workflows/docs.yml'
+      - 'scripts/generate_tool_docs.py'
+      - 'src/drupal_mcp_server/tools/**'
+      - 'tests/live/sweep-results*.json'
+      - 'tests/unit/**'
   pull_request:
     paths:
       - 'docs/**'
       - 'mkdocs.yml'
       - 'README.md'
       - '.github/workflows/docs.yml'
+      - 'scripts/generate_tool_docs.py'
+      - 'src/drupal_mcp_server/tools/**'
+      - 'tests/live/sweep-results*.json'
+      - 'tests/unit/**'
 
 jobs:
   docs:
@@ -36,7 +44,10 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install mkdocs-material mkdocstrings[python]
+        pip install mkdocs-material mkdocstrings[python] pyyaml
+
+    - name: Check tool docs are in sync with the code
+      run: python scripts/generate_tool_docs.py --check
 
     - name: Build documentation
       run: mkdocs build --strict

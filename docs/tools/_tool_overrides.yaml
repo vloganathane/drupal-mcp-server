@@ -1,0 +1,918 @@
+# Hand-maintained overrides for the generated docs/tools/all.md page.
+# Everything else on that page (names, descriptions, examples, status) is
+# derived from code and test data by scripts/generate_tool_docs.py.
+#
+# Keys are exact runtime tool names. Optional per-tool keys:
+#   use_case      one line, shown italic under the description
+#   status_note   appended to the status cell (e.g. "needs a local PHPStan")
+tools:
+
+  # --- content.py -----------------------------------------------------------
+  create_node:
+    use_case: "Publish an article from an agent-driven content workflow"
+  get_node:
+    use_case: "Fetch one node with its referenced entities in a single request"
+  update_node:
+    use_case: "Apply an editor's field changes to an existing page without rewriting the whole bundle"
+  delete_node:
+    use_case: "Remove a draft or duplicate node as part of site cleanup after content review"
+  query_nodes:
+    use_case: "Build a listing page by filtering, sorting, and paginating nodes in one request"
+  upload_media:
+    use_case: "Add a locally generated image or document to the media library for use in content"
+  create_media:
+    use_case: "Attach a remote video or image to content without downloading the file first"
+  clean_nodes_ai:
+    use_case: "Audit a bundle for duplicate or malformed nodes before a confirmed cleanup run"
+  map_fields_ai:
+    use_case: "Plan a content migration by mapping legacy source fields onto a target content type"
+  bulk_update_nodes:
+    use_case: "Apply one field change across many nodes at once, such as relabeling a shared term"
+  fix_media_references:
+    use_case: "Diagnose missing images on a content type after media entities were removed"
+  bulk_update_aliases:
+    use_case: "Regenerate URL aliases for a content type after changing Pathauto patterns"
+  analyze_content_quality:
+    use_case: "Review recent articles for thin or inconsistent content before a quality audit"
+  generate_test_content:
+    use_case: "Populate a development site with sample nodes to test layouts and views"
+
+  # --- users.py -------------------------------------------------------------
+  create_user:
+    use_case: "Onboard a new team member with an account and roles in one step"
+  get_user:
+    use_case: "Inspect a specific account including its relationships when handling a support request"
+  get_user_by_email:
+    use_case: "Look up an account when only the person's email address is known"
+  update_user:
+    use_case: "Correct account details like email or display name during user administration"
+  delete_user:
+    use_case: "Remove a spam or test account as part of periodic user maintenance"
+  list_users:
+    use_case: "Page through or filter the site's accounts for an access review or audit report"
+  assign_role:
+    use_case: "Grant an editor elevated permissions after a promotion or project kickoff"
+  remove_role:
+    use_case: "Revoke elevated access when someone leaves a project or changes responsibilities"
+  list_roles:
+    use_case: "Discover which roles exist before assigning one to a user"
+  get_user_roles:
+    use_case: "Verify a user's current permissions before troubleshooting an access problem"
+  block_user:
+    use_case: "Suspend an account immediately after reported spam while preserving its content"
+  unblock_user:
+    use_case: "Restore access for a legitimately suspended user after their issue is resolved"
+
+  # --- taxonomy.py ----------------------------------------------------------
+  create_vocabulary:
+    use_case: "Set up a new classification scheme, such as product categories, on a fresh site"
+  get_vocabulary:
+    use_case: "Check a vocabulary's name and description before adding terms to it"
+  update_vocabulary:
+    use_case: "Rename or re-describe a taxonomy as part of an information architecture cleanup"
+  delete_vocabulary:
+    use_case: "Remove an obsolete classification scheme during a site restructuring"
+  list_vocabularies:
+    use_case: "Survey the site's classification schemes before tagging or migration work"
+  create_term:
+    use_case: "Add a new topic to an existing vocabulary as part of ongoing content categorization"
+  get_term:
+    use_case: "Verify a term's ID or parent before assigning it to content"
+  update_term:
+    use_case: "Rename or re-parent a term when the taxonomy structure evolves"
+  delete_term:
+    use_case: "Prune an unused term while tidying up a taxonomy vocabulary"
+  list_terms:
+    use_case: "Fetch a vocabulary's terms to populate a filter or autocomplete widget"
+
+  # --- comments.py ----------------------------------------------------------
+  comment_list:
+    use_case: "Review recent site comments, optionally scoped to one piece of content"
+  comment_get:
+    use_case: "Read one comment in full, including its author, when investigating a report"
+  comment_create:
+    use_case: "Post a reply or moderation note onto an existing piece of content"
+  comment_update:
+    use_case: "Fix a typo or correct a status on a comment during moderation"
+  comment_delete:
+    use_case: "Remove a comment confirmed as spam during routine moderation cleanup"
+  comment_thread_list:
+    use_case: "Reconstruct a full reply thread under an article to review a discussion"
+  comment_approve:
+    use_case: "Publish a pending comment after a moderator reviews it and finds it acceptable"
+  comment_unapprove:
+    use_case: "Hide a comment from public view pending further moderation review"
+  comment_field_settings:
+    use_case: "Check how comments are configured on a content type before adjusting moderation"
+  comment_field_configure:
+    use_case: "Enable threaded comments or adjust per-page limits when tuning community features"
+
+  # --- revisions.py ---------------------------------------------------------
+  revision_list:
+    use_case: "Check the current revision of an entity when tracking its edit history"
+  revision_get:
+    use_case: "Retrieve the exact state of a node at a past revision when auditing an edit"
+  revision_revert:
+    use_case: "Roll back a page to its last good state after an erroneous edit goes live"
+  revision_delete:
+    use_case: "Attempt to remove a sensitive stale revision before a public release"
+  revision_diff:
+    use_case: "Compare two versions of a page to see exactly which fields changed and how"
+
+  # --- paragraphs.py --------------------------------------------------------
+  paragraphs_type_list:
+    use_case: "Checking which paragraph bundles already exist before adding a new one to a content type"
+  paragraphs_type_get:
+    use_case: "Inspecting a paragraph type's settings before mirroring the same structure elsewhere"
+  paragraphs_type_create:
+    use_case: "Standing up a new paragraph type while building out a modular landing-page layout"
+  paragraphs_type_update:
+    use_case: "Renaming or reordering a paragraph type after a content restructure"
+  paragraphs_type_delete:
+    use_case: "Removing an unused paragraph type during cleanup once no content references it"
+  paragraphs_item_list:
+    use_case: "Auditing existing paragraph instances to see how a layout type is really used in content"
+  paragraphs_item_get:
+    use_case: "Troubleshooting a misrendering paragraph by pulling its stored field values"
+  paragraphs_item_create:
+    use_case: "Populating content entities with paragraph blocks as part of a scripted migration"
+  paragraphs_item_update:
+    use_case: "Fixing copy in an embedded paragraph when an editor reports outdated text on a live page"
+  paragraphs_item_delete:
+    use_case: "Purging orphaned paragraph records during content cleanup after a migration"
+
+  # --- media_enhanced.py ----------------------------------------------------
+  media_type_list:
+    use_case: "Finding out which media types a site defines before ingesting a new kind of asset"
+  media_type_get:
+    use_case: "Checking a media type's source field before wiring up oEmbed or file imports"
+  media_type_create:
+    use_case: "Adding a media type for a new source, such as remote images, during site buildout"
+  media_create_from_url:
+    use_case: "Embedding a YouTube or Vimeo video in content without downloading the file first"
+  media_create_from_base64:
+    use_case: "Uploading a logo or PDF produced by another tool when no public URL is available"
+  media_derivative_generate:
+    use_case: "Rebuilding a missing image size after an image style's dimensions were changed"
+  media_bulk_import:
+    use_case: "Seeding a fresh environment with the asset directory used by an existing site"
+  media_library_list:
+    use_case: "Checking whether an asset already exists before uploading a duplicate to the library"
+
+  # --- config.py ------------------------------------------------------------
+  config_get:
+    use_case: "Looking up a config object's live values before deciding what to change"
+  config_set:
+    use_case: "Tweaking a single setting, like the site name, without running a full config import"
+  export_config:
+    use_case: "Snapshotting active configuration into files before starting a deployment"
+  import_config:
+    use_case: "Applying configuration committed to the repo after deploying new code"
+  sync_config:
+    use_case: "Previewing then pushing config changes from one environment to another after review"
+  diff_config:
+    use_case: "Explaining why two environments behave differently before touching either one"
+  split_config:
+    use_case: "Extracting only the config objects a feature needs so deploys can ship independently"
+  config_status:
+    use_case: "Checking pending configuration changes before deciding whether an import is safe"
+
+  # --- fields.py ------------------------------------------------------------
+  field_config_list:
+    use_case: "Auditing which fields exist before adding a new content type"
+  field_config_get:
+    use_case: "Reviewing one field's settings, like allowed values, before writing content to it"
+  field_config_create:
+    use_case: "Attaching a new field to a content type during a content model rollout"
+  field_config_update:
+    use_case: "Making a field optional after editors report they cannot save drafts without it"
+  field_config_delete:
+    use_case: "Dropping an abandoned field during content model cleanup once its data is retired"
+  field_storage_list:
+    use_case: "Checking whether shared storage already exists before adding the field to another bundle"
+  field_storage_get:
+    use_case: "Confirming a field's cardinality or storage type before changing how content is entered"
+  field_storage_create:
+    use_case: "Defining storage for a field that will be reused across several content types"
+  field_storage_update:
+    use_case: "Raising a field's maximum cardinality when editors need more than one value"
+  field_storage_delete:
+    use_case: "Retiring shared field storage during schema cleanup after confirming no bundle uses it"
+
+  # --- menus.py -------------------------------------------------------------
+  menu_list:
+    use_case: "Seeing which menus exist before placing a new navigation link"
+  menu_get:
+    use_case: "Checking a menu's label before referencing it in a theme's navigation config"
+  menu_create:
+    use_case: "Setting up a dedicated footer menu while building out site navigation"
+  menu_update:
+    use_case: "Renaming a menu after a restructure so the admin UI matches the new terminology"
+  menu_delete:
+    use_case: "Cleaning up a leftover menu during site rebuilds after its links were migrated"
+  menu_link_list:
+    use_case: "Reviewing a menu's current links before reordering navigation for a redesign"
+  menu_link_get:
+    use_case: "Inspecting a link's parent and weight when a nested menu item renders in the wrong place"
+  menu_link_create:
+    use_case: "Adding a newly published page to the main navigation after content goes live"
+  menu_link_update:
+    use_case: "Repointing a menu link after a page slug changed, or nesting it under a new parent"
+  menu_link_delete:
+    use_case: "Removing a link to a retired page during navigation cleanup"
+
+  # --- views.py -------------------------------------------------------------
+  views_list:
+    use_case: "Survey every View on the site to find the one powering a given listing page"
+  views_get:
+    use_case: "Inspect one View's full config to learn its displays, filters, or field setup"
+  views_create:
+    use_case: "Stand up a new listing page by defining its fields, filters, and pager up front"
+  views_update:
+    use_case: "Change an existing View's label, fields, or exposed filters without touching others"
+  views_delete:
+    use_case: "Remove a retired View left behind after a content architecture cleanup"
+  views_execute:
+    use_case: "Preview the rows a View actually returns for a given display and filter combination"
+  views_export:
+    use_case: "Grab a View's config as YAML or JSON to commit to version control or clone"
+
+  # --- layout_builder.py ----------------------------------------------------
+  block_list:
+    use_case: "Find which blocks exist and where they sit before rearranging a sidebar"
+  block_get:
+    use_case: "Read a single block's plugin, settings, and visibility rules"
+  block_create:
+    use_case: "Add a new block to a region with specific settings and visibility conditions"
+  block_update:
+    use_case: "Adjust a block's label, region, settings, or visibility rules"
+  block_delete:
+    use_case: "Remove a stale block that is no longer needed on the site"
+  block_place:
+    use_case: "Reorder a block within its region by giving it a new weight"
+  layout_builder_list:
+    use_case: "See which bundles already have Layout Builder enabled before enabling more"
+  layout_builder_get:
+    use_case: "Read a bundle's full section and component structure to understand its layout"
+  layout_builder_create:
+    use_case: "Set a bundle's layout from scratch, replacing every section in one pass"
+  layout_builder_update:
+    use_case: "Swap in a new section set for a bundle or just toggle component locking"
+  layout_builder_sections_list:
+    use_case: "List a bundle's sections and components to see what will change before an edit"
+  layout_builder_section_add:
+    use_case: "Append a new section with chosen components to the end of a bundle's layout"
+  block_plugin_list:
+    use_case: "Discover which block plugins are available to place in a layout"
+  block_region_list:
+    use_case: "Check a theme's region names before placing a block into one"
+  layout_builder_override_remove:
+    use_case: "Revert an entity's one-off Layout Builder tweaks so it follows the default again"
+
+  # --- pathauto.py ----------------------------------------------------------
+  pathauto_pattern_list:
+    use_case: "List existing URL patterns before adding or changing one for a new content type"
+  pathauto_pattern_get:
+    use_case: "Read a single pattern's definition to confirm its tokens and target bundle"
+  pathauto_pattern_create:
+    use_case: "Add a new URL pattern so new content of a bundle gets consistent aliases"
+  pathauto_pattern_update:
+    use_case: "Change a pattern's token string or weight when the URL scheme is revised"
+  pathauto_pattern_delete:
+    use_case: "Retire an obsolete pattern as part of cleaning up URL generation rules"
+  pathauto_generate:
+    use_case: "Backfill aliases for content created before a pattern existed or was fixed"
+  pathauto_token_list:
+    use_case: "Find valid tokens to use when writing or debugging a pathauto pattern"
+  redirect_pattern_list:
+    use_case: "Review existing redirect patterns before adding or pruning redirects"
+
+  # --- redirects.py ---------------------------------------------------------
+  redirect_list:
+    use_case: "Survey current redirects to check for duplicates or loops"
+  redirect_get:
+    use_case: "Inspect one redirect's source, target, and status code"
+  redirect_create:
+    use_case: "Send an old URL to its new home after a page move"
+  redirect_update:
+    use_case: "Fix a redirect that points to the wrong target or uses the wrong status code"
+  redirect_delete:
+    use_case: "Remove a redirect that is no longer needed after a URL settles"
+  redirect_bulk_create:
+    use_case: "Seed many redirects at once from a mapping after a site migration"
+  redirect_bulk_delete:
+    use_case: "Clear out a batch of obsolete redirects during a cleanup"
+
+  # --- metatag.py -----------------------------------------------------------
+  metatag_config_list:
+    use_case: "Survey metatag defaults per entity type and bundle before changing site-wide SEO"
+  metatag_config_get:
+    use_case: "Inspect a single metatag defaults record to see its configured tags"
+  metatag_config_create:
+    use_case: "Add a new metatag defaults record for an entity type or bundle"
+  metatag_config_update:
+    use_case: "Change the default tags shown for a content type's listing or detail pages"
+  metatag_defaults_get:
+    use_case: "Fetch the effective default metatag values for a specific entity and bundle"
+  metatag_defaults_set:
+    use_case: "Apply a standard set of title, description, and Open Graph defaults"
+  metatag_token_list:
+    use_case: "Find valid tokens to reference entity fields in metatag defaults"
+  metatag_canonical_set:
+    use_case: "Point a page at its canonical URL to avoid duplicate-content SEO issues"
+  metatag_jsonld_generate:
+    use_case: "Produce JSON-LD structured data for a page to check rich-result markup"
+
+  # --- search_api.py --------------------------------------------------------
+  search_api_server_list:
+    use_case: "Checking which search backends exist before wiring up a new index"
+  search_api_server_get:
+    use_case: "Inspecting a server's backend settings when searches return unexpected results"
+  search_api_server_create:
+    use_case: "Standing up a search backend on a site that has none configured yet"
+  search_api_index_list:
+    use_case: "Finding the right index to query or reindex before touching search config"
+  search_api_index_get:
+    use_case: "Reviewing an index's datasource and processors to debug missing results"
+  search_api_index_create:
+    use_case: "Adding search to a new content type by wiring an index to an existing server"
+  search_api_index_update:
+    use_case: "Tuning processors or renaming an index after a content model change"
+  search_api_index_reindex:
+    use_case: "Content changed outside Drupal and search results are stale"
+  search_api_index_clear:
+    use_case: "Rebuilding a corrupted or outdated index from scratch during maintenance"
+  search_api_server_enable:
+    use_case: "Turning search back on after maintenance on the backend is finished"
+  search_api_server_disable:
+    use_case: "Taking search offline temporarily while the backend is being migrated"
+  search_api_facet_list:
+    use_case: "Checking which facets exist and their facet_source_id before wiring up a block"
+  search_api_facet_create:
+    use_case: "Letting visitors narrow search results by a category or tag field"
+
+  # --- feeds.py -------------------------------------------------------------
+  feeds_feed_list:
+    use_case: "Surveying existing imports before adding another data feed to the site"
+  feeds_feed_get:
+    use_case: "Checking a feed's fetcher, parser and processor when an import behaves oddly"
+  feeds_feed_create:
+    use_case: "Setting up recurring content import from an external CSV or RSS source"
+  feeds_feed_update:
+    use_case: "Changing a feed's source URL or column mapping after the upstream format shifts"
+  feeds_feed_delete:
+    use_case: "Cleaning up a one-off import feed after a content migration is done"
+  feeds_import:
+    use_case: "Running an import right now instead of waiting for the next cron pass"
+  feeds_import_status:
+    use_case: "Checking whether an import kicked off earlier finished or hit errors"
+  feeds_log_list:
+    use_case: "Looking for import history and being redirected to feeds_import_status instead"
+  feeds_tamper_list:
+    use_case: "Auditing field cleanup plugins chained onto a feed before editing import logic"
+  feeds_parser_list:
+    use_case: "Getting the exact parser plugin IDs when configuring a new feed"
+  feeds_fetcher_list:
+    use_case: "Confirming which fetcher plugins are installed before creating a feed"
+  feeds_processor_list:
+    use_case: "Finding what a feed can write to before creating the import"
+
+  # --- multilingual.py ------------------------------------------------------
+  language_list:
+    use_case: "Checking which languages a site already has before enabling translations"
+  language_get:
+    use_case: "Verifying a language's direction and weight before translating content into it"
+  language_add:
+    use_case: "A new locale is launching and the site needs its language registered"
+  language_enable:
+    use_case: "Turning a previously disabled language back on for an upcoming launch"
+  language_disable:
+    use_case: "Pausing a language when translators aren't ready yet but content exists"
+  language_delete:
+    use_case: "Removing a language that was added in error before any content uses it"
+  content_translation_enable:
+    use_case: "Letting editors translate a content type after a client asks for it"
+  translation_status:
+    use_case: "Checking which translations already exist before assigning work to a translator"
+  translation_add:
+    use_case: "A node exists only in the source language and now needs its first translation"
+  translation_update:
+    use_case: "Source content changed and existing translations now carry outdated copy"
+  interface_translation_list:
+    use_case: "Finding which UI strings are already translated when localizing the admin"
+  interface_translation_add:
+    use_case: "Fixing a wrong button label in one language without a full .po import"
+  interface_translation_update:
+    use_case: "A client wording change means an existing UI translation is now stale"
+  interface_translation_delete:
+    use_case: "Reverting a bad UI string fix so the standard .po import value takes over"
+  config_translation_list:
+    use_case: "Before translating menu labels or content types, checking what the site supports"
+  config_translation_add:
+    use_case: "Localizing a content type name or menu link label for a new language"
+  language_negotiation_get:
+    use_case: "Debugging why a translated page serves the wrong language URL prefix"
+  language_negotiation_set:
+    use_case: "Choosing between path prefixes, domains or session detection for language URLs"
+
+  # --- moderation.py --------------------------------------------------------
+  moderation_state_list:
+    use_case: "Mapping the states content can sit in across this site's workflows"
+  moderation_state_get:
+    use_case: "Checking a state's label and ordering after an editor reports a confusing name"
+  moderation_state_create:
+    use_case: "Adding a legal review step to a workflow that currently jumps straight to publish"
+  moderation_state_update:
+    use_case: "Renaming a state editors keep misreading or moving it up the approval order"
+  moderation_state_delete:
+    use_case: "Cleaning up a leftover state after a workflow was simplified during a migration"
+  moderation_transition_list:
+    use_case: "Working out which steps an editor is actually allowed to take next"
+  moderation_transition_get:
+    use_case: "Tracing where a transition leads before automating an approval step around it"
+  moderation_transition_create:
+    use_case: "Adding a sign-off path so reviewed drafts can advance to the next stage"
+  moderation_transition_delete:
+    use_case: "Retiring a redundant approval step while consolidating duplicate workflows"
+  moderation_transition_execute:
+    use_case: "Moving an editor's approved draft forward on their behalf after sign-off offline"
+  content_moderation_dashboard:
+    use_case: "Morning check of everything not yet published so nothing stalls in the queue"
+  workflow_list:
+    use_case: "Figuring out which workflows exist before pointing a content type at one"
+  workflow_get:
+    use_case: "Inspecting a workflow's states after an editor reports a draft got stuck"
+
+  # --- webform.py -----------------------------------------------------------
+  webform_list:
+    use_case: "Finding the right form id before wiring an automation or reviewing responses"
+  webform_get:
+    use_case: "Checking a form's settings before linking to it from a new landing page"
+  webform_create:
+    use_case: "Standing up a signup form for a campaign that was just approved"
+  webform_update:
+    use_case: "Changing a form's label or taking it offline after a campaign deadline passed"
+  webform_delete:
+    use_case: "Removing a duplicate test form left over from a campaign setup attempt"
+  webform_submission_list:
+    use_case: "Support asks how many people registered for the webinar through the site"
+  webform_submission_get:
+    use_case: "Pulling one enquiry in full to answer a customer citing a ticket number"
+  webform_submission_delete:
+    use_case: "Purging test submissions before handing real data to the marketing team"
+  webform_element_list:
+    use_case: "Auditing what fields a form actually asks for before mapping it to a CRM"
+  webform_element_create:
+    use_case: "Adding the phone number field a client just requested to a signup form"
+  webform_handler_list:
+    use_case: "Tracing where submissions go after a client reports notifications went missing"
+  webform_handler_create:
+    use_case: "Wiring an email or webhook handler so new submissions reach the team's inbox"
+  webform_handler_update:
+    use_case: "Pointing a notification handler at a new recipient after a team member left"
+  webform_handler_delete:
+    use_case: "Removing a broken integration handler while cleaning up dead submission routing"
+  webform_token_list:
+    use_case: "Writing an email template and needing the exact placeholder for a field"
+  webform_export_submissions:
+    use_case: "Handing marketing a CSV of contest entries without granting site access"
+
+  # --- contact.py -----------------------------------------------------------
+  contact_form_list:
+    use_case: "Checking which contact forms exist before adding one to the site footer"
+  contact_form_get:
+    use_case: "Confirming who currently receives messages from the press enquiry form"
+  contact_form_create:
+    use_case: "Creating a dedicated support form after the general inbox got too noisy"
+  contact_form_update:
+    use_case: "Redirecting form notifications to a new mailbox when someone changes roles"
+  contact_form_delete:
+    use_case: "Cleaning up a duplicate contact form left behind during a site rebuild"
+  contact_message_list:
+    use_case: "Seeing what visitors have written through the site's contact forms this week"
+  contact_message_get:
+    use_case: "Reading one message in full so support can follow up on a specific complaint"
+  contact_message_delete:
+    use_case: "Deleting test messages that accumulated while a form was being developed"
+  contact_spam_check:
+    use_case: "Deciding whether a suspicious message should be kept or purged from the inbox"
+
+  # --- commerce.py ----------------------------------------------------------
+  commerce_store_list:
+    use_case: "Checking which stores exist before adding products for a new sales channel"
+  commerce_store_get:
+    use_case: "Confirming a store's contact email and currency ahead of launch"
+  commerce_store_create:
+    use_case: "Opening a second store to sell into a different currency region"
+  commerce_store_update:
+    use_case: "Updating the store's support address after a team handover"
+  commerce_product_list:
+    use_case: "Merchandiser wants every product still unpublished before the catalog goes live"
+  commerce_product_get:
+    use_case: "Verifying one product's price and SKU against a supplier's price list"
+  commerce_product_create:
+    use_case: "Adding a newly launched item to the catalog ahead of the seasonal sale"
+  commerce_product_update:
+    use_case: "Applying a supplier's price change to a product before the sale starts"
+  commerce_order_list:
+    use_case: "Checking which orders are awaiting fulfilment at the start of the day"
+  commerce_order_get:
+    use_case: "Investigating a customer's complaint about what their order contains"
+  commerce_order_create:
+    use_case: "Recording a phone order from a customer who cannot use the website"
+  commerce_order_update:
+    use_case: "Correcting an order state after a refund was handled outside the site"
+  commerce_payment_gateway_list:
+    use_case: "Answering which payment methods the store can accept before checkout edits"
+  commerce_payment_gateway_get:
+    use_case: "Checking a gateway's configuration before taking it out of test mode"
+  commerce_promotion_list:
+    use_case: "Reviewing active discounts before the holiday sale schedule is finalised"
+  commerce_promotion_create:
+    use_case: "Setting up a launch discount for a promotion announced next week"
+  commerce_shipping_method_list:
+    use_case: "Checking delivery options before editing the checkout page"
+  commerce_shipping_method_create:
+    use_case: "Adding a flat-rate shipping option for a new regional delivery zone"
+
+  # --- status.py ------------------------------------------------------------
+  status_report:
+    use_case: "When a client asks what is wrong, pull the site status report without logging into /admin/reports"
+  database_updates:
+    use_case: "After a composer update, see whether new module schema changes are waiting before touching the site"
+  available_updates:
+    use_case: "When planning an upgrade, list outdated core and contrib packages, or only those with security advisories"
+  health_check:
+    use_case: "When other tools return opaque connection errors, pinpoint whether Drush, the database or JSON:API is failing"
+
+  # --- database.py ----------------------------------------------------------
+  db_query:
+    use_case: "Answering a question straight from the database when no Views export or JSON:API resource exposes it"
+  db_tables:
+    use_case: "Before querying an unfamiliar site, see which tables exist and how they are named"
+  db_table_info:
+    use_case: "Needing column names and types of one table before writing a WHERE clause or a report"
+  db_count:
+    use_case: "A quick row count, optionally filtered, to sanity-check content volumes or migration results"
+
+  # --- devops.py ------------------------------------------------------------
+  drush_command:
+    use_case: "Run a Drush command no dedicated tool covers and get structured output"
+  ddev_setup:
+    use_case: "Bootstrapping a local DDEV environment for a project that has no .ddev config yet"
+  ddev_start:
+    use_case: "Before anything else can reach the site, bring a stopped DDEV environment back up"
+  ddev_stop:
+    use_case: "Freeing local ports and memory at the end of a session, or before restarting cleanly"
+  ddev_exec:
+    use_case: "Running a one-off container command, like a build step, that needs the DDEV shell not Drush"
+  lando_start:
+    use_case: "Bringing a Lando-based local site back up when the other tools report connection failures"
+  lando_stop:
+    use_case: "Shutting down a Lando site's containers to free ports between sessions or before a reset"
+  lando_exec:
+    use_case: "Running a one-off command inside the Lando container, such as a build step or file fix"
+  lando_setup:
+    use_case: "Generating a starter .lando.yml for a Drupal project that has no Lando config yet"
+  acquia_deploy:
+    use_case: "Shipping a tested branch to an Acquia environment, with database updates and cache rebuild included"
+  backup_database:
+    use_case: "Taking a database dump first, before running updates, imports or other risky changes"
+  cache_rebuild:
+    use_case: "After enabling a module or editing code, make the change take effect immediately instead of waiting"
+  composer_install:
+    use_case: "A fresh clone or CI step where vendor is missing and the lock file must be installed"
+  composer_require:
+    use_case: "Adding one or several contributed modules to the project straight through composer"
+  composer_update:
+    use_case: "When ready to adopt newer dependency versions, run the update in the project directory"
+  drush_cron:
+    use_case: "Triggering cron now so queues and aggregations run without waiting for the schedule"
+  drush_watchdog:
+    use_case: "Debugging a reported error by pulling recent log entries filtered by type or severity"
+  cache_clear:
+    use_case: "Isolating stale output by clearing only the suspect cache bin rather than everything"
+  drush_updb:
+    use_case: "After the pending update list is checked, apply schema updates once a database backup exists"
+  drush_php_eval:
+    use_case: "A quick one-line Drupal API call, like resetting a state key, without writing a module"
+
+  # --- scheduler.py ---------------------------------------------------------
+  cron_run:
+    use_case: "Running scheduled work immediately when the site's own cron has not fired on its own"
+  cron_list:
+    use_case: "When something did not process, see which modules implement hook_cron and when cron last ran"
+  queue_list:
+    use_case: "Checking which queues exist and how backed up they are before a bulk import run"
+  queue_run:
+    use_case: "After a bulk operation, drain a specific queue so its pending items get processed now"
+  queue_delete:
+    use_case: "Clearing a queue stuck with poison or leftover test items before a clean retry"
+  queue_info:
+    use_case: "Checking one queue's item count and detail before draining or deleting anything"
+  queue_create:
+    use_case: "Preparing a named queue to accept its first items when wiring up or testing a worker"
+
+  # --- performance.py -------------------------------------------------------
+  performance_query_log:
+    use_case: "Hunting a slow page by finding which queries the site logged as slow in watchdog"
+  performance_cache_stats:
+    use_case: "Seeing whether cache bins are being churned instead of serving hits under traffic"
+  performance_redis_info:
+    use_case: "Diagnosing cache backend health when Redis is backing the site's cache bins"
+  performance_bigpipe_status:
+    use_case: "Confirming whether BigPipe is enabled before investigating why page delivery looks plain"
+  performance_bigpipe_enable:
+    use_case: "Toggling BigPipe during a performance test, a reversible config change to revert afterwards"
+  performance_memcached_stats:
+    use_case: "Spotting evictions or memory limits in Memcached that explain repeated cache misses"
+  performance_page_load_analyze:
+    use_case: "Getting a rough before and after number when comparing a page's response times"
+
+  # --- migration.py ---------------------------------------------------------
+  generate_migration_yaml:
+    use_case: "Kicking off a new migration and needing a correctly shaped YAML stub to fill in"
+  generate_module_migration:
+    use_case: "Scaffolding a custom migration module for a legacy source without hand-writing plugin boilerplate"
+  run_migration_test:
+    use_case: "Importing only a handful of records to confirm mappings before committing to a full run"
+  validate_migration:
+    use_case: "Confirming a migration is registered and seeing how many records it has already processed"
+  rollback_migration:
+    use_case: "Undoing a test import so the same migration can run again cleanly after its mapping is fixed"
+  sync_media_files:
+    use_case: "Copying image files onto the new server before the content that references them is imported"
+  migrate_taxonomy:
+    use_case: "Rebuilding vocabularies and terms first so incoming content has somewhere to point"
+  create_migration_plan:
+    use_case: "Starting a multi-day migration and needing one persisted record of scope, mappings, and notes"
+  get_migration_plan:
+    use_case: "Picking a migration back up in a new session and needing its source, mappings, and tracked state"
+  list_migration_plans:
+    use_case: "Figuring out which migrations exist on this site and where each one stands"
+  migration_status:
+    use_case: "Reporting how far a planned migration has progressed and whether anything is failing"
+  migrate_records:
+    use_case: "Pushing an already-extracted batch of source rows into the target site through JSON:API"
+  record_migration_result:
+    use_case: "Logging outcomes from a hand-run import so the plan's counts stay trustworthy later"
+  analyze_source_site:
+    use_case: "Counting what the legacy site really exposes, authenticating so field-level access is not undercounted"
+  reconcile_migration_counts:
+    use_case: "After an import run, spotting which entity types still fall short of the recorded source counts"
+  run_migration_wave:
+    use_case: "Migrating one resource type at a time so any failure stays contained to a single wave"
+  run_migration:
+    use_case: "Executing the whole plan in dependency order once the plan exists and dry runs look right"
+
+  # --- analysis.py ----------------------------------------------------------
+  analyze_d7_site:
+    use_case: "Scoping a Drupal 7 retirement before committing to a timeline"
+  analyze_d9_site:
+    use_case: "Before starting a D10 upgrade, knowing which removed APIs custom code still depends on"
+  inventory_content_types:
+    use_case: "Mapping the content model of an unfamiliar site before planning field or migration work"
+  inventory_modules:
+    use_case: "Checking which contrib and custom modules a site runs before estimating upgrade effort"
+  map_modules_d7_to_d10:
+    use_case: "Turning a legacy module list into replacement decisions when known mappings do not cover everything"
+  find_deprecated_code:
+    use_case: "Triaging a custom codebase by pointing at the specific files still calling removed APIs"
+  find_entity_references:
+    use_case: "Before retiring a vocabulary or content type, seeing which bundles reference it"
+  search_entities:
+    use_case: "Given a title or username from a support ticket, locating the entity without knowing its id"
+  find_entity_by_path:
+    use_case: "Tracing a URL from analytics back to the node, term, or user that actually serves it"
+
+  # --- ai.py ----------------------------------------------------------------
+  ai_analyze_content_quality:
+    use_case: "Reviewing node bodies at volume for thin or poorly structured text before publication"
+  ai_suggest_field_mappings:
+    use_case: "When source field names do not match the target bundle, getting a first-pass mapping to review"
+  ai_generate_migration_plan:
+    use_case: "Early in an unfamiliar upgrade, wanting a draft migration approach to refine with the team"
+  ai_translate_content:
+    use_case: "Localizing a body of content into another language without a human translator in the loop"
+
+  # --- codebase.py ----------------------------------------------------------
+  codebase_index_refresh:
+    use_case: "Right after installing or creating modules, making sure the other codebase tools see them"
+  codebase_search:
+    use_case: "Looking for existing code that already provides a capability before writing a new module"
+  codebase_module_list:
+    use_case: "Auditing what custom, contrib, and core code ships with the project docroot"
+  codebase_module_describe:
+    use_case: "Deciding whether to touch a module by seeing its hooks, routes, and reverse dependencies first"
+  codebase_unused_modules:
+    use_case: "Preparing a cleanup pass and needing modules nothing depends on or hooks through"
+  codebase_redundancy_check:
+    use_case: "Before scaffolding new code, confirming the capability is not already covered nearby"
+  codebase_hooks_find:
+    use_case: "Debugging unexpected behavior by finding which modules implement a given hook, with file and line"
+  codebase_paths_list:
+    use_case: "When search results look incomplete, verifying which directories are actually indexed"
+  codebase_files_list:
+    use_case: "Getting the exact module-relative path before reading a file or pulling out a function"
+  codebase_directory_tree:
+    use_case: "Getting a quick sense of an unfamiliar module's layout before reading into it"
+  codebase_file_read:
+    use_case: "Reviewing a module's .module or YAML from the agent without opening a terminal on the server"
+  codebase_function_read:
+    use_case: "Pulling one hook or method with its docblock instead of paging through whole files"
+
+  # --- module_dev.py --------------------------------------------------------
+  module_create:
+    use_case: "Starting a custom module and wanting routing, services, permissions, and schema in place at once"
+  module_service_create:
+    use_case: "Adding an injectable service to an existing module without hand-editing services.yml and the class"
+  module_plugin_create:
+    use_case: "Needing a block, Views plugin, or field widget with the right base class and annotations wired"
+  module_form_create:
+    use_case: "Adding a settings or confirmation form and wanting its route and service registration handled too"
+  module_controller_create:
+    use_case: "Standing up a new page backed by a controller class with matching routing entries"
+  module_event_subscriber_create:
+    use_case: "Replacing a deprecated hook or Rules reaction with a subscriber correctly tagged in the container"
+  module_hook_implement:
+    use_case: "Dropping a standard hook implementation into an existing module instead of typing boilerplate"
+  module_info_generate:
+    use_case: "Adopting a module missing its .info.yml and inferring one from the code that already exists"
+  module_permission_create:
+    use_case: "Adding permission strings so roles can be granted access without editing YAML by hand"
+  module_config_schema_create:
+    use_case: "Before config export or upgrade, giving module settings a typed schema Drupal will validate"
+  module_test_create:
+    use_case: "Starting coverage for a module and needing the right base class, directory, and group annotation"
+  module_dependencies_analyze:
+    use_case: "Before shipping, catching dependencies used in code but missing from the info.yml"
+
+  # --- theme_dev.py ---------------------------------------------------------
+  theme_create:
+    use_case: "Kicking off a new custom theme without hand-writing the info.yml, .theme, and templates"
+  theme_library_create:
+    use_case: "Adding or versioning a CSS/JS library so the theme can finally attach new assets"
+  theme_region_create:
+    use_case: "A layout needs one more sidebar without hand-editing the region list in info.yml"
+  theme_template_override:
+    use_case: "Copying a core template into the theme so markup can be edited without patching core"
+  theme_preprocess_function:
+    use_case: "Exposing an extra variable to Twig without remembering the exact hook signature"
+  theme_breakpoint_create:
+    use_case: "Defining breakpoints that match the designer's specs for responsive images"
+  theme_base_change:
+    use_case: "Moving off a starter theme once the design system no longer needs it"
+  theme_settings_form:
+    use_case: "Giving site builders a settings form for logo, color, or layout toggles in the UI"
+  theme_asset_optimize:
+    use_case: "Trimming CSS/JS aggregation settings while chasing a slow first paint"
+  theme_debug_enable:
+    use_case: "Chasing which Twig template actually rendered a block when the output looks wrong"
+  theme_lint_twig:
+    use_case: "Catching a syntax slip before a cache rebuild white-screens the page"
+
+  # --- theme_analysis.py ----------------------------------------------------
+  theme_active:
+    use_case: "Confirming which theme owns the front end versus the admin before making changes"
+  theme_info:
+    use_case: "Checking a theme's base-theme chain and libraries before building on top of it"
+  theme_regions:
+    use_case: "Planning a block layout and needing to know which regions actually exist"
+  theme_blocks:
+    use_case: "Hunting down which region a stray block is placed in across enabled themes"
+  theme_templates:
+    use_case: "Surveying how many templates a theme ships before deciding where to add overrides"
+  theme_template_overrides:
+    use_case: "Checking whether your theme already overrides a module template you are about to edit"
+  template_suggestions:
+    use_case: "Naming a template like node--article--unpublished.html.twig and verifying Drupal looks for it"
+  view_template_info:
+    use_case: "Overriding a Views display and needing the exact template names the site will try"
+
+  # --- code_audit.py --------------------------------------------------------
+  code_audit_phpstan:
+    use_case: "Finding type errors and dead code in a custom module before it hits code review"
+  drupal_check:
+    use_case: "Upgrading to Drupal 11 and needing to know which custom code uses deprecated APIs"
+  code_sniffer:
+    use_case: "Checking a patch against Drupal coding standards before submitting it"
+  deprecation_scan:
+    use_case: "Scoping how much work a core upgrade will take across the whole custom codebase"
+  security_audit:
+    use_case: "Getting a strict static analysis pass over hand-written code prior to an external review"
+  composer_audit:
+    use_case: "Before deploying, checking whether installed dependencies carry known advisories"
+  code_quality_report:
+    use_case: "Wanting one combined lint and analysis summary instead of running three tools separately"
+
+  # --- security_audit.py ----------------------------------------------------
+  security_scan:
+    use_case: "A pre-release SAST pass on custom code where only PHPStan and its security extension matter"
+  dependency_scan:
+    use_case: "Checking composer packages against vulnerability advisories before tagging a release"
+  config_security_check:
+    use_case: "Auditing exported config for risky settings before pushing it to production"
+  permission_audit:
+    use_case: "After a role change, confirming no regular user quietly gained an admin-only permission"
+  sql_injection_scan:
+    use_case: "Reviewing custom database queries for unsanitized input before the code goes live"
+  xss_scan:
+    use_case: "Checking custom output for unescaped user-supplied input ahead of a security review"
+  csp_audit:
+    use_case: "The browser console shows CSP violations and you need to know which directive to relax"
+  file_permissions_audit:
+    use_case: "Hardening a public files directory where an uploaded executable would be a problem"
+  code_security_scan:
+    use_case: "A quick vulnerability-pattern sweep of custom modules with no vendor tools installed"
+  route_access_audit:
+    use_case: "Finding routes with no access check before the site is exposed publicly"
+
+  # --- headless.py ----------------------------------------------------------
+  jsonapi_schema_get:
+    use_case: "Building a front-end client and needing the whole JSON:API surface in OpenAPI form"
+  jsonapi_include_optimize:
+    use_case: "A JSON:API request is round-tripping several times and you want the correct include path"
+  jsonapi_sparse_fieldsets:
+    use_case: "Shrinking a heavy JSON:API response down to only the fields the page renders"
+  graphql_schema_get:
+    use_case: "Writing a GraphQL query without knowing which types and fields the site exposes"
+  graphql_query:
+    use_case: "Fetching exactly the content fields a component needs from a decoupled front end"
+  graphql_schema_extend:
+    use_case: "A component needs a computed field that Drupal's default schema does not expose"
+  nextjs_helpers_generate:
+    use_case: "Scaffolding typed fetch helpers for a Next.js site consuming Drupal content"
+  gatsby_helpers_generate:
+    use_case: "Wiring a Gatsby site to Drupal data without writing the source plugin config by hand"
+  jsonapi_resources_list:
+    use_case: "Discovering which endpoints exist before writing a single API request"
+  jsonapi_resource_types:
+    use_case: "Checking available types and bundles before filtering a JSON:API collection query"
+
+  # --- drupal_org.py --------------------------------------------------------
+  module_search:
+    use_case: "Looking for an existing contributed solution before deciding to build a custom module"
+  module_get:
+    use_case: "Vetting a module's maintenance status before adding it to the composer require list"
+  module_versions:
+    use_case: "Pinning an exact release in composer.lock instead of guessing at a tag"
+  module_dependencies:
+    use_case: "Checking what a module will pull into a lean build before committing to it"
+  theme_search:
+    use_case: "Hunting for a contributed theme to base a new client site on"
+  theme_get:
+    use_case: "Confirming a contrib theme is actively maintained before adopting it"
+  release_history:
+    use_case: "Judging whether a project is alive by looking at its release cadence"
+  project_usage:
+    use_case: "Weighing a module choice by how many production sites actually run it"
+  module_compatibility:
+    use_case: "Before a Drupal 11 upgrade, checking which contrib projects still publish releases"
+  module_issues_search:
+    use_case: "A contrib bug is blocking you and you want to see whether someone already filed it"
+  module_popular:
+    use_case: "Browsing what the community widely installs when the shortlist is still empty"
+  module_recommendation:
+    use_case: "Turning a plain need like add a newsletter into options filtered by what is already installed"
+
+  # --- testing.py -----------------------------------------------------------
+  test_run_phpunit:
+    use_case: "Verifying a change to custom logic did not break existing unit behavior before committing"
+  test_run_kernel:
+    use_case: "Exercising hooks and entity storage against a real Drupal kernel after a change"
+  test_run_behat:
+    use_case: "Checking a user-facing workflow end to end before calling a feature done"
+  test_run_nightwatch:
+    use_case: "Validating browser-side JS and admin UI behavior ahead of a release"
+  test_scaffold_phpunit:
+    use_case: "Starting a test for a custom class without recalling the Drupal TestCase boilerplate"
+  test_scaffold_behat:
+    use_case: "Turning a user story into an executable feature file in one step"
+  test_scaffold_nightwatch:
+    use_case: "Adding browser coverage for a new admin workflow the team just shipped"
+  test_coverage_report:
+    use_case: "Seeing which parts of a custom module still have zero test coverage"
+  test_list_suites:
+    use_case: "Not sure which runner applies, so checking what test suites this site exposes"
+
+  # --- accessibility.py -----------------------------------------------------
+  accessibility_axe_scan:
+    use_case: "Running an automated accessibility check on a key page before an audit or launch"
+  accessibility_wcag_check:
+    use_case: "Before publishing, checking a content type's rendered output against WCAG criteria"
+  accessibility_color_contrast:
+    use_case: "Choosing a brand color pairing that still passes AA contrast on text"
+  accessibility_aria_validate:
+    use_case: "A custom template's accordion misbehaves and the ARIA markup may be at fault"
+  accessibility_report_generate:
+    use_case: "Handing an auditor one consolidated report instead of scattered scan results"
+
+  # --- exports.py -----------------------------------------------------------
+  export_nodes:
+    use_case: "Handing a client a full content inventory without exporting by hand"
+  export_users:
+    use_case: "Preparing a user list for a migration or an account cleanup review"
+  export_media:
+    use_case: "Auditing the media library for unused assets before a cleanup sprint"
+  export_taxonomy:
+    use_case: "Mapping existing terms into a new vocabulary structure during a re-architecture"
