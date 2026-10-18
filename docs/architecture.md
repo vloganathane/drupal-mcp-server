@@ -184,7 +184,7 @@ All tools return errors in a standardized format:
 | `DRUPAL_USERNAME` | No | — | Basic auth username |
 | `DRUPAL_PASSWORD` | No | — | Basic auth password |
 | `MCP_TRANSPORT` | No | `stdio` | Transport type |
-| `MCP_HOST` | No | `0.0.0.0` | HTTP bind host |
+| `MCP_HOST` | No | `127.0.0.1` | HTTP bind host |
 | `MCP_PORT` | No | `8000` | HTTP bind port |
 | `DEFAULT_AI_PROVIDER` | No | `ollama` | AI provider |
 | `AI_ENABLED` | No | `true` | Enable AI tools |

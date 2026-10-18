@@ -102,8 +102,23 @@ class Settings(BaseSettings):
     # MCP Server
     MCP_SERVER_NAME: str = Field(default="drupal-mcp-server", description="MCP server name")
     MCP_TRANSPORT: str = Field(default="stdio", description="MCP transport type")
-    MCP_HOST: str = Field(default="0.0.0.0", description="MCP HTTP host")
+    MCP_HOST: str = Field(
+        default="127.0.0.1",
+        description=(
+            "MCP HTTP bind host. Loopback by default: the tools execute "
+            "drush/composer/shell commands, so a network-visible bind is a "
+            "deliberate decision, not a default."
+        ),
+    )
     MCP_PORT: int = Field(default=8000, description="MCP HTTP port")
+    MCP_ALLOW_INSECURE_HTTP: bool = Field(
+        default=False,
+        description=(
+            "Permit an HTTP transport without OAuth configured. The server "
+            "refuses to serve command-execution tools over a socket "
+            "unauthenticated unless this is set."
+        ),
+    )
     MCP_LOG_LEVEL: str = Field(default="INFO", description="Logging level")
 
 

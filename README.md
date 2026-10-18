@@ -161,6 +161,13 @@ Set `MCP_TRANSPORT` to one of:
 - `sse` (for Server-Sent Events)
 - `streamable-http` (for Streamable HTTP)
 
+HTTP transports serve tools that execute drush, composer and shell commands,
+so the server refuses to bind one without OAuth configured
+(`DRUPAL_OAUTH_CLIENT_ID`/`CLIENT_SECRET`/`TOKEN_URL`); set
+`MCP_ALLOW_INSECURE_HTTP=1` to serve unauthenticated on the default
+loopback `MCP_HOST` (`127.0.0.1`) if you accept the risk. See
+[Configuration](configuration.md#serving-over-http).
+
 ## Tools (414 total)
 
 ### Accessibility (5)

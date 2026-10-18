@@ -50,10 +50,25 @@ Sent as `Authorization: Bearer <token>`, and used only when neither
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `MCP_TRANSPORT` | `stdio` | `stdio`, `http`, `sse`, `streamable-http` |
-| `MCP_HOST` | `0.0.0.0` | HTTP bind host |
+| `MCP_HOST` | `127.0.0.1` | HTTP bind host — loopback by default, see below |
 | `MCP_PORT` | `8000` | HTTP bind port |
+| `MCP_ALLOW_INSECURE_HTTP` | `false` | Permit an HTTP transport without OAuth (see below) |
 | `MCP_SERVER_NAME` | `drupal-mcp-server` | Server name in MCP protocol |
 | `MCP_LOG_LEVEL` | `INFO` | `DEBUG`, `INFO`, `WARNING`, `ERROR` |
+
+### Serving over HTTP
+
+The tool surface executes drush, composer and shell commands, so an HTTP
+transport is not just an API — anyone who can reach the bind address can run
+commands. Two defaults protect against that:
+
+- **the server refuses to start** an `http`/`sse`/`streamable-http` transport
+  unless OAuth is configured (`DRUPAL_OAUTH_CLIENT_ID`/`CLIENT_SECRET`/`TOKEN_URL`).
+  Set `MCP_ALLOW_INSECURE_HTTP=1` to override — that is a deliberate
+  decision, not an oversight, and only sane on loopback behind a trusted network;
+- **`MCP_HOST` binds `127.0.0.1`** rather than every interface. Serving to the
+  network on purpose means setting `MCP_HOST` (and, typically, OAuth) on
+  purpose.
 
 ## AI Providers
 

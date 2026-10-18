@@ -74,8 +74,11 @@ New required variables:
 ```bash
 # Add if using HTTP transport
 MCP_TRANSPORT=streamable-http
-MCP_HOST=0.0.0.0
+MCP_HOST=127.0.0.1
 MCP_PORT=8000
+# HTTP transports refuse to start without OAuth; either configure
+# DRUPAL_OAUTH_CLIENT_ID/CLIENT_SECRET/TOKEN_URL or opt in explicitly:
+MCP_ALLOW_INSECURE_HTTP=1
 ```
 
 ### Step 3: Update your MCP client config
@@ -119,7 +122,8 @@ echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | drupal-mcp
 ### From stdio to HTTP
 
 1. Set `MCP_TRANSPORT=streamable-http` in `.env`
-2. Set `MCP_HOST` and `MCP_PORT`
+2. Set `MCP_HOST` and `MCP_PORT`; configure OAuth or
+   `MCP_ALLOW_INSECURE_HTTP=1`, or the server refuses to bind
 3. Update client config to use `url` instead of `command`
 4. Restart the server
 

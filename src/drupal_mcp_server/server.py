@@ -200,6 +200,33 @@ async def _login_session(auth_manager: AuthManager) -> None:
     await auth_manager.ensure_session()
 
 
+def _require_network_auth(settings: Any, transport: str) -> None:
+    """Refuse to serve command-execution tools over a socket without auth.
+
+    The tool surface runs drush, composer and shell commands. On stdio that
+    is whoever started the server; over HTTP it is everyone who can reach
+    the bind address, so an unauthenticated network listener here is a
+    remote code execution endpoint by construction. OAuth configuration is
+    the intended path; MCP_ALLOW_INSECURE_HTTP is the deliberate mistake.
+    """
+    if transport not in ("http", "sse", "streamable-http"):
+        return
+    if getattr(settings, "DRUPAL_OAUTH_CLIENT_ID", None):
+        return
+    if getattr(settings, "MCP_ALLOW_INSECURE_HTTP", False) or os.getenv(
+        "MCP_ALLOW_INSECURE_HTTP"
+    ):
+        return
+    raise SystemExit(
+        f"MCP_TRANSPORT={transport} serves tools that execute drush, composer "
+        "and shell commands, and no OAuth client is configured "
+        "(DRUPAL_OAUTH_CLIENT_ID/CLIENT_SECRET/TOKEN_URL), so the server "
+        "refuses to bind. Configure OAuth, use the default stdio transport, "
+        "or set MCP_ALLOW_INSECURE_HTTP=1 to serve unauthenticated - sane "
+        "only on the default loopback MCP_HOST behind a trusted network."
+    )
+
+
 def run_server() -> None:
     settings = get_settings()
 
@@ -219,6 +246,7 @@ def run_server() -> None:
     transport = os.getenv("MCP_TRANSPORT", settings.MCP_TRANSPORT)
 
     if transport in ("http", "sse", "streamable-http"):
+        _require_network_auth(settings, transport)
         # FastMCP reads the provider off `self.auth` when it builds the HTTP
         # app. It was being passed to run() instead, which forwards unknown
         # keywords straight to run_http_async() and raised
