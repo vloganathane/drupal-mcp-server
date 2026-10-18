@@ -1,0 +1,2486 @@
+[
+  {
+    "tool": "analyze_d7_site",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 6.3
+  },
+  {
+    "tool": "analyze_d9_site",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 2.3
+  },
+  {
+    "tool": "inventory_content_types",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "inventory_modules",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 1.3
+  },
+  {
+    "tool": "map_modules_d7_to_d10",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "find_deprecated_code",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "find_entity_references",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "search_entities",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.8
+  },
+  {
+    "tool": "find_entity_by_path",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.9
+  },
+  {
+    "tool": "generate_migration_yaml",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "generate_module_migration",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.7
+  },
+  {
+    "tool": "run_migration_test",
+    "verdict": "REJECTED",
+    "detail": "drush failed: [error]  The following modules are required: migrate",
+    "elapsed": 6.1
+  },
+  {
+    "tool": "validate_migration",
+    "verdict": "REJECTED",
+    "detail": "drush failed: [error]  The following modules are required: migrate",
+    "elapsed": 3.3
+  },
+  {
+    "tool": "rollback_migration",
+    "verdict": "REJECTED",
+    "detail": "drush failed: [error]  The following modules are required: migrate",
+    "elapsed": 6.5
+  },
+  {
+    "tool": "sync_media_files",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "migrate_taxonomy",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "create_migration_plan",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "get_migration_plan",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "list_migration_plans",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "migration_status",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "migrate_records",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "record_migration_result",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "analyze_source_site",
+    "verdict": "REJECTED",
+    "detail": "source_url is required",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "reconcile_migration_counts",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "run_migration_wave",
+    "verdict": "REJECTED",
+    "detail": "Migration plan does not contain a source URL",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "run_migration",
+    "verdict": "REJECTED",
+    "detail": "No entity types supplied and the plan has none",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "create_node",
+    "verdict": "BLOCKED",
+    "detail": "Client error '404 Not Found' for url 'https://drupal-live-lando.lndo.site/jsonapi/node/article'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404 \u2014 <!DOCTYPE htm",
+    "elapsed": 1.6
+  },
+  {
+    "tool": "get_node",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'node' with id '1'",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "update_node",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'node' with id '1'",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "delete_node",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'node' with id '1'",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "query_nodes",
+    "verdict": "BLOCKED",
+    "detail": "Client error '404 Not Found' for url 'https://drupal-live-lando.lndo.site/jsonapi/node/article?page%5Blimit%5D=50&page%5Boffset%5D=0'\nFor more information check: https://developer.mozilla.org/en-US/do",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "upload_media",
+    "verdict": "BLOCKED",
+    "detail": "File not found: /private/tmp/sweep-file.txt",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "create_media",
+    "verdict": "REJECTED",
+    "detail": "Client error '422 Unprocessable Entity' for url 'https://drupal-live-lando.lndo.site/jsonapi/media/image'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/422 \u2014 {\"j",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "clean_nodes_ai",
+    "verdict": "BLOCKED",
+    "detail": "Client error '404 Not Found' for url 'https://drupal-live-lando.lndo.site/jsonapi/node/article?page%5Blimit%5D=50'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "map_fields_ai",
+    "verdict": "REJECTED",
+    "detail": "Client error '400 Bad Request' for url 'https://drupal-live-lando.lndo.site/jsonapi/field_config/field_config?bundle=sweep_value'\nFor more information check: https://developer.mozilla.org/en-US/docs/W",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "bulk_update_nodes",
+    "verdict": "BLOCKED",
+    "detail": "Client error '404 Not Found' for url 'https://drupal-live-lando.lndo.site/jsonapi/node/article'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404 \u2014 <!DOCTYPE htm",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "fix_media_references",
+    "verdict": "BLOCKED",
+    "detail": "Client error '404 Not Found' for url 'https://drupal-live-lando.lndo.site/jsonapi/node/article?page%5Blimit%5D=100'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "bulk_update_aliases",
+    "verdict": "REJECTED",
+    "detail": "drush failed: Command \"pathauto:generate\" is not defined.  \n                                               \n  Did you mean one of these?                   \n      pathauto:aliases-delete               ",
+    "elapsed": 3.2
+  },
+  {
+    "tool": "analyze_content_quality",
+    "verdict": "BLOCKED",
+    "detail": "Client error '404 Not Found' for url 'https://drupal-live-lando.lndo.site/jsonapi/node/article?page%5Blimit%5D=50'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "generate_test_content",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.6
+  },
+  {
+    "tool": "config_get",
+    "verdict": "REJECTED",
+    "detail": "drush config:get sweep_name failed:  [error]  Config sweep_name does not exist",
+    "elapsed": 3.2
+  },
+  {
+    "tool": "config_set",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "export_config",
+    "verdict": "REJECTED",
+    "detail": "drush failed: In ConfigExportCommands.php line 203:\n                                                    \n  The destination parent directory does not exist.",
+    "elapsed": 3.0
+  },
+  {
+    "tool": "import_config",
+    "verdict": "REJECTED",
+    "detail": "drush failed: [error]  The source directory does not exist. The source is not a directory.",
+    "elapsed": 6.2
+  },
+  {
+    "tool": "sync_config",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 7.0
+  },
+  {
+    "tool": "diff_config",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 5.8
+  },
+  {
+    "tool": "split_config",
+    "verdict": "BLOCKED",
+    "detail": "Source config directory not found: ./config/sync",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "config_status",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 1.4
+  },
+  {
+    "tool": "drush_command",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 1.1
+  },
+  {
+    "tool": "ddev_setup",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "ddev_start",
+    "verdict": "SKIPPED",
+    "detail": "controls the environment the sweep runs against",
+    "elapsed": 0
+  },
+  {
+    "tool": "ddev_stop",
+    "verdict": "SKIPPED",
+    "detail": "controls the environment the sweep runs against",
+    "elapsed": 0
+  },
+  {
+    "tool": "ddev_exec",
+    "verdict": "REJECTED",
+    "detail": "\u001b[31mProject is not currently running. Try 'ddev start'.\u001b[0m",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "lando_start",
+    "verdict": "SKIPPED",
+    "detail": "controls the environment the sweep runs against",
+    "elapsed": 0
+  },
+  {
+    "tool": "lando_stop",
+    "verdict": "SKIPPED",
+    "detail": "controls the environment the sweep runs against",
+    "elapsed": 0
+  },
+  {
+    "tool": "lando_exec",
+    "verdict": "SKIPPED",
+    "detail": "controls the environment the sweep runs against",
+    "elapsed": 0
+  },
+  {
+    "tool": "lando_setup",
+    "verdict": "REJECTED",
+    "detail": "./.lando.yml already exists. Writing a generated config over it would discard every setting you have. Edit the file directly, or pass force=True to replace it.",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "acquia_deploy",
+    "verdict": "REJECTED",
+    "detail": "Code deployment failed",
+    "elapsed": 3.4
+  },
+  {
+    "tool": "backup_database",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 1.9
+  },
+  {
+    "tool": "cache_rebuild",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 8.7
+  },
+  {
+    "tool": "composer_install",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 65.6
+  },
+  {
+    "tool": "composer_require",
+    "verdict": "REJECTED",
+    "detail": "\u001b[31mComposer [require sweep_value:sweep_value --working-dir=. --no-interaction] failed, composer command failed: composeCmd failed to run 'COMPOSE_PROJECT_NAME=ddev-drupal-live-lando docker-compose -",
+    "elapsed": 0.7
+  },
+  {
+    "tool": "composer_update",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 15.8
+  },
+  {
+    "tool": "drush_cron",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 11.8
+  },
+  {
+    "tool": "drush_watchdog",
+    "verdict": "BLOCKED",
+    "detail": "drush failed: In WatchdogCommands.php line 299: Unrecognized message type: access denied. Recognized types are: client error, cron, locale, page not found, system, u ser.",
+    "elapsed": 2.9
+  },
+  {
+    "tool": "cache_clear",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 8.7
+  },
+  {
+    "tool": "drush_updb",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 13.1
+  },
+  {
+    "tool": "drush_php_eval",
+    "verdict": "REJECTED",
+    "detail": "drush failed: [error] Error: Undefined constant \"sweep_value\" in eval() (line 1 of /app/vendor/drush/drush/src/Commands/core/PhpCommands.php(33) : eval()'d code) #0 /app/vendor/drush/drush/src/Command",
+    "elapsed": 5.8
+  },
+  {
+    "tool": "ai_analyze_content_quality",
+    "verdict": "REJECTED",
+    "detail": "All connection attempts failed",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "ai_suggest_field_mappings",
+    "verdict": "REJECTED",
+    "detail": "All connection attempts failed",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "ai_generate_migration_plan",
+    "verdict": "REJECTED",
+    "detail": "All connection attempts failed",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "ai_translate_content",
+    "verdict": "REJECTED",
+    "detail": "All connection attempts failed",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "create_vocabulary",
+    "verdict": "REJECTED",
+    "detail": "Client error '405 Method Not Allowed' for url 'https://drupal-live-lando.lndo.site/jsonapi/taxonomy_vocabulary/taxonomy_vocabulary'\nFor more information check: https://developer.mozilla.org/en-US/docs",
+    "elapsed": 0.7
+  },
+  {
+    "tool": "get_vocabulary",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.5
+  },
+  {
+    "tool": "update_vocabulary",
+    "verdict": "REJECTED",
+    "detail": "Client error '405 Method Not Allowed' for url 'https://drupal-live-lando.lndo.site/jsonapi/taxonomy_vocabulary/taxonomy_vocabulary/37da348e-2d72-4a00-a548-6fe7cd3607e6'\nFor more information check: htt",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "delete_vocabulary",
+    "verdict": "REJECTED",
+    "detail": "Client error '405 Method Not Allowed' for url 'https://drupal-live-lando.lndo.site/jsonapi/taxonomy_vocabulary/taxonomy_vocabulary/37da348e-2d72-4a00-a548-6fe7cd3607e6'\nFor more information check: htt",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "list_vocabularies",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "create_term",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 1.1
+  },
+  {
+    "tool": "get_term",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "update_term",
+    "verdict": "REJECTED",
+    "detail": "Client error '400 Bad Request' for url 'https://drupal-live-lando.lndo.site/jsonapi/taxonomy_term/tags/45183bbc-a624-4aad-a056-b3b4ae6361f7'\nFor more information check: https://developer.mozilla.org/e",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "delete_term",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "list_terms",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "create_user",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "get_user",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "get_user_by_email",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "update_user",
+    "verdict": "REJECTED",
+    "detail": "Client error '422 Unprocessable Entity' for url 'https://drupal-live-lando.lndo.site/jsonapi/user/user/746c7b2b-b86e-4e94-afbd-5fb8cb53a672'\nFor more information check: https://developer.mozilla.org/e",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "delete_user",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "list_users",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "assign_role",
+    "verdict": "REJECTED",
+    "detail": "drush failed: [error]  Unable to load the user_role: sweep_value",
+    "elapsed": 6.1
+  },
+  {
+    "tool": "remove_role",
+    "verdict": "REJECTED",
+    "detail": "drush failed: [error]  Unable to load the user_role: sweep_value",
+    "elapsed": 6.1
+  },
+  {
+    "tool": "list_roles",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 1.3
+  },
+  {
+    "tool": "get_user_roles",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 1.1
+  },
+  {
+    "tool": "block_user",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "unblock_user",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "db_query",
+    "verdict": "REJECTED",
+    "detail": "Only SELECT queries are allowed for safety",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "db_tables",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.8
+  },
+  {
+    "tool": "db_table_info",
+    "verdict": "REJECTED",
+    "detail": "drush failed: In SqlCommands.php line 189: Query failed. Rerun with --debug to see any error message. ERROR 1146 (42S0 2) at line 1: Table 'drupal11.sweep_value' doesn't exist",
+    "elapsed": 2.6
+  },
+  {
+    "tool": "db_count",
+    "verdict": "REJECTED",
+    "detail": "Invalid WHERE clause: sweep_value",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "views_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.4
+  },
+  {
+    "tool": "views_get",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.5
+  },
+  {
+    "tool": "views_create",
+    "verdict": "REJECTED",
+    "detail": "Client error '405 Method Not Allowed' for url 'https://drupal-live-lando.lndo.site/jsonapi/view/view'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/405 \u2014 {\"jsona",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "views_update",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'view' with id 'sweep_value'",
+    "elapsed": 0.4
+  },
+  {
+    "tool": "views_delete",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'view' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "views_execute",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 1.9
+  },
+  {
+    "tool": "views_export",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.4
+  },
+  {
+    "tool": "paragraphs_type_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "paragraphs_type_get",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'paragraphs_type' with id 'basic'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "paragraphs_type_create",
+    "verdict": "REJECTED",
+    "detail": "Client error '405 Method Not Allowed' for url 'https://drupal-live-lando.lndo.site/jsonapi/paragraphs_type/paragraphs_type'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTT",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "paragraphs_type_update",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'paragraphs_type' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "paragraphs_type_delete",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'paragraphs_type' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "paragraphs_item_list",
+    "verdict": "REJECTED",
+    "detail": "This site has no paragraph type `basic`.",
+    "elapsed": 2.0
+  },
+  {
+    "tool": "paragraphs_item_get",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'paragraph' with id '1'",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "paragraphs_item_create",
+    "verdict": "BLOCKED",
+    "detail": "Client error '404 Not Found' for url 'https://drupal-live-lando.lndo.site/jsonapi/paragraph'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404 \u2014 <!DOCTYPE html>\n",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "paragraphs_item_update",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'paragraph' with id 'sweep_value'",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "paragraphs_item_delete",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'paragraph' with id 'sweep_value'",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "menu_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "menu_get",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.4
+  },
+  {
+    "tool": "menu_create",
+    "verdict": "REJECTED",
+    "detail": "Client error '405 Method Not Allowed' for url 'https://drupal-live-lando.lndo.site/jsonapi/menu/menu'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/405 \u2014 {\"jsona",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "menu_update",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'menu' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "menu_delete",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'menu' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "menu_link_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "menu_link_get",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'menu_link_content' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "menu_link_create",
+    "verdict": "REJECTED",
+    "detail": "Client error '422 Unprocessable Entity' for url 'https://drupal-live-lando.lndo.site/jsonapi/menu_link_content/menu_link_content'\nFor more information check: https://developer.mozilla.org/en-US/docs/W",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "menu_link_update",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'menu_link_content' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "menu_link_delete",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'menu_link_content' with id 'sweep_value'",
+    "elapsed": 0.4
+  },
+  {
+    "tool": "field_config_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "field_config_get",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.8
+  },
+  {
+    "tool": "field_config_create",
+    "verdict": "REJECTED",
+    "detail": "Client error '405 Method Not Allowed' for url 'https://drupal-live-lando.lndo.site/jsonapi/field_config/field_config'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Stat",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "field_config_update",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'field_config' with id 'sweep_value'",
+    "elapsed": 0.4
+  },
+  {
+    "tool": "field_config_delete",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'field_config' with id 'sweep_value'",
+    "elapsed": 0.4
+  },
+  {
+    "tool": "field_storage_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "field_storage_get",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.4
+  },
+  {
+    "tool": "field_storage_create",
+    "verdict": "REJECTED",
+    "detail": "Client error '405 Method Not Allowed' for url 'https://drupal-live-lando.lndo.site/jsonapi/field_storage_config/field_storage_config'\nFor more information check: https://developer.mozilla.org/en-US/do",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "field_storage_update",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'field_storage_config' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "field_storage_delete",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'field_storage_config' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "revision_list",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'node' with id '1'",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "revision_get",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'node' with id '1'",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "revision_revert",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'node' with id '1'",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "revision_delete",
+    "verdict": "UPSTREAM",
+    "detail": "Drupal's JSON:API has no revision collection endpoint (.../revisions answers 405 Method Not Allowed) and no core drush command enumerates revisions. Enable the REST module to list or delete individual",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "revision_diff",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'node' with id '1'",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "redirect_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "redirect_get",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'redirect' with id '1'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "redirect_create",
+    "verdict": "REJECTED",
+    "detail": "Client error '422 Unprocessable Entity' for url 'https://drupal-live-lando.lndo.site/jsonapi/redirect/redirect'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/422",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "redirect_update",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'redirect' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "redirect_delete",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'redirect' with id 'sweep_value'",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "redirect_bulk_create",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "redirect_bulk_delete",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "cron_run",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 5.1
+  },
+  {
+    "tool": "cron_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 1.1
+  },
+  {
+    "tool": "queue_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 1.1
+  },
+  {
+    "tool": "queue_run",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 4.0
+  },
+  {
+    "tool": "queue_delete",
+    "verdict": "REJECTED",
+    "detail": "item_id must be a non-negative integer, got 'sweep_value'",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "queue_info",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 1.1
+  },
+  {
+    "tool": "queue_create",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 1.0
+  },
+  {
+    "tool": "code_audit_phpstan",
+    "verdict": "REJECTED",
+    "detail": "drush failed: \u26a0\ufe0f You're running an old version of PHPStan.\ufe0f The last release in the 1.12.x series with new features and bugfixes was released on July 17th 2025, that's 458 days ago. Since then more th",
+    "elapsed": 1.2
+  },
+  {
+    "tool": "drupal_check",
+    "verdict": "REJECTED",
+    "detail": "drush failed: The \"--severity\" option does not exist. check [--drupal-root [DRUPAL-ROOT]] [--format [FORMAT]] [-d|--deprecations] [-a|--analysis] [-s|--style] [--php8] [--memory-limit [MEMORY-LIMIT]] ",
+    "elapsed": 0.6
+  },
+  {
+    "tool": "code_sniffer",
+    "verdict": "REJECTED",
+    "detail": "drush failed: ERROR: The file \"/tmp/sweep-file.txt\" does not exist. Run \"phpcs --help\" for usage information",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "deprecation_scan",
+    "verdict": "REJECTED",
+    "detail": "drush failed: no error output",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "security_audit",
+    "verdict": "REJECTED",
+    "detail": "drush failed: \u26a0\ufe0f You're running an old version of PHPStan.\ufe0f The last release in the 1.12.x series with new features and bugfixes was released on July 17th 2025, that's 458 days ago. Since then more th",
+    "elapsed": 1.3
+  },
+  {
+    "tool": "composer_audit",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 6.7
+  },
+  {
+    "tool": "code_quality_report",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 1.1
+  },
+  {
+    "tool": "codebase_index_refresh",
+    "verdict": "REJECTED",
+    "detail": "DRUPAL_ROOT is not set to an existing Drupal codebase; set it to enable local codebase tools.",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "codebase_search",
+    "verdict": "REJECTED",
+    "detail": "DRUPAL_ROOT is not set to an existing Drupal codebase; set it to enable local codebase tools.",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "codebase_module_list",
+    "verdict": "REJECTED",
+    "detail": "DRUPAL_ROOT is not set to an existing Drupal codebase; set it to enable local codebase tools.",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "codebase_module_describe",
+    "verdict": "REJECTED",
+    "detail": "DRUPAL_ROOT is not set to an existing Drupal codebase; set it to enable local codebase tools.",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "codebase_unused_modules",
+    "verdict": "REJECTED",
+    "detail": "DRUPAL_ROOT is not set to an existing Drupal codebase; set it to enable local codebase tools.",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "codebase_redundancy_check",
+    "verdict": "REJECTED",
+    "detail": "DRUPAL_ROOT is not set to an existing Drupal codebase; set it to enable local codebase tools.",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "codebase_hooks_find",
+    "verdict": "REJECTED",
+    "detail": "DRUPAL_ROOT is not set to an existing Drupal codebase; set it to enable local codebase tools.",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "codebase_paths_list",
+    "verdict": "REJECTED",
+    "detail": "DRUPAL_ROOT is not set to an existing Drupal codebase; set it to enable local codebase tools.",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "codebase_files_list",
+    "verdict": "REJECTED",
+    "detail": "DRUPAL_ROOT is not set to an existing Drupal codebase; set it to enable local codebase tools.",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "codebase_directory_tree",
+    "verdict": "REJECTED",
+    "detail": "DRUPAL_ROOT is not set to an existing Drupal codebase; set it to enable local codebase tools.",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "codebase_file_read",
+    "verdict": "REJECTED",
+    "detail": "DRUPAL_ROOT is not set to an existing Drupal codebase; set it to enable local codebase tools.",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "codebase_function_read",
+    "verdict": "REJECTED",
+    "detail": "DRUPAL_ROOT is not set to an existing Drupal codebase; set it to enable local codebase tools.",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "security_scan",
+    "verdict": "REJECTED",
+    "detail": "drush failed: \u26a0\ufe0f You're running an old version of PHPStan.\ufe0f The last release in the 1.12.x series with new features and bugfixes was released on July 17th 2025, that's 458 days ago. Since then more th",
+    "elapsed": 1.0
+  },
+  {
+    "tool": "dependency_scan",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 5.8
+  },
+  {
+    "tool": "config_security_check",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 8.9
+  },
+  {
+    "tool": "permission_audit",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "sql_injection_scan",
+    "verdict": "REJECTED",
+    "detail": "drush failed: \u26a0\ufe0f You're running an old version of PHPStan.\ufe0f The last release in the 1.12.x series with new features and bugfixes was released on July 17th 2025, that's 458 days ago. Since then more th",
+    "elapsed": 0.6
+  },
+  {
+    "tool": "xss_scan",
+    "verdict": "REJECTED",
+    "detail": "drush failed: \u26a0\ufe0f You're running an old version of PHPStan.\ufe0f The last release in the 1.12.x series with new features and bugfixes was released on July 17th 2025, that's 458 days ago. Since then more th",
+    "elapsed": 0.5
+  },
+  {
+    "tool": "csp_audit",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 4.9
+  },
+  {
+    "tool": "file_permissions_audit",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 1.1
+  },
+  {
+    "tool": "code_security_scan",
+    "verdict": "UPSTREAM",
+    "detail": "Pass either module or path, not both",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "route_access_audit",
+    "verdict": "UPSTREAM",
+    "detail": "Pass either module or path, not both",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "status_report",
+    "verdict": "REJECTED",
+    "detail": "severity_filter must be one of error, warning, info, ok",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "database_updates",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 3.6
+  },
+  {
+    "tool": "available_updates",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 28.2
+  },
+  {
+    "tool": "health_check",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 3.7
+  },
+  {
+    "tool": "module_search",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 2.0
+  },
+  {
+    "tool": "module_get",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 4.1
+  },
+  {
+    "tool": "module_versions",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.5
+  },
+  {
+    "tool": "module_dependencies",
+    "verdict": "REJECTED",
+    "detail": "No release 'sweep_value' for this project. Known releases: 8.x-1.15, 8.x-1.14, 8.x-1.13, 8.x-1.12, 8.x-1.11, 8.x-1.10, 8.x-1.9, 8.x-1.8, 8.x-1.7, 8.x-1.6, 8.x-1.6-beta1, 8.x-1.6-alpha1 ...",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "theme_search",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "theme_get",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.5
+  },
+  {
+    "tool": "release_history",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.5
+  },
+  {
+    "tool": "project_usage",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 4.2
+  },
+  {
+    "tool": "module_compatibility",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.5
+  },
+  {
+    "tool": "module_issues_search",
+    "verdict": "REJECTED",
+    "detail": "No drupal.org project named 'sweep_name'.",
+    "elapsed": 5.1
+  },
+  {
+    "tool": "module_popular",
+    "verdict": "REJECTED",
+    "detail": "No drupal.org category matches 'sweep_value'.",
+    "elapsed": 1.9
+  },
+  {
+    "tool": "module_recommendation",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 2.0
+  },
+  {
+    "tool": "moderation_state_list",
+    "verdict": "BLOCKED",
+    "detail": "Client error '404 Not Found' for url 'https://drupal-live-lando.lndo.site/jsonapi/content_moderation_state?page%5Blimit%5D=50&page%5Boffset%5D=0'\nFor more information check: https://developer.mozilla.",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "moderation_state_get",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'content_moderation_state' with id 'draft'",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "moderation_state_create",
+    "verdict": "BLOCKED",
+    "detail": "Client error '404 Not Found' for url 'https://drupal-live-lando.lndo.site/jsonapi/content_moderation_state'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404 \u2014 <",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "moderation_state_update",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'content_moderation_state' with id 'sweep_value'",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "moderation_state_delete",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'content_moderation_state' with id 'sweep_value'",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "moderation_transition_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 1.9
+  },
+  {
+    "tool": "moderation_transition_get",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 1.3
+  },
+  {
+    "tool": "moderation_transition_create",
+    "verdict": "REJECTED",
+    "detail": "from_states must name at least one state this transition starts from.",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "moderation_transition_delete",
+    "verdict": "REJECTED",
+    "detail": "No workflow with id sweep_value",
+    "elapsed": 1.1
+  },
+  {
+    "tool": "moderation_transition_execute",
+    "verdict": "REJECTED",
+    "detail": "node has no moderation_state field",
+    "elapsed": 1.1
+  },
+  {
+    "tool": "content_moderation_dashboard",
+    "verdict": "BLOCKED",
+    "detail": "Client error '404 Not Found' for url 'https://drupal-live-lando.lndo.site/jsonapi/node?page%5Blimit%5D=50&page%5Boffset%5D=0&filter%5Bmoderation_state%5D%5B%21%3D=published'\nFor more information check",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "workflow_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "workflow_get",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.5
+  },
+  {
+    "tool": "module_create",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "module_service_create",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "module_plugin_create",
+    "verdict": "REJECTED",
+    "detail": "Unknown plugin type: sweep_value. Available: ['block', 'field_widget', 'field_formatter', 'views_field', 'views_filter', 'views_argument', 'action', 'condition', 'migrate_source', 'rest_resource']",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "module_form_create",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "module_controller_create",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "module_event_subscriber_create",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "module_hook_implement",
+    "verdict": "UPSTREAM",
+    "detail": "Module file not found: /tmp/sweep-file.txt/sweep_probe.module",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "module_info_generate",
+    "verdict": "UPSTREAM",
+    "detail": "Module file not found: /tmp/sweep-file.txt/sweep_probe.module",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "module_permission_create",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "module_config_schema_create",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "module_test_create",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "module_dependencies_analyze",
+    "verdict": "UPSTREAM",
+    "detail": "Module file not found: /tmp/sweep-file.txt/sweep_probe.module",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "theme_create",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "theme_library_create",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "theme_region_create",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "theme_template_override",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "theme_preprocess_function",
+    "verdict": "BLOCKED",
+    "detail": "Theme file not found: /tmp/sweep-file.txt/sweep_probe.theme",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "theme_breakpoint_create",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "theme_base_change",
+    "verdict": "BLOCKED",
+    "detail": "Theme info file not found: /tmp/sweep-file.txt/sweep_probe.info.yml",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "theme_settings_form",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "theme_asset_optimize",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 17.7
+  },
+  {
+    "tool": "theme_debug_enable",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 13.6
+  },
+  {
+    "tool": "theme_lint_twig",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "block_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "block_get",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.5
+  },
+  {
+    "tool": "block_create",
+    "verdict": "REJECTED",
+    "detail": "Client error '405 Method Not Allowed' for url 'https://drupal-live-lando.lndo.site/jsonapi/block/block'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/405 \u2014 {\"jso",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "block_update",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'block' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "block_delete",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'block' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "block_place",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'block' with id 'sweep_value'",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "layout_builder_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "layout_builder_get",
+    "verdict": "REJECTED",
+    "detail": "No entity view display node.article.default. Layout Builder configuration lives on the view display; create the display first.",
+    "elapsed": 1.2
+  },
+  {
+    "tool": "layout_builder_create",
+    "verdict": "REJECTED",
+    "detail": "No entity view display node.article.default. Layout Builder configuration lives on the view display; create the display first.",
+    "elapsed": 1.1
+  },
+  {
+    "tool": "layout_builder_update",
+    "verdict": "REJECTED",
+    "detail": "No entity view display node.article.default. Layout Builder configuration lives on the view display; create the display first.",
+    "elapsed": 1.0
+  },
+  {
+    "tool": "layout_builder_sections_list",
+    "verdict": "REJECTED",
+    "detail": "No entity view display node.article.default. Layout Builder configuration lives on the view display; create the display first.",
+    "elapsed": 1.0
+  },
+  {
+    "tool": "layout_builder_section_add",
+    "verdict": "REJECTED",
+    "detail": "No entity view display node.article.default. Layout Builder configuration lives on the view display; create the display first.",
+    "elapsed": 0.9
+  },
+  {
+    "tool": "block_plugin_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 2.8
+  },
+  {
+    "tool": "block_region_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 2.2
+  },
+  {
+    "tool": "layout_builder_override_remove",
+    "verdict": "REJECTED",
+    "detail": "No entity view display node.article.default. Layout Builder configuration lives on the view display; create the display first.",
+    "elapsed": 1.2
+  },
+  {
+    "tool": "search_api_server_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "search_api_server_get",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'search_api_server' with id 'database'",
+    "elapsed": 0.5
+  },
+  {
+    "tool": "search_api_server_create",
+    "verdict": "REJECTED",
+    "detail": "Client error '405 Method Not Allowed' for url 'https://drupal-live-lando.lndo.site/jsonapi/search_api_server/search_api_server'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "search_api_index_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "search_api_index_get",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'search_api_index' with id 'content'",
+    "elapsed": 0.5
+  },
+  {
+    "tool": "search_api_index_create",
+    "verdict": "REJECTED",
+    "detail": "Client error '405 Method Not Allowed' for url 'https://drupal-live-lando.lndo.site/jsonapi/search_api_index/search_api_index'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/H",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "search_api_index_update",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'search_api_index' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "search_api_index_reindex",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 4.1
+  },
+  {
+    "tool": "search_api_index_clear",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 4.4
+  },
+  {
+    "tool": "search_api_server_enable",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 3.8
+  },
+  {
+    "tool": "search_api_server_disable",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 4.0
+  },
+  {
+    "tool": "search_api_facet_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "search_api_facet_create",
+    "verdict": "REJECTED",
+    "detail": "Client error '405 Method Not Allowed' for url 'https://drupal-live-lando.lndo.site/jsonapi/facets_facet/facets_facet'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Stat",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "language_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "language_get",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.4
+  },
+  {
+    "tool": "language_add",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 4.3
+  },
+  {
+    "tool": "language_enable",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 3.3
+  },
+  {
+    "tool": "language_disable",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 2.6
+  },
+  {
+    "tool": "language_delete",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 2.7
+  },
+  {
+    "tool": "content_translation_enable",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 4.2
+  },
+  {
+    "tool": "translation_status",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'node' with id '1'",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "translation_add",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'node' with id '1'",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "translation_update",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'node' with id '1:en'",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "interface_translation_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 1.1
+  },
+  {
+    "tool": "interface_translation_add",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 1.4
+  },
+  {
+    "tool": "interface_translation_update",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 1.1
+  },
+  {
+    "tool": "interface_translation_delete",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 1.1
+  },
+  {
+    "tool": "config_translation_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 1.3
+  },
+  {
+    "tool": "config_translation_add",
+    "verdict": "REJECTED",
+    "detail": "No node_type with id article",
+    "elapsed": 1.1
+  },
+  {
+    "tool": "language_negotiation_get",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 1.1
+  },
+  {
+    "tool": "language_negotiation_set",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 4.5
+  },
+  {
+    "tool": "media_type_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "media_type_get",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.5
+  },
+  {
+    "tool": "media_type_create",
+    "verdict": "REJECTED",
+    "detail": "Client error '405 Method Not Allowed' for url 'https://drupal-live-lando.lndo.site/jsonapi/media_type/media_type'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/4",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "media_create_from_url",
+    "verdict": "REJECTED",
+    "detail": "Client error '422 Unprocessable Entity' for url 'https://drupal-live-lando.lndo.site/jsonapi/media/image'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/422 \u2014 {\"j",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "media_create_from_base64",
+    "verdict": "REJECTED",
+    "detail": "'sweep_name' is not valid base64 (Only base64 data is allowed). Send the raw file bytes encoded with base64.b64encode, with no line breaks or data-URI prefix.",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "media_derivative_generate",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 3.1
+  },
+  {
+    "tool": "media_bulk_import",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 2.8
+  },
+  {
+    "tool": "media_library_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.4
+  },
+  {
+    "tool": "pathauto_pattern_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "pathauto_pattern_get",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'pathauto_pattern' with id 'article'",
+    "elapsed": 0.4
+  },
+  {
+    "tool": "pathauto_pattern_create",
+    "verdict": "REJECTED",
+    "detail": "Client error '405 Method Not Allowed' for url 'https://drupal-live-lando.lndo.site/jsonapi/pathauto_pattern/pathauto_pattern'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/H",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "pathauto_pattern_update",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'pathauto_pattern' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "pathauto_pattern_delete",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'pathauto_pattern' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "pathauto_generate",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 3.4
+  },
+  {
+    "tool": "pathauto_token_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 3.0
+  },
+  {
+    "tool": "redirect_pattern_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "metatag_config_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "metatag_config_get",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'metatag_defaults' with id 'node.article'",
+    "elapsed": 0.4
+  },
+  {
+    "tool": "metatag_config_create",
+    "verdict": "REJECTED",
+    "detail": "Client error '405 Method Not Allowed' for url 'https://drupal-live-lando.lndo.site/jsonapi/metatag_defaults/metatag_defaults'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/H",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "metatag_config_update",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'metatag_defaults' with id 'sweep_value'",
+    "elapsed": 0.4
+  },
+  {
+    "tool": "metatag_defaults_get",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 2.8
+  },
+  {
+    "tool": "metatag_defaults_set",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 5.4
+  },
+  {
+    "tool": "metatag_token_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 2.3
+  },
+  {
+    "tool": "metatag_canonical_set",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'node--node' with id '1'",
+    "elapsed": 0.6
+  },
+  {
+    "tool": "metatag_jsonld_generate",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'node' with id '1'",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "commerce_store_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "commerce_store_get",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'commerce_store' with id 'default'",
+    "elapsed": 0.4
+  },
+  {
+    "tool": "commerce_store_create",
+    "verdict": "REJECTED",
+    "detail": "Client error '422 Unprocessable Entity' for url 'https://drupal-live-lando.lndo.site/jsonapi/commerce_store/online'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "commerce_store_update",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'commerce_store' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "commerce_product_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "commerce_product_get",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'commerce_product' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "commerce_product_create",
+    "verdict": "REJECTED",
+    "detail": "Client error '422 Unprocessable Entity' for url 'https://drupal-live-lando.lndo.site/jsonapi/commerce_product/default'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Sta",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "commerce_product_update",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'commerce_product' with id 'sweep_value'",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "commerce_order_list",
+    "verdict": "REJECTED",
+    "detail": "Client error '400 Bad Request' for url 'https://drupal-live-lando.lndo.site/jsonapi/commerce_order/default?page%5Blimit%5D=50&page%5Boffset%5D=0&filter%5Bstore.id%5D=default'\nFor more information chec",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "commerce_order_get",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'commerce_order' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "commerce_order_create",
+    "verdict": "REJECTED",
+    "detail": "Client error '422 Unprocessable Entity' for url 'https://drupal-live-lando.lndo.site/jsonapi/commerce_order/default'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Statu",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "commerce_order_update",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'commerce_order' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "commerce_payment_gateway_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "commerce_payment_gateway_get",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'commerce_payment_gateway' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "commerce_promotion_list",
+    "verdict": "BLOCKED",
+    "detail": "Client error '404 Not Found' for url 'https://drupal-live-lando.lndo.site/jsonapi/commerce_promotion?page%5Blimit%5D=50&page%5Boffset%5D=0&filter%5Bstores.id%5D=default'\nFor more information check: ht",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "commerce_promotion_create",
+    "verdict": "BLOCKED",
+    "detail": "Client error '404 Not Found' for url 'https://drupal-live-lando.lndo.site/jsonapi/commerce_promotion'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404 \u2014 <!DOCTY",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "commerce_shipping_method_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "commerce_shipping_method_create",
+    "verdict": "REJECTED",
+    "detail": "Client error '422 Unprocessable Entity' for url 'https://drupal-live-lando.lndo.site/jsonapi/commerce_shipping_method/commerce_shipping_method'\nFor more information check: https://developer.mozilla.or",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "webform_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "webform_get",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "webform_create",
+    "verdict": "REJECTED",
+    "detail": "Client error '405 Method Not Allowed' for url 'https://drupal-live-lando.lndo.site/jsonapi/webform/webform'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/405 \u2014 {",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "webform_update",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'webform' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "webform_delete",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'webform' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "webform_submission_list",
+    "verdict": "REJECTED",
+    "detail": "Client error '400 Bad Request' for url 'https://drupal-live-lando.lndo.site/jsonapi/webform_submission/contact?page%5Blimit%5D=50&page%5Boffset%5D=0&filter%5Bwebform_id.id%5D=contact'\nFor more informa",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "webform_submission_get",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'webform_submission' with id '1'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "webform_submission_delete",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'webform_submission' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "webform_element_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.4
+  },
+  {
+    "tool": "webform_element_create",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'webform' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "webform_handler_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 1.5
+  },
+  {
+    "tool": "webform_handler_create",
+    "verdict": "REJECTED",
+    "detail": "No webform with id sweep_value",
+    "elapsed": 1.1
+  },
+  {
+    "tool": "webform_handler_update",
+    "verdict": "REJECTED",
+    "detail": "No webform with id sweep_value",
+    "elapsed": 1.1
+  },
+  {
+    "tool": "webform_handler_delete",
+    "verdict": "REJECTED",
+    "detail": "No webform with id sweep_value",
+    "elapsed": 1.1
+  },
+  {
+    "tool": "webform_token_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 2.8
+  },
+  {
+    "tool": "webform_export_submissions",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 3.2
+  },
+  {
+    "tool": "jsonapi_schema_get",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "jsonapi_include_optimize",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'node' with id '_test'",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "jsonapi_sparse_fieldsets",
+    "verdict": "BLOCKED",
+    "detail": "Client error '404 Not Found' for url 'https://drupal-live-lando.lndo.site/jsonapi/node?fields%5Bnode%5D='\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404 \u2014 <!D",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "graphql_schema_get",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "graphql_query",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "graphql_schema_extend",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 6.3
+  },
+  {
+    "tool": "nextjs_helpers_generate",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "gatsby_helpers_generate",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "jsonapi_resources_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "jsonapi_resource_types",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "test_run_phpunit",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 2.9
+  },
+  {
+    "tool": "test_run_kernel",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 3.1
+  },
+  {
+    "tool": "test_run_behat",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 3.2
+  },
+  {
+    "tool": "test_run_nightwatch",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 3.5
+  },
+  {
+    "tool": "test_scaffold_phpunit",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "test_scaffold_behat",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "test_scaffold_nightwatch",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "test_coverage_report",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 3.0
+  },
+  {
+    "tool": "test_list_suites",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 3.5
+  },
+  {
+    "tool": "accessibility_axe_scan",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 2.7
+  },
+  {
+    "tool": "accessibility_wcag_check",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'node' with id '1'",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "accessibility_color_contrast",
+    "verdict": "REJECTED",
+    "detail": "foreground must be a hex colour such as #1a2b3c or #abc, got 'sweep_value'.",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "accessibility_aria_validate",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'node' with id '1'",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "accessibility_report_generate",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "performance_query_log",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 3.2
+  },
+  {
+    "tool": "performance_cache_stats",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 3.2
+  },
+  {
+    "tool": "performance_redis_info",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 3.1
+  },
+  {
+    "tool": "performance_bigpipe_status",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 3.2
+  },
+  {
+    "tool": "performance_bigpipe_enable",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 3.9
+  },
+  {
+    "tool": "performance_memcached_stats",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 3.0
+  },
+  {
+    "tool": "performance_page_load_analyze",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 3.0
+  },
+  {
+    "tool": "contact_form_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "contact_form_get",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'contact_form' with id 'personal'",
+    "elapsed": 0.4
+  },
+  {
+    "tool": "contact_form_create",
+    "verdict": "REJECTED",
+    "detail": "Client error '405 Method Not Allowed' for url 'https://drupal-live-lando.lndo.site/jsonapi/contact_form/contact_form'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Stat",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "contact_form_update",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'contact_form' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "contact_form_delete",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'contact_form' with id 'sweep_value'",
+    "elapsed": 0.3
+  },
+  {
+    "tool": "contact_message_list",
+    "verdict": "REJECTED",
+    "detail": "Client error '405 Method Not Allowed' for url 'https://drupal-live-lando.lndo.site/jsonapi/contact_message/personal?page%5Blimit%5D=50&page%5Boffset%5D=0&filter%5Bcontact_form%5D=personal'\nFor more in",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "contact_message_get",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'contact_message' with id '1'",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "contact_message_delete",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'contact_message' with id 'sweep_value'",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "contact_spam_check",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 3.2
+  },
+  {
+    "tool": "comment_list",
+    "verdict": "BLOCKED",
+    "detail": "Client error '404 Not Found' for url 'https://drupal-live-lando.lndo.site/jsonapi/comment?page%5Blimit%5D=50&page%5Boffset%5D=0&filter%5Bentity_type%5D=node&filter%5Bentity_id%5D=1'\nFor more informati",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "comment_get",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'comment' with id '1'",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "comment_create",
+    "verdict": "BLOCKED",
+    "detail": "Client error '404 Not Found' for url 'https://drupal-live-lando.lndo.site/jsonapi/comment'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404 \u2014 <!DOCTYPE html>\n<h",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "comment_update",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'comment' with id 'sweep_value'",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "comment_delete",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'comment' with id 'sweep_value'",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "comment_thread_list",
+    "verdict": "BLOCKED",
+    "detail": "Client error '404 Not Found' for url 'https://drupal-live-lando.lndo.site/jsonapi/comment?filter%5Bentity_type%5D=node&filter%5Bentity_id%5D=1&filter%5Bfield_name%5D=comment&page%5Blimit%5D=50'\nFor mo",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "comment_approve",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'comment' with id 'sweep_value'",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "comment_unapprove",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'comment' with id 'sweep_value'",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "comment_field_settings",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 3.3
+  },
+  {
+    "tool": "comment_field_configure",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 6.3
+  },
+  {
+    "tool": "feeds_feed_list",
+    "verdict": "BLOCKED",
+    "detail": "Client error '404 Not Found' for url 'https://drupal-live-lando.lndo.site/jsonapi/feeds_feed?page%5Blimit%5D=50&page%5Boffset%5D=0'\nFor more information check: https://developer.mozilla.org/en-US/docs",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "feeds_feed_get",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'feeds_feed' with id '1'",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "feeds_feed_create",
+    "verdict": "BLOCKED",
+    "detail": "Client error '404 Not Found' for url 'https://drupal-live-lando.lndo.site/jsonapi/feeds_feed'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404 \u2014 <!DOCTYPE html>",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "feeds_feed_update",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'feeds_feed' with id 'sweep_value'",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "feeds_feed_delete",
+    "verdict": "REJECTED",
+    "detail": "No resource of type 'feeds_feed' with id 'sweep_value'",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "feeds_import",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 6.1
+  },
+  {
+    "tool": "feeds_import_status",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 2.5
+  },
+  {
+    "tool": "feeds_log_list",
+    "verdict": "REJECTED",
+    "detail": "Drupal has no 'feeds_log' entity type, so this tool cannot work against a correctly built site. Feeds 3.x removed the log entity; an import's outcome is reported on the feed itself. Use feeds_import_s",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "feeds_tamper_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 3.1
+  },
+  {
+    "tool": "feeds_parser_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 2.9
+  },
+  {
+    "tool": "feeds_fetcher_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 3.2
+  },
+  {
+    "tool": "feeds_processor_list",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 3.1
+  },
+  {
+    "tool": "export_nodes",
+    "verdict": "REJECTED",
+    "detail": "Error calling tool 'export_nodes': Client error '404 Not Found' for url 'https://drupal-live-lando.lndo.site/jsonapi/node/article?include=uid&page%5Blimit%5D=200&page%5Boffset%5D=0'\nFor more informati",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "export_users",
+    "verdict": "REJECTED",
+    "detail": "output_path must end in .csv or .xlsx (got 'sweep-file.txt')",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "export_media",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "export_taxonomy",
+    "verdict": "REJECTED",
+    "detail": "output_path must end in .csv or .xlsx (got 'sweep-file.txt')",
+    "elapsed": 0.1
+  },
+  {
+    "tool": "theme_active",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 2.8
+  },
+  {
+    "tool": "theme_info",
+    "verdict": "REJECTED",
+    "detail": "DRUPAL_ROOT must point at a local Drupal docroot to read info.yml files",
+    "elapsed": 1.4
+  },
+  {
+    "tool": "theme_regions",
+    "verdict": "REJECTED",
+    "detail": "DRUPAL_ROOT must point at a local Drupal docroot to read info.yml files",
+    "elapsed": 1.4
+  },
+  {
+    "tool": "theme_blocks",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.2
+  },
+  {
+    "tool": "theme_templates",
+    "verdict": "REJECTED",
+    "detail": "DRUPAL_ROOT must point at a local Drupal docroot to inspect templates",
+    "elapsed": 1.4
+  },
+  {
+    "tool": "theme_template_overrides",
+    "verdict": "REJECTED",
+    "detail": "DRUPAL_ROOT must point at a local Drupal docroot to inspect templates",
+    "elapsed": 1.4
+  },
+  {
+    "tool": "template_suggestions",
+    "verdict": "OK",
+    "detail": "",
+    "elapsed": 0.0
+  },
+  {
+    "tool": "view_template_info",
+    "verdict": "BLOCKED",
+    "detail": "View 'sweep_name' not found on this site",
+    "elapsed": 0.1
+  }
+]

@@ -24,7 +24,10 @@ from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
 HERE = Path(__file__).resolve().parents[2]
-PROJECT = HERE / "drupal-live"
+# Point the run at another environment without editing this file; the
+# server must start in the project directory for ddev_*/lando_*/composer_*
+# tools and multi-word drush to resolve.
+PROJECT = Path(os.environ.get("SWEEP_PROJECT") or (HERE / "drupal-live"))
 VENV = HERE / "venv"
 BASE = os.environ.get("DRUPAL_BASE_URL", "https://drupal-live.ddev.site")
 
@@ -43,7 +46,7 @@ async def main(argv: list[str]) -> int:
         "DRUPAL_PASSWORD": "admin",
         "DRUPAL_VERIFY_SSL": "false",
         "MCP_LOG_LEVEL": "ERROR",
-        "DRUSH_PATH": "ddev drush",
+        "DRUSH_PATH": os.environ.get("DRUSH_PATH", "ddev drush"),
     })
     params = StdioServerParameters(
         command="sh",

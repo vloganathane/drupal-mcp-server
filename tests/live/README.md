@@ -146,6 +146,42 @@ and `ddev` running. They start the MCP server from `drupal-live/`, because the
 `ddev_*`, `lando_*` and `composer_*` tools run in their own working directory
 and `ddev drush` only resolves inside the project.
 
+## Sweeping another environment (Lando, plain local)
+
+The harness targets DDEV by default; two env vars point it anywhere else:
+
+```bash
+SWEEP_PROJECT="$PWD/drupal-live-lando" \
+DRUSH_PATH="lando drush" \
+DRUPAL_BASE_URL="https://drupal-live-lando.lando.site" \
+python tests/live/sweep.py
+```
+
+- `SWEEP_PROJECT` — directory the MCP server starts in (and therefore which
+  environment the `ddev_*`/`lando_*`/`composer_*` tools resolve). Also read by
+  `mcp_call.py`.
+- `DRUSH_PATH` — multi-word drush prefix for the environment (`lando drush`,
+  `ddev drush`, or a bare path for a non-container local site).
+
+A Lando site is provisioned exactly like the DDEV one: `lando_setup` (or a
+hand-written `.lando.yml` with `recipe: drupal10`, `webroot: web`), composer
+create-project, `bootstrap.py`-equivalent site install, then
+`install_modules.py`. `ENV_CONTROL` already skips `lando_start`/`lando_stop`
+for the same reason it skips the `ddev_*` tools — they take down the very
+site being swept.
+
+Snapshot each environment's full run to its own file, because every full run
+writes `sweep-results.json`:
+
+```bash
+cp tests/live/sweep-results.json tests/live/sweep-results-ddev.json
+cp tests/live/sweep-results.json tests/live/sweep-results-lando.json
+```
+
+`scripts/generate_tool_docs.py` (which builds the All Tools docs page) reads
+`sweep-results-ddev.json` and `sweep-results-lando.json` and labels each
+tool's status per environment; missing files simply omit that column.
+
 ## What each file is for
 
 | File | Purpose |
@@ -242,6 +278,13 @@ endpoint, so there is nothing to delete through it.
 - **The sweep calls `ddev_stop`.** It genuinely stops the project, which takes
   the site down and makes every tool after it time out instead of reporting.
   `ENV_CONTROL` skips those tools for this reason. Do not remove it.
+- **The sweep calls `composer_update` / `composer_install` against the swept
+  project itself.** A real `composer update` can prune packages from the
+  project's lock (observed: `drush/drush` dropped from `drupal-live`'s lock,
+  emptying `vendor/bin/drush` and skewing every Drush-based verdict until
+  `ddev composer require drush/drush` restored it). If Drush-based tools
+  suddenly mass-fail, check `vendor/bin/drush` before trusting the run, and
+  re-run the sweep after restoring.
 - **`pick_live_nid` returns an int.** JSON:API serialises
   `drupal_internal__nid` as a number, but tools declare `nid: str`, so
   pydantic rejects the call with `string_type` before the body runs. The

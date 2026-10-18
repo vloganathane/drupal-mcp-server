@@ -632,14 +632,16 @@ async def main() -> int:
         "DRUPAL_PASSWORD": os.environ.get("DRUPAL_PASSWORD", "admin"),
         "DRUPAL_VERIFY_SSL": "false",
         "MCP_LOG_LEVEL": "ERROR",
-        # Drush lives in the DDEV container, so the server must be started
+        # Drush lives in the container, so the server must be started
         # from the project directory with a multi-word drush command.
-        "DRUSH_PATH": "ddev drush",
+        "DRUSH_PATH": os.environ.get("DRUSH_PATH", "ddev drush"),
     })
-    # The server must start in the DDEV project directory: the ddev_*, lando_*
-    # and composer_* tools run in their own cwd, and `ddev drush` only resolves
-    # inside the project.
-    project = HERE / "drupal-live"
+    # The server must start in the project directory: the ddev_*, lando_*
+    # and composer_* tools run in their own cwd, and a multi-word drush
+    # only resolves inside the matching project. SWEEP_PROJECT points a
+    # run at another environment (e.g. a Lando site) without editing this
+    # file.
+    project = Path(os.environ.get("SWEEP_PROJECT") or (HERE / "drupal-live"))
     params = StdioServerParameters(
         command="sh",
         args=["-c", f"cd {project} && exec {VENV}/bin/drupal-mcp"],

@@ -28,6 +28,7 @@ env/
 
 # Local DDEV test site (see tests/live/README.md to rebuild it)
 drupal-live/
+drupal-live-lando/
 
 # Coverage output
 coverage.xml
