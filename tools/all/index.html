@@ -1,0 +1,5578 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="MCP server for Drupal operations - JSON:API, GraphQL, Drush, AI-powered migration">
+      
+      
+        <meta name="author" content="Loganathane V">
+      
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../content/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>All Tools (414) - Drupal MCP Server</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#all-tools" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Drupal MCP Server" class="md-header__button md-logo" aria-label="Drupal MCP Server" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Drupal MCP Server
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              All Tools (414)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Drupal MCP Server" class="md-nav__button md-logo" aria-label="Drupal MCP Server" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Drupal MCP Server
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI Coding Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tools
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tools
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All Tools (414)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All Tools (414)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-read-the-status-column" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to read the status column
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Modules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#content" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        content
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#users" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        users
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#taxonomy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        taxonomy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        comments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#revisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        revisions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#paragraphs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        paragraphs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#media_enhanced" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        media_enhanced
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        config
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        fields
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#menus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        menus
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#views" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        views
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#layout_builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        layout_builder
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pathauto" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pathauto
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#redirects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        redirects
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#metatag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        metatag
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#search_api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        search_api
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feeds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        feeds
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multilingual" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        multilingual
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#moderation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        moderation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#webform" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        webform
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        contact
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commerce" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        commerce
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        database
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#devops" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        devops
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scheduler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        scheduler
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        performance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        migration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        analysis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ai" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ai
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#codebase" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        codebase
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#module_dev" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        module_dev
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#theme_dev" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        theme_dev
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#theme_analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        theme_analysis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code_audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        code_audit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security_audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        security_audit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#headless" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        headless
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#drupal_org" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        drupal_org
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        testing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accessibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        accessibility
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        exports
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../content/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Content
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../users/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Users
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../devops/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DevOps
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CONTRIBUTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docstring_standard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docstring Standard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_4" id="__nav_5_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADRs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ADRs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0001-use-fastmcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0001 FastMCP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0002-pydantic-settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0002 Pydantic Settings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0003-subprocess-drush/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0003 Subprocess Drush
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0004-http-transport/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0004 HTTP Transport
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Project
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CHANGELOG/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../SECURITY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CODE_OF_CONDUCT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code of Conduct
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-read-the-status-column" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to read the status column
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Modules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#content" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        content
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#users" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        users
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#taxonomy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        taxonomy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        comments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#revisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        revisions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#paragraphs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        paragraphs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#media_enhanced" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        media_enhanced
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        config
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        fields
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#menus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        menus
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#views" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        views
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#layout_builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        layout_builder
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pathauto" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pathauto
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#redirects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        redirects
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#metatag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        metatag
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#search_api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        search_api
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feeds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        feeds
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multilingual" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        multilingual
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#moderation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        moderation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#webform" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        webform
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        contact
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commerce" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        commerce
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        database
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#devops" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        devops
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scheduler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        scheduler
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        performance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        migration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        analysis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ai" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ai
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#codebase" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        codebase
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#module_dev" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        module_dev
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#theme_dev" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        theme_dev
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#theme_analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        theme_analysis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code_audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        code_audit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security_audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        security_audit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#headless" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        headless
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#drupal_org" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        drupal_org
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        testing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accessibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        accessibility
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        exports
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<!-- GENERATED FILE — do not edit by hand.
+Regenerate with: python scripts/generate_tool_docs.py
+To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
+
+<h1 id="all-tools">All Tools<a class="headerlink" href="#all-tools" title="Permanent link">&para;</a></h1>
+<p>Every tool the server registers (414 across 41 modules), generated from the source code and the live-test harness. Tool names are the runtime names an MCP client sees.</p>
+<h2 id="how-to-read-the-status-column">How to read the status column<a class="headerlink" href="#how-to-read-the-status-column" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Badge</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>✅ ddev / ✅ lando</td>
+<td>Live sweep on that environment returned usable data</td>
+</tr>
+<tr>
+<td>⚠️ ddev / ⚠️ lando</td>
+<td>Live sweep: the tool answered, but the answer was a refusal or lookup miss (often fixture- or site-dependent, not necessarily a bug)</td>
+</tr>
+<tr>
+<td>🧩</td>
+<td>Blocked on that environment: needs a module, binary, or subsystem the test site does not have</td>
+</tr>
+<tr>
+<td>⏭️</td>
+<td>Skipped by the sweep on purpose: it starts/stops the environment the sweep runs against</td>
+</tr>
+<tr>
+<td>💀</td>
+<td>Dead — a product bug (currently none)</td>
+</tr>
+<tr>
+<td>🧪 unit</td>
+<td>Has offline unit-test coverage</td>
+</tr>
+<tr>
+<td>❔ not live-verified</td>
+<td>No live-sweep verdict recorded yet</td>
+</tr>
+</tbody>
+</table>
+<p>The live sweeps run against a provisioned local site (<code>tests/live/</code>); see that directory's README for what each verdict really measures. <code>REJECTED</code> counts are largely harness fixture artefacts — a tool asked for an id this site does not have — so read them as "not disproven" rather than "broken".</p>
+<h2 id="modules">Modules<a class="headerlink" href="#modules" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Module</th>
+<th style="text-align: right;">Tools</th>
+<th>Detailed docs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Content &amp; Entities</td>
+<td><a href="#content">content</a></td>
+<td style="text-align: right;">14</td>
+<td>2 of 14</td>
+</tr>
+<tr>
+<td>Content &amp; Entities</td>
+<td><a href="#users">users</a></td>
+<td style="text-align: right;">12</td>
+<td>1 of 12</td>
+</tr>
+<tr>
+<td>Content &amp; Entities</td>
+<td><a href="#taxonomy">taxonomy</a></td>
+<td style="text-align: right;">10</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Content &amp; Entities</td>
+<td><a href="#comments">comments</a></td>
+<td style="text-align: right;">10</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Content &amp; Entities</td>
+<td><a href="#revisions">revisions</a></td>
+<td style="text-align: right;">5</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Content &amp; Entities</td>
+<td><a href="#paragraphs">paragraphs</a></td>
+<td style="text-align: right;">10</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Content &amp; Entities</td>
+<td><a href="#media_enhanced">media_enhanced</a></td>
+<td style="text-align: right;">8</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Configuration &amp; Structure</td>
+<td><a href="#config">config</a></td>
+<td style="text-align: right;">8</td>
+<td>1 of 8</td>
+</tr>
+<tr>
+<td>Configuration &amp; Structure</td>
+<td><a href="#fields">fields</a></td>
+<td style="text-align: right;">10</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Configuration &amp; Structure</td>
+<td><a href="#menus">menus</a></td>
+<td style="text-align: right;">10</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Configuration &amp; Structure</td>
+<td><a href="#views">views</a></td>
+<td style="text-align: right;">7</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Configuration &amp; Structure</td>
+<td><a href="#layout_builder">layout_builder</a></td>
+<td style="text-align: right;">15</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Configuration &amp; Structure</td>
+<td><a href="#pathauto">pathauto</a></td>
+<td style="text-align: right;">8</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Configuration &amp; Structure</td>
+<td><a href="#redirects">redirects</a></td>
+<td style="text-align: right;">7</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Configuration &amp; Structure</td>
+<td><a href="#metatag">metatag</a></td>
+<td style="text-align: right;">9</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Search, Feeds &amp; Multilingual</td>
+<td><a href="#search_api">search_api</a></td>
+<td style="text-align: right;">13</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Search, Feeds &amp; Multilingual</td>
+<td><a href="#feeds">feeds</a></td>
+<td style="text-align: right;">12</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Search, Feeds &amp; Multilingual</td>
+<td><a href="#multilingual">multilingual</a></td>
+<td style="text-align: right;">18</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Workflow, Forms &amp; Contact</td>
+<td><a href="#moderation">moderation</a></td>
+<td style="text-align: right;">13</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Workflow, Forms &amp; Contact</td>
+<td><a href="#webform">webform</a></td>
+<td style="text-align: right;">16</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Workflow, Forms &amp; Contact</td>
+<td><a href="#contact">contact</a></td>
+<td style="text-align: right;">9</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Workflow, Forms &amp; Contact</td>
+<td><a href="#commerce">commerce</a></td>
+<td style="text-align: right;">18</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Site Status, Database &amp; DevOps</td>
+<td><a href="#status">status</a></td>
+<td style="text-align: right;">4</td>
+<td>4 of 4</td>
+</tr>
+<tr>
+<td>Site Status, Database &amp; DevOps</td>
+<td><a href="#database">database</a></td>
+<td style="text-align: right;">4</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Site Status, Database &amp; DevOps</td>
+<td><a href="#devops">devops</a></td>
+<td style="text-align: right;">20</td>
+<td>1 of 20</td>
+</tr>
+<tr>
+<td>Site Status, Database &amp; DevOps</td>
+<td><a href="#scheduler">scheduler</a></td>
+<td style="text-align: right;">7</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Site Status, Database &amp; DevOps</td>
+<td><a href="#performance">performance</a></td>
+<td style="text-align: right;">7</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Migration &amp; Analysis</td>
+<td><a href="#migration">migration</a></td>
+<td style="text-align: right;">17</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Migration &amp; Analysis</td>
+<td><a href="#analysis">analysis</a></td>
+<td style="text-align: right;">9</td>
+<td>3 of 9</td>
+</tr>
+<tr>
+<td>Migration &amp; Analysis</td>
+<td><a href="#ai">ai</a></td>
+<td style="text-align: right;">4</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Codebase, Module &amp; Theme Development</td>
+<td><a href="#codebase">codebase</a></td>
+<td style="text-align: right;">12</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Codebase, Module &amp; Theme Development</td>
+<td><a href="#module_dev">module_dev</a></td>
+<td style="text-align: right;">12</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Codebase, Module &amp; Theme Development</td>
+<td><a href="#theme_dev">theme_dev</a></td>
+<td style="text-align: right;">11</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Codebase, Module &amp; Theme Development</td>
+<td><a href="#theme_analysis">theme_analysis</a></td>
+<td style="text-align: right;">8</td>
+<td>4 of 8</td>
+</tr>
+<tr>
+<td>Codebase, Module &amp; Theme Development</td>
+<td><a href="#code_audit">code_audit</a></td>
+<td style="text-align: right;">7</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Security</td>
+<td><a href="#security_audit">security_audit</a></td>
+<td style="text-align: right;">10</td>
+<td>2 of 10</td>
+</tr>
+<tr>
+<td>Headless &amp; Integrations</td>
+<td><a href="#headless">headless</a></td>
+<td style="text-align: right;">10</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Headless &amp; Integrations</td>
+<td><a href="#drupal_org">drupal_org</a></td>
+<td style="text-align: right;">12</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Testing, Accessibility &amp; Export</td>
+<td><a href="#testing">testing</a></td>
+<td style="text-align: right;">9</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Testing, Accessibility &amp; Export</td>
+<td><a href="#accessibility">accessibility</a></td>
+<td style="text-align: right;">5</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Testing, Accessibility &amp; Export</td>
+<td><a href="#exports">exports</a></td>
+<td style="text-align: right;">4</td>
+<td>1 of 4</td>
+</tr>
+</tbody>
+</table>
+<h2 id="content">content<a class="headerlink" href="#content" title="Permanent link">&para;</a></h2>
+<p>Content — 14 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="../#create_node"><code>create_node</code></a></td>
+<td>Create a single node of the specified bundle with given fields.<br><em>Publish an article from an agent-driven content workflow</em></td>
+<td><code>{"bundle": "article", "fields": {"title": "Hello"}}</code></td>
+<td>✅ ddev · 🧩 lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>get_node</code></td>
+<td>Get a single node by ID with optional relationship includes.<br><em>Fetch one node with its referenced entities in a single request</em></td>
+<td><code>{"nid": "123"}</code></td>
+<td>✅ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>update_node</code></td>
+<td>Update a single node by ID with given fields.<br><em>Apply an editor's field changes to an existing page without rewriting the whole bundle</em></td>
+<td><code>{"nid": "123", "fields": {"title": "Hello"}}</code></td>
+<td>✅ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>delete_node</code></td>
+<td>Delete a single node by ID.<br><em>Remove a draft or duplicate node as part of site cleanup after content review</em></td>
+<td><code>{"nid": "123"}</code></td>
+<td>✅ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><a href="../#query_nodes"><code>query_nodes</code></a></td>
+<td>Query nodes with filters, sorts, includes, and pagination.<br><em>Build a listing page by filtering, sorting, and paginating nodes in one request</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · 🧩 lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>upload_media</code></td>
+<td>Upload a file to the media library.<br><em>Add a locally generated image or document to the media library for use in content</em></td>
+<td><code>{"file_path": "value"}</code></td>
+<td>⚠️ ddev · 🧩 lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>create_media</code></td>
+<td>Create media entity from a remote URL (image, video, document, etc.).<br><em>Attach a remote video or image to content without downloading the file first</em></td>
+<td><code>{"media_type": "value", "source_url": "value", "name": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>clean_nodes_ai</code></td>
+<td>Clean duplicate or malformed nodes using AI. Requires confirm=True to execute deletions.<br><em>Audit a bundle for duplicate or malformed nodes before a confirmed cleanup run</em></td>
+<td><code>{"entity_type": "node", "bundle": "article"}</code></td>
+<td>⚠️ ddev · 🧩 lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>map_fields_ai</code></td>
+<td>Suggest AI-powered field mappings from a source field list to a target bundle.<br><em>Plan a content migration by mapping legacy source fields onto a target content type</em></td>
+<td><code>{"source_fields": [], "target_bundle": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>bulk_update_nodes</code></td>
+<td>Apply the same field updates to every node matching a set of filters.<br><em>Apply one field change across many nodes at once, such as relabeling a shared term</em></td>
+<td><code>{"bundle": "article", "filters": {"status": "1"}, "updates": {}}</code></td>
+<td>✅ ddev · 🧩 lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>fix_media_references</code></td>
+<td>Find broken media references across a content type.<br><em>Diagnose missing images on a content type after media entities were removed</em></td>
+<td><code>{"content_type": "value"}</code></td>
+<td>✅ ddev · 🧩 lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>bulk_update_aliases</code></td>
+<td>Regenerate URL aliases for a content type.<br><em>Regenerate URL aliases for a content type after changing Pathauto patterns</em></td>
+<td><code>{"bundle": "article", "pattern": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>analyze_content_quality</code></td>
+<td>Analyze content quality with AI for specific nodes or an entire type.<br><em>Review recent articles for thin or inconsistent content before a quality audit</em></td>
+<td><code>{}</code></td>
+<td>⚠️ ddev · 🧩 lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>generate_test_content</code></td>
+<td>Generate sample nodes for a bundle to populate a development site.<br><em>Populate a development site with sample nodes to test layouts and views</em></td>
+<td><code>{"bundle": "article"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+</tbody>
+</table>
+<h2 id="users">users<a class="headerlink" href="#users" title="Permanent link">&para;</a></h2>
+<p>Users — 12 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="../#create_user"><code>create_user</code></a></td>
+<td>Create a user account.<br><em>Onboard a new team member with an account and roles in one step</em></td>
+<td><code>{"mail": "value", "name": "value"}</code></td>
+<td>⚠️ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>get_user</code></td>
+<td>Get a user by ID with optional relationship includes.<br><em>Inspect a specific account including its relationships when handling a support request</em></td>
+<td><code>{"uid": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>get_user_by_email</code></td>
+<td>Get a user by email address.<br><em>Look up an account when only the person's email address is known</em></td>
+<td><code>{"mail": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>update_user</code></td>
+<td>Update a user account.<br><em>Correct account details like email or display name during user administration</em></td>
+<td><code>{"uid": "value", "fields": {"title": "Hello"}}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>delete_user</code></td>
+<td>Delete a user account.<br><em>Remove a spam or test account as part of periodic user maintenance</em></td>
+<td><code>{"uid": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>list_users</code></td>
+<td>List users with filters and pagination.<br><em>Page through or filter the site's accounts for an access review or audit report</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>assign_role</code></td>
+<td>Assign a role to a user.<br><em>Grant an editor elevated permissions after a promotion or project kickoff</em></td>
+<td><code>{"uid": "value", "role": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>remove_role</code></td>
+<td>Remove a role from a user.<br><em>Revoke elevated access when someone leaves a project or changes responsibilities</em></td>
+<td><code>{"uid": "value", "role": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>list_roles</code></td>
+<td>List all available roles.<br><em>Discover which roles exist before assigning one to a user</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>get_user_roles</code></td>
+<td>Get roles assigned to a user.<br><em>Verify a user's current permissions before troubleshooting an access problem</em></td>
+<td><code>{"uid": "value"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>block_user</code></td>
+<td>Block a user account.<br><em>Suspend an account immediately after reported spam while preserving its content</em></td>
+<td><code>{"uid": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>unblock_user</code></td>
+<td>Unblock a user account.<br><em>Restore access for a legitimately suspended user after their issue is resolved</em></td>
+<td><code>{"uid": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+</tbody>
+</table>
+<h2 id="taxonomy">taxonomy<a class="headerlink" href="#taxonomy" title="Permanent link">&para;</a></h2>
+<p>Taxonomy — 10 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>create_vocabulary</code></td>
+<td>Create a taxonomy vocabulary.<br><em>Set up a new classification scheme, such as product categories, on a fresh site</em></td>
+<td><code>{"vid": "1", "name": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>get_vocabulary</code></td>
+<td>Get a taxonomy vocabulary by ID.<br><em>Check a vocabulary's name and description before adding terms to it</em></td>
+<td><code>{"vid": "1"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>update_vocabulary</code></td>
+<td>Update a taxonomy vocabulary.<br><em>Rename or re-describe a taxonomy as part of an information architecture cleanup</em></td>
+<td><code>{"vid": "1", "fields": {"title": "Hello"}}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>delete_vocabulary</code></td>
+<td>Delete a taxonomy vocabulary.<br><em>Remove an obsolete classification scheme during a site restructuring</em></td>
+<td><code>{"vid": "1"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>list_vocabularies</code></td>
+<td>List all taxonomy vocabularies.<br><em>Survey the site's classification schemes before tagging or migration work</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>create_term</code></td>
+<td>Create a taxonomy term in a vocabulary.<br><em>Add a new topic to an existing vocabulary as part of ongoing content categorization</em></td>
+<td><code>{"vid": "1", "name": "value"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>get_term</code></td>
+<td>Get a taxonomy term by ID.<br><em>Verify a term's ID or parent before assigning it to content</em></td>
+<td><code>{"vid": "1", "tid": "value"}</code></td>
+<td>⚠️ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>update_term</code></td>
+<td>Update a taxonomy term.<br><em>Rename or re-parent a term when the taxonomy structure evolves</em></td>
+<td><code>{"vid": "1", "tid": "value", "fields": {"title": "Hello"}}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>delete_term</code></td>
+<td>Delete a taxonomy term.<br><em>Prune an unused term while tidying up a taxonomy vocabulary</em></td>
+<td><code>{"vid": "1", "tid": "value"}</code></td>
+<td>⚠️ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>list_terms</code></td>
+<td>List terms in a vocabulary with filters and pagination.<br><em>Fetch a vocabulary's terms to populate a filter or autocomplete widget</em></td>
+<td><code>{"vid": "1"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+</tbody>
+</table>
+<h2 id="comments">comments<a class="headerlink" href="#comments" title="Permanent link">&para;</a></h2>
+<p>Comments — 10 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>comment_list</code></td>
+<td>List comments.<br><em>Review recent site comments, optionally scoped to one piece of content</em></td>
+<td><code>{}</code></td>
+<td>⚠️ ddev · 🧩 lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>comment_get</code></td>
+<td>Get a single comment by ID.<br><em>Read one comment in full, including its author, when investigating a report</em></td>
+<td><code>{"comment_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>comment_create</code></td>
+<td>Create a new comment.<br><em>Post a reply or moderation note onto an existing piece of content</em></td>
+<td><code>{"entity_type": "node", "entity_id": "value", "subject": "value", "body": "value"}</code></td>
+<td>⚠️ ddev · 🧩 lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>comment_update</code></td>
+<td>Update a comment.<br><em>Fix a typo or correct a status on a comment during moderation</em></td>
+<td><code>{"comment_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>comment_delete</code></td>
+<td>Delete a comment.<br><em>Remove a comment confirmed as spam during routine moderation cleanup</em></td>
+<td><code>{"comment_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>comment_thread_list</code></td>
+<td>List comment thread for an entity.<br><em>Reconstruct a full reply thread under an article to review a discussion</em></td>
+<td><code>{"entity_type": "node", "entity_id": "value"}</code></td>
+<td>⚠️ ddev · 🧩 lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>comment_approve</code></td>
+<td>Approve a comment (set status to published).<br><em>Publish a pending comment after a moderator reviews it and finds it acceptable</em></td>
+<td><code>{"comment_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>comment_unapprove</code></td>
+<td>Unapprove a comment (set status to unpublished).<br><em>Hide a comment from public view pending further moderation review</em></td>
+<td><code>{"comment_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>comment_field_settings</code></td>
+<td>Get comment field settings for entity type/bundle.<br><em>Check how comments are configured on a content type before adjusting moderation</em></td>
+<td><code>{"entity_type": "node", "bundle": "article"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>comment_field_configure</code></td>
+<td>Configure comment field settings.<br><em>Enable threaded comments or adjust per-page limits when tuning community features</em></td>
+<td><code>{"entity_type": "node", "bundle": "article"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+</tbody>
+</table>
+<h2 id="revisions">revisions<a class="headerlink" href="#revisions" title="Permanent link">&para;</a></h2>
+<p>Revisions — 5 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>revision_list</code></td>
+<td>List revisions for an entity.<br><em>Check the current revision of an entity when tracking its edit history</em></td>
+<td><code>{"entity_type": "node", "entity_id": "value"}</code></td>
+<td>✅ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>revision_get</code></td>
+<td>Get a specific revision of an entity.<br><em>Retrieve the exact state of a node at a past revision when auditing an edit</em></td>
+<td><code>{"entity_type": "node", "entity_id": "value", "revision_id": "value"}</code></td>
+<td>🧩 ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>revision_revert</code></td>
+<td>Revert an entity to a specific revision.<br><em>Roll back a page to its last good state after an erroneous edit goes live</em></td>
+<td><code>{"entity_type": "node", "entity_id": "value", "revision_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>revision_delete</code></td>
+<td>Delete a specific revision of an entity.<br><em>Attempt to remove a sensitive stale revision before a public release</em></td>
+<td><code>{"entity_type": "node", "entity_id": "value", "revision_id": "value"}</code></td>
+<td>🧩 ddev · 🧩 lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>revision_diff</code></td>
+<td>Diff two revisions of an entity.<br><em>Compare two versions of a page to see exactly which fields changed and how</em></td>
+<td><code>{"entity_type": "node", "entity_id": "value", "revision_id_1": "value", "revision_id_2": "value"}</code></td>
+<td>✅ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+</tbody>
+</table>
+<h2 id="paragraphs">paragraphs<a class="headerlink" href="#paragraphs" title="Permanent link">&para;</a></h2>
+<p>Paragraphs — 10 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>paragraphs_type_list</code></td>
+<td>List all paragraph types on a Drupal site.<br><em>Checking which paragraph bundles already exist before adding a new one to a content type</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>paragraphs_type_get</code></td>
+<td>Get a single paragraph type configuration by ID.<br><em>Inspecting a paragraph type's settings before mirroring the same structure elsewhere</em></td>
+<td><code>{"type_id": "value"}</code></td>
+<td>✅ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>paragraphs_type_create</code></td>
+<td>Create a new paragraph type.<br><em>Standing up a new paragraph type while building out a modular landing-page layout</em></td>
+<td><code>{"type_id": "value", "label": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>paragraphs_type_update</code></td>
+<td>Update an existing paragraph type.<br><em>Renaming or reordering a paragraph type after a content restructure</em></td>
+<td><code>{"type_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>paragraphs_type_delete</code></td>
+<td>Delete a paragraph type.<br><em>Removing an unused paragraph type during cleanup once no content references it</em></td>
+<td><code>{"type_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>paragraphs_item_list</code></td>
+<td>List paragraph items, optionally filtered by type.<br><em>Auditing existing paragraph instances to see how a layout type is really used in content</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>paragraphs_item_get</code></td>
+<td>Get a single paragraph item by ID.<br><em>Troubleshooting a misrendering paragraph by pulling its stored field values</em></td>
+<td><code>{"paragraph_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>paragraphs_item_create</code></td>
+<td>Create a new paragraph item of the specified type.<br><em>Populating content entities with paragraph blocks as part of a scripted migration</em></td>
+<td><code>{"type_id": "value", "fields": {"title": "Hello"}}</code></td>
+<td>⚠️ ddev · 🧩 lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>paragraphs_item_update</code></td>
+<td>Update a paragraph item.<br><em>Fixing copy in an embedded paragraph when an editor reports outdated text on a live page</em></td>
+<td><code>{"paragraph_id": "value", "fields": {"title": "Hello"}}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>paragraphs_item_delete</code></td>
+<td>Delete a paragraph item.<br><em>Purging orphaned paragraph records during content cleanup after a migration</em></td>
+<td><code>{"paragraph_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+</tbody>
+</table>
+<h2 id="media_enhanced">media_enhanced<a class="headerlink" href="#media_enhanced" title="Permanent link">&para;</a></h2>
+<p>Media Enhanced — 8 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>media_type_list</code></td>
+<td>List all media types.<br><em>Finding out which media types a site defines before ingesting a new kind of asset</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>media_type_get</code></td>
+<td>Get a single media type by ID.<br><em>Checking a media type's source field before wiring up oEmbed or file imports</em></td>
+<td><code>{"media_type_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>media_type_create</code></td>
+<td>Create a new media type.<br><em>Adding a media type for a new source, such as remote images, during site buildout</em></td>
+<td><code>{"id": "1", "label": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>media_create_from_url</code></td>
+<td>Create media from URL (oEmbed).<br><em>Embedding a YouTube or Vimeo video in content without downloading the file first</em></td>
+<td><code>{"url": "value", "media_type": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>media_create_from_base64</code></td>
+<td>Create media from base64 encoded file data.<br><em>Uploading a logo or PDF produced by another tool when no public URL is available</em></td>
+<td><code>{"base64_data": "value", "filename": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>media_derivative_generate</code></td>
+<td>Generate a specific derivative for media.<br><em>Rebuilding a missing image size after an image style's dimensions were changed</em></td>
+<td><code>{"media_id": "value", "derivative_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>media_bulk_import</code></td>
+<td>Bulk import media files from directory.<br><em>Seeding a fresh environment with the asset directory used by an existing site</em></td>
+<td><code>{"source_dir": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>media_library_list</code></td>
+<td>List media library items.<br><em>Checking whether an asset already exists before uploading a duplicate to the library</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+</tbody>
+</table>
+<h2 id="config">config<a class="headerlink" href="#config" title="Permanent link">&para;</a></h2>
+<p>Config — 8 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>config_get</code></td>
+<td>Get a single configuration object by name.<br><em>Looking up a config object's live values before deciding what to change</em></td>
+<td><code>{"name": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>config_set</code></td>
+<td>Set a single configuration value.<br><em>Tweaking a single setting, like the site name, without running a full config import</em></td>
+<td><code>{"name": "value", "value": {}}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>export_config</code></td>
+<td>Export Drupal configuration to files.<br><em>Snapshotting active configuration into files before starting a deployment</em></td>
+<td><code>{}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>import_config</code></td>
+<td>Import Drupal configuration from files.<br><em>Applying configuration committed to the repo after deploying new code</em></td>
+<td><code>{}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>sync_config</code></td>
+<td>Sync configuration between environments via Drush.<br><em>Previewing then pushing config changes from one environment to another after review</em></td>
+<td><code>{"source_env": "value", "target_env": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>diff_config</code></td>
+<td>Show differences in configuration between environments.<br><em>Explaining why two environments behave differently before touching either one</em></td>
+<td><code>{"config_name": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>split_config</code></td>
+<td>Split configuration into separate directories for atomic deployment.<br><em>Extracting only the config objects a feature needs so deploys can ship independently</em></td>
+<td><code>{"config_names": []}</code></td>
+<td>🧩 ddev · 🧩 lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><a href="../#config_status"><code>config_status</code></a></td>
+<td>Compare active configuration with the exported sync directory.<br><em>Checking pending configuration changes before deciding whether an import is safe</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+</tbody>
+</table>
+<h2 id="fields">fields<a class="headerlink" href="#fields" title="Permanent link">&para;</a></h2>
+<p>Fields — 10 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>field_config_list</code></td>
+<td>List all field configurations on a Drupal site.<br><em>Auditing which fields exist before adding a new content type</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>field_config_get</code></td>
+<td>Get a single field configuration by ID.<br><em>Reviewing one field's settings, like allowed values, before writing content to it</em></td>
+<td><code>{"config_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>field_config_create</code></td>
+<td>Create a new field configuration.<br><em>Attaching a new field to a content type during a content model rollout</em></td>
+<td><code>{"field_name": "value", "field_type": "value", "entity_type": "node", "bundle": "article", "label": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>field_config_update</code></td>
+<td>Update a field configuration.<br><em>Making a field optional after editors report they cannot save drafts without it</em></td>
+<td><code>{"config_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>field_config_delete</code></td>
+<td>Delete a field configuration.<br><em>Dropping an abandoned field during content model cleanup once its data is retired</em></td>
+<td><code>{"config_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>field_storage_list</code></td>
+<td>List all field storage configurations on a Drupal site.<br><em>Checking whether shared storage already exists before adding the field to another bundle</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>field_storage_get</code></td>
+<td>Get a single field storage configuration by ID.<br><em>Confirming a field's cardinality or storage type before changing how content is entered</em></td>
+<td><code>{"config_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>field_storage_create</code></td>
+<td>Create a new field storage configuration.<br><em>Defining storage for a field that will be reused across several content types</em></td>
+<td><code>{"field_name": "value", "field_type": "value", "label": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>field_storage_update</code></td>
+<td>Update a field storage configuration.<br><em>Raising a field's maximum cardinality when editors need more than one value</em></td>
+<td><code>{"config_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>field_storage_delete</code></td>
+<td>Delete a field storage configuration.<br><em>Retiring shared field storage during schema cleanup after confirming no bundle uses it</em></td>
+<td><code>{"config_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+</tbody>
+</table>
+<h2 id="menus">menus<a class="headerlink" href="#menus" title="Permanent link">&para;</a></h2>
+<p>Menus — 10 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>menu_list</code></td>
+<td>List all menus on a Drupal site.<br><em>Seeing which menus exist before placing a new navigation link</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>menu_get</code></td>
+<td>Get a single menu configuration by ID.<br><em>Checking a menu's label before referencing it in a theme's navigation config</em></td>
+<td><code>{"menu_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>menu_create</code></td>
+<td>Create a new menu.<br><em>Setting up a dedicated footer menu while building out site navigation</em></td>
+<td><code>{"menu_id": "value", "label": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>menu_update</code></td>
+<td>Update an existing menu.<br><em>Renaming a menu after a restructure so the admin UI matches the new terminology</em></td>
+<td><code>{"menu_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>menu_delete</code></td>
+<td>Delete a menu.<br><em>Cleaning up a leftover menu during site rebuilds after its links were migrated</em></td>
+<td><code>{"menu_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>menu_link_list</code></td>
+<td>List menu links, optionally filtered by menu.<br><em>Reviewing a menu's current links before reordering navigation for a redesign</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>menu_link_get</code></td>
+<td>Get a single menu link by ID.<br><em>Inspecting a link's parent and weight when a nested menu item renders in the wrong place</em></td>
+<td><code>{"link_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>menu_link_create</code></td>
+<td>Create a new menu link.<br><em>Adding a newly published page to the main navigation after content goes live</em></td>
+<td><code>{"menu_id": "value", "title": "value", "link": {}}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>menu_link_update</code></td>
+<td>Update a menu link.<br><em>Repointing a menu link after a page slug changed, or nesting it under a new parent</em></td>
+<td><code>{"link_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>menu_link_delete</code></td>
+<td>Delete a menu link.<br><em>Removing a link to a retired page during navigation cleanup</em></td>
+<td><code>{"link_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+</tbody>
+</table>
+<h2 id="views">views<a class="headerlink" href="#views" title="Permanent link">&para;</a></h2>
+<p>Views — 7 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>views_list</code></td>
+<td>List all views on a Drupal site.<br><em>Survey every View on the site to find the one powering a given listing page</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>views_get</code></td>
+<td>Get a single view configuration by ID.<br><em>Inspect one View's full config to learn its displays, filters, or field setup</em></td>
+<td><code>{"view_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>views_create</code></td>
+<td>Create a new view.<br><em>Stand up a new listing page by defining its fields, filters, and pager up front</em></td>
+<td><code>{"view_id": "value", "label": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>views_update</code></td>
+<td>Update an existing view.<br><em>Change an existing View's label, fields, or exposed filters without touching others</em></td>
+<td><code>{"view_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>views_delete</code></td>
+<td>Delete a view.<br><em>Remove a retired View left behind after a content architecture cleanup</em></td>
+<td><code>{"view_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>views_execute</code></td>
+<td>Execute a view and return its rows.<br><em>Preview the rows a View actually returns for a given display and filter combination</em></td>
+<td><code>{"view_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>views_export</code></td>
+<td>Export a view as configuration YAML or JSON.<br><em>Grab a View's config as YAML or JSON to commit to version control or clone</em></td>
+<td><code>{"view_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+</tbody>
+</table>
+<h2 id="layout_builder">layout_builder<a class="headerlink" href="#layout_builder" title="Permanent link">&para;</a></h2>
+<p>Layout Builder — 15 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>block_list</code></td>
+<td>List all blocks.<br><em>Find which blocks exist and where they sit before rearranging a sidebar</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>block_get</code></td>
+<td>Get a single block by ID.<br><em>Read a single block's plugin, settings, and visibility rules</em></td>
+<td><code>{"block_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>block_create</code></td>
+<td>Create a new block.<br><em>Add a new block to a region with specific settings and visibility conditions</em></td>
+<td><code>{"id": "1", "label": "value", "plugin": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>block_update</code></td>
+<td>Update a block.<br><em>Adjust a block's label, region, settings, or visibility rules</em></td>
+<td><code>{"block_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>block_delete</code></td>
+<td>Delete a block.<br><em>Remove a stale block that is no longer needed on the site</em></td>
+<td><code>{"block_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>block_place</code></td>
+<td>Place a block in a region with weight.<br><em>Reorder a block within its region by giving it a new weight</em></td>
+<td><code>{"block_id": "value", "region": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>layout_builder_list</code></td>
+<td>Report which entity view displays have Layout Builder enabled.<br><em>See which bundles already have Layout Builder enabled before enabling more</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>layout_builder_get</code></td>
+<td>Read the Layout Builder layout for an entity type and bundle.<br><em>Read a bundle's full section and component structure to understand its layout</em></td>
+<td><code>{"entity_type": "node", "bundle": "article"}</code></td>
+<td>✅ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>layout_builder_create</code></td>
+<td>Replace the Layout Builder layout for a bundle.<br><em>Set a bundle's layout from scratch, replacing every section in one pass</em></td>
+<td><code>{"entity_type": "node", "bundle": "article", "layout": {}}</code></td>
+<td>✅ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>layout_builder_update</code></td>
+<td>Update the Layout Builder layout for a bundle.<br><em>Swap in a new section set for a bundle or just toggle component locking</em></td>
+<td><code>{"entity_type": "node", "bundle": "article"}</code></td>
+<td>✅ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>layout_builder_sections_list</code></td>
+<td>List the sections in a bundle's Layout Builder layout.<br><em>List a bundle's sections and components to see what will change before an edit</em></td>
+<td><code>{"entity_type": "node", "bundle": "article"}</code></td>
+<td>✅ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>layout_builder_section_add</code></td>
+<td>Append a section to a bundle's Layout Builder layout.<br><em>Append a new section with chosen components to the end of a bundle's layout</em></td>
+<td><code>{"entity_type": "node", "bundle": "article", "section": {}}</code></td>
+<td>✅ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>block_plugin_list</code></td>
+<td>List available block plugins.<br><em>Discover which block plugins are available to place in a layout</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>block_region_list</code></td>
+<td>List available regions for a theme.<br><em>Check a theme's region names before placing a block into one</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>layout_builder_override_remove</code></td>
+<td>Remove a Layout Builder override so an entity falls back to the default.<br><em>Revert an entity's one-off Layout Builder tweaks so it follows the default again</em></td>
+<td><code>{"entity_type": "node", "bundle": "article"}</code></td>
+<td>✅ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+</tbody>
+</table>
+<h2 id="pathauto">pathauto<a class="headerlink" href="#pathauto" title="Permanent link">&para;</a></h2>
+<p>Pathauto — 8 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pathauto_pattern_list</code></td>
+<td>List pathauto patterns.<br><em>List existing URL patterns before adding or changing one for a new content type</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>pathauto_pattern_get</code></td>
+<td>Get a single pathauto pattern by ID.<br><em>Read a single pattern's definition to confirm its tokens and target bundle</em></td>
+<td><code>{"pattern_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>pathauto_pattern_create</code></td>
+<td>Create a new pathauto pattern.<br><em>Add a new URL pattern so new content of a bundle gets consistent aliases</em></td>
+<td><code>{"id": "1", "label": "value", "entity_type": "node", "bundle": "article", "pattern": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>pathauto_pattern_update</code></td>
+<td>Update a pathauto pattern.<br><em>Change a pattern's token string or weight when the URL scheme is revised</em></td>
+<td><code>{"pattern_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>pathauto_pattern_delete</code></td>
+<td>Delete a pathauto pattern.<br><em>Retire an obsolete pattern as part of cleaning up URL generation rules</em></td>
+<td><code>{"pattern_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>pathauto_generate</code></td>
+<td>Generate pathauto aliases.<br><em>Backfill aliases for content created before a pattern existed or was fixed</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>pathauto_token_list</code></td>
+<td>List available pathauto tokens.<br><em>Find valid tokens to use when writing or debugging a pathauto pattern</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>redirect_pattern_list</code></td>
+<td>List redirect patterns.<br><em>Review existing redirect patterns before adding or pruning redirects</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+</tbody>
+</table>
+<h2 id="redirects">redirects<a class="headerlink" href="#redirects" title="Permanent link">&para;</a></h2>
+<p>Redirects — 7 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>redirect_list</code></td>
+<td>List all redirects on a Drupal site.<br><em>Survey current redirects to check for duplicates or loops</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>redirect_get</code></td>
+<td>Get a single redirect configuration by ID.<br><em>Inspect one redirect's source, target, and status code</em></td>
+<td><code>{"redirect_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>redirect_create</code></td>
+<td>Create a new redirect.<br><em>Send an old URL to its new home after a page move</em></td>
+<td><code>{"redirect_source": "value", "redirect_redirect": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>redirect_update</code></td>
+<td>Update an existing redirect.<br><em>Fix a redirect that points to the wrong target or uses the wrong status code</em></td>
+<td><code>{"redirect_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>redirect_delete</code></td>
+<td>Delete a redirect.<br><em>Remove a redirect that is no longer needed after a URL settles</em></td>
+<td><code>{"redirect_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>redirect_bulk_create</code></td>
+<td>Create multiple redirects in bulk.<br><em>Seed many redirects at once from a mapping after a site migration</em></td>
+<td><code>{"redirects": {}}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>redirect_bulk_delete</code></td>
+<td>Delete multiple redirects in bulk.<br><em>Clear out a batch of obsolete redirects during a cleanup</em></td>
+<td><code>{"redirect_ids": []}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+</tbody>
+</table>
+<h2 id="metatag">metatag<a class="headerlink" href="#metatag" title="Permanent link">&para;</a></h2>
+<p>Metatag — 9 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>metatag_config_list</code></td>
+<td>List all metatag configurations.<br><em>Survey metatag defaults per entity type and bundle before changing site-wide SEO</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>metatag_config_get</code></td>
+<td>Get a single metatag configuration by ID.<br><em>Inspect a single metatag defaults record to see its configured tags</em></td>
+<td><code>{"config_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>metatag_config_create</code></td>
+<td>Create a new metatag configuration.<br><em>Add a new metatag defaults record for an entity type or bundle</em></td>
+<td><code>{"id": "1", "label": "value", "entity_type": "node"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>metatag_config_update</code></td>
+<td>Update a metatag configuration.<br><em>Change the default tags shown for a content type's listing or detail pages</em></td>
+<td><code>{"config_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>metatag_defaults_get</code></td>
+<td>Get default metatag values for entity type/bundle.<br><em>Fetch the effective default metatag values for a specific entity and bundle</em></td>
+<td><code>{"entity_type": "node"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>metatag_defaults_set</code></td>
+<td>Set default metatag values for entity type/bundle.<br><em>Apply a standard set of title, description, and Open Graph defaults</em></td>
+<td><code>{"entity_type": "node"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>metatag_token_list</code></td>
+<td>List available metatag tokens.<br><em>Find valid tokens to reference entity fields in metatag defaults</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>metatag_canonical_set</code></td>
+<td>Set canonical URL for an entity.<br><em>Point a page at its canonical URL to avoid duplicate-content SEO issues</em></td>
+<td><code>{"entity_type": "node", "entity_id": "value", "canonical_url": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>metatag_jsonld_generate</code></td>
+<td>Generate JSON-LD structured data for entity.<br><em>Produce JSON-LD structured data for a page to check rich-result markup</em></td>
+<td><code>{"entity_type": "node", "entity_id": "value"}</code></td>
+<td>✅ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+</tbody>
+</table>
+<h2 id="search_api">search_api<a class="headerlink" href="#search_api" title="Permanent link">&para;</a></h2>
+<p>Search API — 13 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>search_api_server_list</code></td>
+<td>List all Search API servers.<br><em>Checking which search backends exist before wiring up a new index</em></td>
+<td><code>{}</code></td>
+<td>⚠️ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>search_api_server_get</code></td>
+<td>Get a single Search API server by ID.<br><em>Inspecting a server's backend settings when searches return unexpected results</em></td>
+<td><code>{"server_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>search_api_server_create</code></td>
+<td>Create a new Search API server.<br><em>Standing up a search backend on a site that has none configured yet</em></td>
+<td><code>{"id": "1", "label": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>search_api_index_list</code></td>
+<td>List Search API indexes.<br><em>Finding the right index to query or reindex before touching search config</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>search_api_index_get</code></td>
+<td>Get a single Search API index by ID.<br><em>Reviewing an index's datasource and processors to debug missing results</em></td>
+<td><code>{"index_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>search_api_index_create</code></td>
+<td>Create a new Search API index.<br><em>Adding search to a new content type by wiring an index to an existing server</em></td>
+<td><code>{"id": "1", "label": "value", "server_id": "value", "datasource": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>search_api_index_update</code></td>
+<td>Update a Search API index.<br><em>Tuning processors or renaming an index after a content model change</em></td>
+<td><code>{"index_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>search_api_index_reindex</code></td>
+<td>Trigger reindexing of a Search API index.<br><em>Content changed outside Drupal and search results are stale</em></td>
+<td><code>{"index_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>search_api_index_clear</code></td>
+<td>Clear a Search API index.<br><em>Rebuilding a corrupted or outdated index from scratch during maintenance</em></td>
+<td><code>{"index_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>search_api_server_enable</code></td>
+<td>Enable a Search API server.<br><em>Turning search back on after maintenance on the backend is finished</em></td>
+<td><code>{"server_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>search_api_server_disable</code></td>
+<td>Disable a Search API server.<br><em>Taking search offline temporarily while the backend is being migrated</em></td>
+<td><code>{"server_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>search_api_facet_list</code></td>
+<td>List Search API facets.<br><em>Checking which facets exist and their facet_source_id before wiring up a block</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>search_api_facet_create</code></td>
+<td>Create a Search API facet.<br><em>Letting visitors narrow search results by a category or tag field</em></td>
+<td><code>{"id": "1", "label": "value", "index_id": "value", "field": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+</tbody>
+</table>
+<h2 id="feeds">feeds<a class="headerlink" href="#feeds" title="Permanent link">&para;</a></h2>
+<p>Feeds — 12 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>feeds_feed_list</code></td>
+<td>List all feeds.<br><em>Surveying existing imports before adding another data feed to the site</em></td>
+<td><code>{}</code></td>
+<td>🧩 ddev · 🧩 lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>feeds_feed_get</code></td>
+<td>Get a single feed by ID.<br><em>Checking a feed's fetcher, parser and processor when an import behaves oddly</em></td>
+<td><code>{"feed_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>feeds_feed_create</code></td>
+<td>Create a new feed.<br><em>Setting up recurring content import from an external CSV or RSS source</em></td>
+<td><code>{"id": "1", "label": "value"}</code></td>
+<td>🧩 ddev · 🧩 lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>feeds_feed_update</code></td>
+<td>Update a feed.<br><em>Changing a feed's source URL or column mapping after the upstream format shifts</em></td>
+<td><code>{"feed_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>feeds_feed_delete</code></td>
+<td>Delete a feed.<br><em>Cleaning up a one-off import feed after a content migration is done</em></td>
+<td><code>{"feed_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>feeds_import</code></td>
+<td>Run a feed import.<br><em>Running an import right now instead of waiting for the next cron pass</em></td>
+<td><code>{"feed_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>feeds_import_status</code></td>
+<td>Get feed import status.<br><em>Checking whether an import kicked off earlier finished or hit errors</em></td>
+<td><code>{"feed_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>feeds_log_list</code></td>
+<td>List feed import logs.<br><em>Looking for import history and being redirected to feeds_import_status instead</em></td>
+<td><code>{}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>feeds_tamper_list</code></td>
+<td>List tamper plugins for a feed.<br><em>Auditing field cleanup plugins chained onto a feed before editing import logic</em></td>
+<td><code>{"feed_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>feeds_parser_list</code></td>
+<td>List available feed parsers.<br><em>Getting the exact parser plugin IDs when configuring a new feed</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>feeds_fetcher_list</code></td>
+<td>List available feed fetchers.<br><em>Confirming which fetcher plugins are installed before creating a feed</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>feeds_processor_list</code></td>
+<td>List available feed processors.<br><em>Finding what a feed can write to before creating the import</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+</tbody>
+</table>
+<h2 id="multilingual">multilingual<a class="headerlink" href="#multilingual" title="Permanent link">&para;</a></h2>
+<p>Multilingual — 18 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>language_list</code></td>
+<td>List all languages.<br><em>Checking which languages a site already has before enabling translations</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>language_get</code></td>
+<td>Get a single language by langcode.<br><em>Verifying a language's direction and weight before translating content into it</em></td>
+<td><code>{"langcode": "en"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>language_add</code></td>
+<td>Add a new language.<br><em>A new locale is launching and the site needs its language registered</em></td>
+<td><code>{"langcode": "en", "name": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>language_enable</code></td>
+<td>Enable a language.<br><em>Turning a previously disabled language back on for an upcoming launch</em></td>
+<td><code>{"langcode": "en"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>language_disable</code></td>
+<td>Disable a language.<br><em>Pausing a language when translators aren't ready yet but content exists</em></td>
+<td><code>{"langcode": "en"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>language_delete</code></td>
+<td>Delete a language.<br><em>Removing a language that was added in error before any content uses it</em></td>
+<td><code>{"langcode": "en"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>content_translation_enable</code></td>
+<td>Enable content translation for entity type/bundle.<br><em>Letting editors translate a content type after a client asks for it</em></td>
+<td><code>{"entity_type": "node"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>translation_status</code></td>
+<td>Get translation status for an entity.<br><em>Checking which translations already exist before assigning work to a translator</em></td>
+<td><code>{"entity_type": "node", "entity_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>translation_add</code></td>
+<td>Add translation for an entity.<br><em>A node exists only in the source language and now needs its first translation</em></td>
+<td><code>{"entity_type": "node", "entity_id": "value", "langcode": "en"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>translation_update</code></td>
+<td>Update translation for an entity.<br><em>Source content changed and existing translations now carry outdated copy</em></td>
+<td><code>{"entity_type": "node", "entity_id": "value", "langcode": "en"}</code></td>
+<td>✅ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>interface_translation_list</code></td>
+<td>List the interface translations Drupal holds.<br><em>Finding which UI strings are already translated when localizing the admin</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>interface_translation_add</code></td>
+<td>Add an interface translation for one source string.<br><em>Fixing a wrong button label in one language without a full .po import</em></td>
+<td><code>{"source": "value", "langcode": "en", "translation": "value"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>interface_translation_update</code></td>
+<td>Change an existing interface translation.<br><em>A client wording change means an existing UI translation is now stale</em></td>
+<td><code>{"source": "value", "langcode": "en", "translation": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>interface_translation_delete</code></td>
+<td>Remove an interface translation from one language.<br><em>Reverting a bad UI string fix so the standard .po import value takes over</em></td>
+<td><code>{"source": "value", "langcode": "en"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>config_translation_list</code></td>
+<td>List the config objects that support translation.<br><em>Before translating menu labels or content types, checking what the site supports</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>config_translation_add</code></td>
+<td>Translate a config entity.<br><em>Localizing a content type name or menu link label for a new language</em></td>
+<td><code>{"config_name": "value", "langcode": "en", "translation": {}}</code></td>
+<td>✅ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>language_negotiation_get</code></td>
+<td>Get language negotiation configuration.<br><em>Debugging why a translated page serves the wrong language URL prefix</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>language_negotiation_set</code></td>
+<td>Set language negotiation method.<br><em>Choosing between path prefixes, domains or session detection for language URLs</em></td>
+<td><code>{"method": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+</tbody>
+</table>
+<h2 id="moderation">moderation<a class="headerlink" href="#moderation" title="Permanent link">&para;</a></h2>
+<p>Moderation — 13 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>moderation_state_list</code></td>
+<td>List all moderation states.<br><em>Mapping the states content can sit in across this site's workflows</em></td>
+<td><code>{}</code></td>
+<td>🧩 ddev · 🧩 lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>moderation_state_get</code></td>
+<td>Get a single moderation state by ID.<br><em>Checking a state's label and ordering after an editor reports a confusing name</em></td>
+<td><code>{"state_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>moderation_state_create</code></td>
+<td>Create a new moderation state.<br><em>Adding a legal review step to a workflow that currently jumps straight to publish</em></td>
+<td><code>{"workflow_id": "value", "state_id": "value", "label": "value"}</code></td>
+<td>🧩 ddev · 🧩 lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>moderation_state_update</code></td>
+<td>Update a moderation state.<br><em>Renaming a state editors keep misreading or moving it up the approval order</em></td>
+<td><code>{"state_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>moderation_state_delete</code></td>
+<td>Delete a moderation state.<br><em>Cleaning up a leftover state after a workflow was simplified during a migration</em></td>
+<td><code>{"state_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>moderation_transition_list</code></td>
+<td>List a workflow's moderation transitions.<br><em>Working out which steps an editor is actually allowed to take next</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>moderation_transition_get</code></td>
+<td>Get a single moderation transition by ID.<br><em>Tracing where a transition leads before automating an approval step around it</em></td>
+<td><code>{"transition_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>moderation_transition_create</code></td>
+<td>Create a new moderation transition on a workflow.<br><em>Adding a sign-off path so reviewed drafts can advance to the next stage</em></td>
+<td><code>{"workflow_id": "value", "transition_id": "value", "label": "value", "from_states": [], "to_state": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>moderation_transition_delete</code></td>
+<td>Delete a moderation transition from a workflow.<br><em>Retiring a redundant approval step while consolidating duplicate workflows</em></td>
+<td><code>{"workflow_id": "value", "transition_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>moderation_transition_execute</code></td>
+<td>Execute a moderation transition on an entity.<br><em>Moving an editor's approved draft forward on their behalf after sign-off offline</em></td>
+<td><code>{"entity_type": "node", "entity_id": "value", "transition_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>content_moderation_dashboard</code></td>
+<td>Get content pending moderation - dashboard view.<br><em>Morning check of everything not yet published so nothing stalls in the queue</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · 🧩 lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>workflow_list</code></td>
+<td>List all workflows.<br><em>Figuring out which workflows exist before pointing a content type at one</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>workflow_get</code></td>
+<td>Get a single workflow by ID.<br><em>Inspecting a workflow's states after an editor reports a draft got stuck</em></td>
+<td><code>{"workflow_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+</tbody>
+</table>
+<h2 id="webform">webform<a class="headerlink" href="#webform" title="Permanent link">&para;</a></h2>
+<p>Webform — 16 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>webform_list</code></td>
+<td>List all webforms.<br><em>Finding the right form id before wiring an automation or reviewing responses</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>webform_get</code></td>
+<td>Get a single webform by ID.<br><em>Checking a form's settings before linking to it from a new landing page</em></td>
+<td><code>{"webform_id": "contact"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>webform_create</code></td>
+<td>Create a new webform.<br><em>Standing up a signup form for a campaign that was just approved</em></td>
+<td><code>{"id": "1", "label": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>webform_update</code></td>
+<td>Update a webform.<br><em>Changing a form's label or taking it offline after a campaign deadline passed</em></td>
+<td><code>{"webform_id": "contact"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>webform_delete</code></td>
+<td>Delete a webform.<br><em>Removing a duplicate test form left over from a campaign setup attempt</em></td>
+<td><code>{"webform_id": "contact"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>webform_submission_list</code></td>
+<td>List webform submissions.<br><em>Support asks how many people registered for the webinar through the site</em></td>
+<td><code>{}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>webform_submission_get</code></td>
+<td>Get a single webform submission by ID.<br><em>Pulling one enquiry in full to answer a customer citing a ticket number</em></td>
+<td><code>{"submission_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>webform_submission_delete</code></td>
+<td>Delete a webform submission.<br><em>Purging test submissions before handing real data to the marketing team</em></td>
+<td><code>{"submission_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>webform_element_list</code></td>
+<td>List elements in a webform.<br><em>Auditing what fields a form actually asks for before mapping it to a CRM</em></td>
+<td><code>{"webform_id": "contact"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>webform_element_create</code></td>
+<td>Add an element to a webform.<br><em>Adding the phone number field a client just requested to a signup form</em></td>
+<td><code>{"webform_id": "contact", "element_key": "value", "element_type": "value", "label": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>webform_handler_list</code></td>
+<td>List the handlers attached to a webform.<br><em>Tracing where submissions go after a client reports notifications went missing</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>webform_handler_create</code></td>
+<td>Create a webform handler (email, remote post, etc.).<br><em>Wiring an email or webhook handler so new submissions reach the team's inbox</em></td>
+<td><code>{"id": "1", "webform_id": "contact", "handler_type": "value", "label": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>webform_handler_update</code></td>
+<td>Update a webform handler.<br><em>Pointing a notification handler at a new recipient after a team member left</em></td>
+<td><code>{"handler_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>webform_handler_delete</code></td>
+<td>Delete a webform handler from its webform.<br><em>Removing a broken integration handler while cleaning up dead submission routing</em></td>
+<td><code>{"handler_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>webform_token_list</code></td>
+<td>List available webform tokens.<br><em>Writing an email template and needing the exact placeholder for a field</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>webform_export_submissions</code></td>
+<td>Export webform submissions.<br><em>Handing marketing a CSV of contest entries without granting site access</em></td>
+<td><code>{"webform_id": "contact"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+</tbody>
+</table>
+<h2 id="contact">contact<a class="headerlink" href="#contact" title="Permanent link">&para;</a></h2>
+<p>Contact — 9 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>contact_form_list</code></td>
+<td>List all contact forms.<br><em>Checking which contact forms exist before adding one to the site footer</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>contact_form_get</code></td>
+<td>Get a single contact form by ID.<br><em>Confirming who currently receives messages from the press enquiry form</em></td>
+<td><code>{"form_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>contact_form_create</code></td>
+<td>Create a new contact form.<br><em>Creating a dedicated support form after the general inbox got too noisy</em></td>
+<td><code>{"id": "1", "label": "value", "recipients": []}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>contact_form_update</code></td>
+<td>Update a contact form.<br><em>Redirecting form notifications to a new mailbox when someone changes roles</em></td>
+<td><code>{"form_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>contact_form_delete</code></td>
+<td>Delete a contact form.<br><em>Cleaning up a duplicate contact form left behind during a site rebuild</em></td>
+<td><code>{"form_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>contact_message_list</code></td>
+<td>List contact form submissions.<br><em>Seeing what visitors have written through the site's contact forms this week</em></td>
+<td><code>{}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>contact_message_get</code></td>
+<td>Get a single contact message by ID.<br><em>Reading one message in full so support can follow up on a specific complaint</em></td>
+<td><code>{"message_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>contact_message_delete</code></td>
+<td>Delete a contact message.<br><em>Deleting test messages that accumulated while a form was being developed</em></td>
+<td><code>{"message_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>contact_spam_check</code></td>
+<td>Check if a contact message is spam.<br><em>Deciding whether a suspicious message should be kept or purged from the inbox</em></td>
+<td><code>{"message_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+</tbody>
+</table>
+<h2 id="commerce">commerce<a class="headerlink" href="#commerce" title="Permanent link">&para;</a></h2>
+<p>Commerce — 18 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>commerce_store_list</code></td>
+<td>List all commerce stores.<br><em>Checking which stores exist before adding products for a new sales channel</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>commerce_store_get</code></td>
+<td>Get a single commerce store by ID.<br><em>Confirming a store's contact email and currency ahead of launch</em></td>
+<td><code>{"store_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>commerce_store_create</code></td>
+<td>Create a new commerce store.<br><em>Opening a second store to sell into a different currency region</em></td>
+<td><code>{"id": "1", "label": "value", "mail": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>commerce_store_update</code></td>
+<td>Update a commerce store.<br><em>Updating the store's support address after a team handover</em></td>
+<td><code>{"store_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>commerce_product_list</code></td>
+<td>List commerce products.<br><em>Merchandiser wants every product still unpublished before the catalog goes live</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>commerce_product_get</code></td>
+<td>Get a single commerce product by ID.<br><em>Verifying one product's price and SKU against a supplier's price list</em></td>
+<td><code>{"product_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>commerce_product_create</code></td>
+<td>Create a new commerce product.<br><em>Adding a newly launched item to the catalog ahead of the seasonal sale</em></td>
+<td><code>{"id": "1", "title": "value", "store_id": "value", "price": {}}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>commerce_product_update</code></td>
+<td>Update a commerce product.<br><em>Applying a supplier's price change to a product before the sale starts</em></td>
+<td><code>{"product_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>commerce_order_list</code></td>
+<td>List commerce orders.<br><em>Checking which orders are awaiting fulfilment at the start of the day</em></td>
+<td><code>{}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>commerce_order_get</code></td>
+<td>Get a single commerce order by ID.<br><em>Investigating a customer's complaint about what their order contains</em></td>
+<td><code>{"order_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>commerce_order_create</code></td>
+<td>Create a new commerce order.<br><em>Recording a phone order from a customer who cannot use the website</em></td>
+<td><code>{"id": "1", "store_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>commerce_order_update</code></td>
+<td>Update a commerce order.<br><em>Correcting an order state after a refund was handled outside the site</em></td>
+<td><code>{"order_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>commerce_payment_gateway_list</code></td>
+<td>List payment gateways.<br><em>Answering which payment methods the store can accept before checkout edits</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>commerce_payment_gateway_get</code></td>
+<td>Get a single payment gateway by ID.<br><em>Checking a gateway's configuration before taking it out of test mode</em></td>
+<td><code>{"gateway_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>commerce_promotion_list</code></td>
+<td>List commerce promotions.<br><em>Reviewing active discounts before the holiday sale schedule is finalised</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · 🧩 lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>commerce_promotion_create</code></td>
+<td>Create a new commerce promotion.<br><em>Setting up a launch discount for a promotion announced next week</em></td>
+<td><code>{"id": "1", "label": "value", "store_id": "value", "offer": {}}</code></td>
+<td>⚠️ ddev · 🧩 lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>commerce_shipping_method_list</code></td>
+<td>List shipping methods.<br><em>Checking delivery options before editing the checkout page</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>commerce_shipping_method_create</code></td>
+<td>Create a new shipping method.<br><em>Adding a flat-rate shipping option for a new regional delivery zone</em></td>
+<td><code>{"id": "1", "label": "value", "store_id": "value", "plugin": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+</tbody>
+</table>
+<h2 id="status">status<a class="headerlink" href="#status" title="Permanent link">&para;</a></h2>
+<p>Status — 4 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="../#status_report"><code>status_report</code></a></td>
+<td>Run the site's status report (what /admin/reports/status shows).<br><em>When a client asks what is wrong, pull the site status report without logging into /admin/reports</em></td>
+<td><code>{}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><a href="../#database_updates"><code>database_updates</code></a></td>
+<td>List pending database updates (read-only; runs nothing).<br><em>After a composer update, see whether new module schema changes are waiting before touching the site</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><a href="../#available_updates"><code>available_updates</code></a></td>
+<td>List packages with newer versions available, from composer.<br><em>When planning an upgrade, list outdated core and contrib packages, or only those with security advisories</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><a href="../#health_check"><code>health_check</code></a></td>
+<td>Check that this server can actually reach a working Drupal site.<br><em>When other tools return opaque connection errors, pinpoint whether Drush, the database or JSON:API is failing</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+</tbody>
+</table>
+<h2 id="database">database<a class="headerlink" href="#database" title="Permanent link">&para;</a></h2>
+<p>Database — 4 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>db_query</code></td>
+<td>Execute a single read-only SELECT query on the Drupal database.<br><em>Answering a question straight from the database when no Views export or JSON:API resource exposes it</em></td>
+<td><code>{"query": "keyword"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>db_tables</code></td>
+<td>List all database tables.<br><em>Before querying an unfamiliar site, see which tables exist and how they are named</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>db_table_info</code></td>
+<td>Get table schema information.<br><em>Needing column names and types of one table before writing a WHERE clause or a report</em></td>
+<td><code>{"table": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>db_count</code></td>
+<td>Count rows in a table.<br><em>A quick row count, optionally filtered, to sanity-check content volumes or migration results</em></td>
+<td><code>{"table": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+</tbody>
+</table>
+<h2 id="devops">devops<a class="headerlink" href="#devops" title="Permanent link">&para;</a></h2>
+<p>Devops — 20 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="../#drush_command"><code>drush_command</code></a></td>
+<td>Execute any Drush command.<br><em>Run a Drush command no dedicated tool covers and get structured output</em></td>
+<td><code>{"command": "status"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>ddev_setup</code></td>
+<td>Generate .ddev/config.yaml for a local Drupal environment.<br><em>Bootstrapping a local DDEV environment for a project that has no .ddev config yet</em></td>
+<td><code>{}</code></td>
+<td>⚠️ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>ddev_start</code></td>
+<td>Start the DDEV project under <code>project_name</code>.<br><em>Before anything else can reach the site, bring a stopped DDEV environment back up</em></td>
+<td><code>{}</code></td>
+<td>⏭️ ddev · ⏭️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>ddev_stop</code></td>
+<td>Stop the DDEV project under <code>project_name</code> (a directory).<br><em>Freeing local ports and memory at the end of a session, or before restarting cleanly</em></td>
+<td><code>{}</code></td>
+<td>⏭️ ddev · ⏭️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>ddev_exec</code></td>
+<td>Run <code>command</code> in the container of the DDEV project under <code>project_name</code> (a directory containing <code>.ddev</code>).<br><em>Running a one-off container command, like a build step, that needs the DDEV shell not Drush</em></td>
+<td><code>{"command": "status"}</code></td>
+<td>✅ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>lando_start</code></td>
+<td>Start the Lando project under <code>project_name</code> (a directory).<br><em>Bringing a Lando-based local site back up when the other tools report connection failures</em></td>
+<td><code>{}</code></td>
+<td>⏭️ ddev · ⏭️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>lando_stop</code></td>
+<td>Stop the Lando project under <code>project_name</code> (a directory).<br><em>Shutting down a Lando site's containers to free ports between sessions or before a reset</em></td>
+<td><code>{}</code></td>
+<td>⏭️ ddev · ⏭️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>lando_exec</code></td>
+<td>Run <code>command</code> in the container of the Lando project under <code>project_name</code> (a directory).<br><em>Running a one-off command inside the Lando container, such as a build step or file fix</em></td>
+<td><code>{"command": "status"}</code></td>
+<td>⏭️ ddev · ⏭️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>lando_setup</code></td>
+<td>Generate .lando.yml for a local Drupal environment.<br><em>Generating a starter .lando.yml for a Drupal project that has no Lando config yet</em></td>
+<td><code>{}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>acquia_deploy</code></td>
+<td>Deploy to Acquia Cloud via acquia-cli or Drush acquia integration.<br><em>Shipping a tested branch to an Acquia environment, with database updates and cache rebuild included</em></td>
+<td><code>{"environment": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>backup_database</code></td>
+<td>Create database backup via Drush.<br><em>Taking a database dump first, before running updates, imports or other risky changes</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>cache_rebuild</code></td>
+<td>Clear and rebuild all Drupal caches via Drush.<br><em>After enabling a module or editing code, make the change take effect immediately instead of waiting</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>composer_install</code></td>
+<td>Run composer install.<br><em>A fresh clone or CI step where vendor is missing and the lock file must be installed</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>composer_require</code></td>
+<td>Require one or more packages via composer.<br><em>Adding one or several contributed modules to the project straight through composer</em></td>
+<td><code>{"package": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>composer_update</code></td>
+<td>Run composer update.<br><em>When ready to adopt newer dependency versions, run the update in the project directory</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>drush_cron</code></td>
+<td>Run cron.<br><em>Triggering cron now so queues and aggregations run without waiting for the schedule</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>drush_watchdog</code></td>
+<td>Show recent log entries from watchdog.<br><em>Debugging a reported error by pulling recent log entries filtered by type or severity</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · 🧩 lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>cache_clear</code></td>
+<td>Clear specific cache bins.<br><em>Isolating stale output by clearing only the suspect cache bin rather than everything</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>drush_updb</code></td>
+<td>Run database updates.<br><em>After the pending update list is checked, apply schema updates once a database backup exists</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>drush_php_eval</code></td>
+<td>Execute arbitrary PHP code via Drush.<br><em>A quick one-line Drupal API call, like resetting a state key, without writing a module</em></td>
+<td><code>{"code": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+</tbody>
+</table>
+<h2 id="scheduler">scheduler<a class="headerlink" href="#scheduler" title="Permanent link">&para;</a></h2>
+<p>Scheduler — 7 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cron_run</code></td>
+<td>Run cron.<br><em>Running scheduled work immediately when the site's own cron has not fired on its own</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>cron_list</code></td>
+<td>List the jobs Drupal runs on cron, and when cron last ran.<br><em>When something did not process, see which modules implement hook_cron and when cron last ran</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>queue_list</code></td>
+<td>List all queues.<br><em>Checking which queues exist and how backed up they are before a bulk import run</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>queue_run</code></td>
+<td>Run a specific queue.<br><em>After a bulk operation, drain a specific queue so its pending items get processed now</em></td>
+<td><code>{"queue_name": "value"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>queue_delete</code></td>
+<td>Delete queue items: one by id, the oldest <code>count</code>, or the whole queue.<br><em>Clearing a queue stuck with poison or leftover test items before a clean retry</em></td>
+<td><code>{"queue_name": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>queue_info</code></td>
+<td>Get queue information.<br><em>Checking one queue's item count and detail before draining or deleting anything</em></td>
+<td><code>{"queue_name": "value"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>queue_create</code></td>
+<td>Create a queue and make it ready to accept items.<br><em>Preparing a named queue to accept its first items when wiring up or testing a worker</em></td>
+<td><code>{"queue_name": "value"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+</tbody>
+</table>
+<h2 id="performance">performance<a class="headerlink" href="#performance" title="Permanent link">&para;</a></h2>
+<p>Performance — 7 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>performance_query_log</code></td>
+<td>Get slow query log.<br><em>Hunting a slow page by finding which queries the site logged as slow in watchdog</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>performance_cache_stats</code></td>
+<td>Get cache performance statistics.<br><em>Seeing whether cache bins are being churned instead of serving hits under traffic</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>performance_redis_info</code></td>
+<td>Get Redis server info.<br><em>Diagnosing cache backend health when Redis is backing the site's cache bins</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>performance_bigpipe_status</code></td>
+<td>Check BigPipe status and configuration.<br><em>Confirming whether BigPipe is enabled before investigating why page delivery looks plain</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>performance_bigpipe_enable</code></td>
+<td>Enable or disable BigPipe.<br><em>Toggling BigPipe during a performance test, a reversible config change to revert afterwards</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>performance_memcached_stats</code></td>
+<td>Get Memcached statistics.<br><em>Spotting evictions or memory limits in Memcached that explain repeated cache misses</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>performance_page_load_analyze</code></td>
+<td>Analyze page load performance.<br><em>Getting a rough before and after number when comparing a page's response times</em></td>
+<td><code>{"url": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+</tbody>
+</table>
+<h2 id="migration">migration<a class="headerlink" href="#migration" title="Permanent link">&para;</a></h2>
+<p>Migration — 17 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>generate_migration_yaml</code></td>
+<td>Generate migration YAML configuration.<br><em>Kicking off a new migration and needing a correctly shaped YAML stub to fill in</em></td>
+<td><code>{"migration_type": "value", "source": {}, "destination": {}}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>generate_module_migration</code></td>
+<td>Generate migration module for a custom module with source plugin, process plugins, and migration template.<br><em>Scaffolding a custom migration module for a legacy source without hand-writing plugin boilerplate</em></td>
+<td><code>{"module_name": "value", "source_version": "value", "target_version": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>run_migration_test</code></td>
+<td>Test migration with limited records.<br><em>Importing only a handful of records to confirm mappings before committing to a full run</em></td>
+<td><code>{"migration_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>validate_migration</code></td>
+<td>Validate migration configuration.<br><em>Confirming a migration is registered and seeing how many records it has already processed</em></td>
+<td><code>{"migration_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>rollback_migration</code></td>
+<td>Rollback a completed migration.<br><em>Undoing a test import so the same migration can run again cleanly after its mapping is fixed</em></td>
+<td><code>{"migration_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>sync_media_files</code></td>
+<td>Sync media files between paths.<br><em>Copying image files onto the new server before the content that references them is imported</em></td>
+<td><code>{"source_path": "value", "destination_path": "value"}</code></td>
+<td>⚠️ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>migrate_taxonomy</code></td>
+<td>Migrate taxonomy vocabularies and their terms.<br><em>Rebuilding vocabularies and terms first so incoming content has somewhere to point</em></td>
+<td><code>{"vocabularies": {}}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>create_migration_plan</code></td>
+<td>Create or replace a persisted migration plan.<br><em>Starting a multi-day migration and needing one persisted record of scope, mappings, and notes</em></td>
+<td><code>{"migration_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>get_migration_plan</code></td>
+<td>Read a persisted migration plan and its tracked state.<br><em>Picking a migration back up in a new session and needing its source, mappings, and tracked state</em></td>
+<td><code>{"migration_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>list_migration_plans</code></td>
+<td>List all persisted migration plans.<br><em>Figuring out which migrations exist on this site and where each one stands</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>migration_status</code></td>
+<td>Summarize migration progress for a persisted plan.<br><em>Reporting how far a planned migration has progressed and whether anything is failing</em></td>
+<td><code>{"migration_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>migrate_records</code></td>
+<td>Copy a batch of source records into the target Drupal site through JSON:API.<br><em>Pushing an already-extracted batch of source rows into the target site through JSON:API</em></td>
+<td><code>{"migration_id": "value", "entity_type": "node", "records": {}}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>record_migration_result</code></td>
+<td>Record the outcome of a manually executed migration operation.<br><em>Logging outcomes from a hand-run import so the plan's counts stay trustworthy later</em></td>
+<td><code>{"migration_id": "value", "entity_type": "node", "legacy_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>analyze_source_site</code></td>
+<td>Analyze a source Drupal JSON:API resource type and optionally store counts in a plan.<br><em>Counting what the legacy site really exposes, authenticating so field-level access is not undercounted</em></td>
+<td><code>{}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>reconcile_migration_counts</code></td>
+<td>Compare recorded source counts with current target-site counts.<br><em>After an import run, spotting which entity types still fall short of the recorded source counts</em></td>
+<td><code>{"migration_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>run_migration_wave</code></td>
+<td>Fetch and migrate one resource type from the plan's source site into the target site.<br><em>Migrating one resource type at a time so any failure stays contained to a single wave</em></td>
+<td><code>{"migration_id": "value", "resource_type": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>run_migration</code></td>
+<td>Run an ordered end-to-end migration for one or all planned entity types.<br><em>Executing the whole plan in dependency order once the plan exists and dry runs look right</em></td>
+<td><code>{"migration_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+</tbody>
+</table>
+<h2 id="analysis">analysis<a class="headerlink" href="#analysis" title="Permanent link">&para;</a></h2>
+<p>Analysis — 9 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>analyze_d7_site</code></td>
+<td>Analyze a Drupal 7 site for D10 upgrade readiness.<br><em>Scoping a Drupal 7 retirement before committing to a timeline</em></td>
+<td><code>{"site_url": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>analyze_d9_site</code></td>
+<td>Analyze a Drupal 9+ site for deprecated code and APIs.<br><em>Before starting a D10 upgrade, knowing which removed APIs custom code still depends on</em></td>
+<td><code>{"site_url": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>inventory_content_types</code></td>
+<td>List all content types on a Drupal site.<br><em>Mapping the content model of an unfamiliar site before planning field or migration work</em></td>
+<td><code>{"site_url": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>inventory_modules</code></td>
+<td>List all modules on a Drupal site.<br><em>Checking which contrib and custom modules a site runs before estimating upgrade effort</em></td>
+<td><code>{"site_url": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>map_modules_d7_to_d10</code></td>
+<td>Map Drupal 7 modules to D10 equivalents using AI + known mappings.<br><em>Turning a legacy module list into replacement decisions when known mappings do not cover everything</em></td>
+<td><code>{"module_list": []}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>find_deprecated_code</code></td>
+<td>Scan custom modules for deprecated Drupal APIs.<br><em>Triaging a custom codebase by pointing at the specific files still calling removed APIs</em></td>
+<td><code>{"site_path": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><a href="../#find_entity_references"><code>find_entity_references</code></a></td>
+<td>Find which bundles use reference fields targeting an entity type.<br><em>Before retiring a vocabulary or content type, seeing which bundles reference it</em></td>
+<td><code>{"entity_type": "node"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><a href="../#search_entities"><code>search_entities</code></a></td>
+<td>Case-insensitive substring search across entity titles and names.<br><em>Given a title or username from a support ticket, locating the entity without knowing its id</em></td>
+<td><code>{"query": "keyword"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><a href="../#find_entity_by_path"><code>find_entity_by_path</code></a></td>
+<td>Resolve a URL path or alias ("/about", "/node/123") to its entity.<br><em>Tracing a URL from analytics back to the node, term, or user that actually serves it</em></td>
+<td><code>{"path": "/about"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+</tbody>
+</table>
+<h2 id="ai">ai<a class="headerlink" href="#ai" title="Permanent link">&para;</a></h2>
+<p>AI — 4 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ai_analyze_content_quality</code></td>
+<td>Analyze content quality using AI.<br><em>Reviewing node bodies at volume for thin or poorly structured text before publication</em></td>
+<td><code>{"content": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>ai_suggest_field_mappings</code></td>
+<td>Suggest field mappings using AI.<br><em>When source field names do not match the target bundle, getting a first-pass mapping to review</em></td>
+<td><code>{"source_fields": [], "target_bundle": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>ai_generate_migration_plan</code></td>
+<td>Generate migration plan using AI.<br><em>Early in an unfamiliar upgrade, wanting a draft migration approach to refine with the team</em></td>
+<td><code>{"source_type": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>ai_translate_content</code></td>
+<td>Translate content using AI.<br><em>Localizing a body of content into another language without a human translator in the loop</em></td>
+<td><code>{"content": "value", "target_lang": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+</tbody>
+</table>
+<h2 id="codebase">codebase<a class="headerlink" href="#codebase" title="Permanent link">&para;</a></h2>
+<p>Codebase — 12 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>codebase_index_refresh</code></td>
+<td>Rebuild the local codebase module index.<br><em>Right after installing or creating modules, making sure the other codebase tools see them</em></td>
+<td><code>{}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>codebase_search</code></td>
+<td>Search the local codebase for modules providing a capability.<br><em>Looking for existing code that already provides a capability before writing a new module</em></td>
+<td><code>{"query": "keyword"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>codebase_module_list</code></td>
+<td>List indexed local modules with metadata.<br><em>Auditing what custom, contrib, and core code ships with the project docroot</em></td>
+<td><code>{}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>codebase_module_describe</code></td>
+<td>Describe one local module in full.<br><em>Deciding whether to touch a module by seeing its hooks, routes, and reverse dependencies first</em></td>
+<td><code>{"module": "mymodule"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>codebase_unused_modules</code></td>
+<td>List custom/contrib modules nothing references and that define no hooks.<br><em>Preparing a cleanup pass and needing modules nothing depends on or hooks through</em></td>
+<td><code>{}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>codebase_redundancy_check</code></td>
+<td>Check whether the local codebase already covers a capability.<br><em>Before scaffolding new code, confirming the capability is not already covered nearby</em></td>
+<td><code>{"query": "keyword"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>codebase_hooks_find</code></td>
+<td>Find which local modules implement a hook, with file and line.<br><em>Debugging unexpected behavior by finding which modules implement a given hook, with file and line</em></td>
+<td><code>{"hook_name": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>codebase_paths_list</code></td>
+<td>Show the configured docroot and the module directories indexed.<br><em>When search results look incomplete, verifying which directories are actually indexed</em></td>
+<td><code>{}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>codebase_files_list</code></td>
+<td>List every file in a local module as module-relative paths.<br><em>Getting the exact module-relative path before reading a file or pulling out a function</em></td>
+<td><code>{"module": "mymodule"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>codebase_directory_tree</code></td>
+<td>Show a local module's directory structure as a nested tree.<br><em>Getting a quick sense of an unfamiliar module's layout before reading into it</em></td>
+<td><code>{"module": "mymodule"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>codebase_file_read</code></td>
+<td>Read one file from a local module.<br><em>Reviewing a module's .module or YAML from the agent without opening a terminal on the server</em></td>
+<td><code>{"module": "mymodule", "path": "/about"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>codebase_function_read</code></td>
+<td>Extract a single PHP function (with its docblock) from a module.<br><em>Pulling one hook or method with its docblock instead of paging through whole files</em></td>
+<td><code>{"module": "mymodule", "function_name": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+</tbody>
+</table>
+<h2 id="module_dev">module_dev<a class="headerlink" href="#module_dev" title="Permanent link">&para;</a></h2>
+<p>Module Dev — 12 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>module_create</code></td>
+<td>Create a new Drupal module with full scaffolding.<br><em>Starting a custom module and wanting routing, services, permissions, and schema in place at once</em></td>
+<td><code>{"name": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>module_service_create</code></td>
+<td>Create a service definition with PHP class stub.<br><em>Adding an injectable service to an existing module without hand-editing services.yml and the class</em></td>
+<td><code>{"machine_name": "value", "service_name": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>module_plugin_create</code></td>
+<td>Create a plugin (block, field, views, etc.) with proper scaffolding.<br><em>Needing a block, Views plugin, or field widget with the right base class and annotations wired</em></td>
+<td><code>{"machine_name": "value", "plugin_type": "value", "plugin_id": "value", "label": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>module_form_create</code></td>
+<td>Create a form class (ConfigForm, ConfirmForm, FormBase, etc.) with proper scaffolding.<br><em>Adding a settings or confirmation form and wanting its route and service registration handled too</em></td>
+<td><code>{"machine_name": "value", "form_name": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>module_controller_create</code></td>
+<td>Create a controller class with routing.<br><em>Standing up a new page backed by a controller class with matching routing entries</em></td>
+<td><code>{"machine_name": "value", "controller_name": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>module_event_subscriber_create</code></td>
+<td>Create an event subscriber service with getSubscribedEvents method.<br><em>Replacing a deprecated hook or Rules reaction with a subscriber correctly tagged in the container</em></td>
+<td><code>{"machine_name": "value", "subscriber_name": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>module_hook_implement</code></td>
+<td>Implement a hook in an existing module.<br><em>Dropping a standard hook implementation into an existing module instead of typing boilerplate</em></td>
+<td><code>{"machine_name": "value", "hook": "value"}</code></td>
+<td>🧩 ddev · 🧩 lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>module_info_generate</code></td>
+<td>Generate .info.yml from existing module code (reverse engineering).<br><em>Adopting a module missing its .info.yml and inferring one from the code that already exists</em></td>
+<td><code>{"machine_name": "value"}</code></td>
+<td>🧩 ddev · 🧩 lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>module_permission_create</code></td>
+<td>Create or update permissions.yml with custom permissions.<br><em>Adding permission strings so roles can be granted access without editing YAML by hand</em></td>
+<td><code>{"machine_name": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>module_config_schema_create</code></td>
+<td>Create or update config schema YAML for module settings.<br><em>Before config export or upgrade, giving module settings a typed schema Drupal will validate</em></td>
+<td><code>{"machine_name": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>module_test_create</code></td>
+<td>Create a PHPUnit/Kernel test skeleton.<br><em>Starting coverage for a module and needing the right base class, directory, and group annotation</em></td>
+<td><code>{"machine_name": "value", "test_name": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>module_dependencies_analyze</code></td>
+<td>Analyze module code and suggest missing dependencies.<br><em>Before shipping, catching dependencies used in code but missing from the info.yml</em></td>
+<td><code>{"machine_name": "value"}</code></td>
+<td>🧩 ddev · 🧩 lando · ❔ not live-verified</td>
+</tr>
+</tbody>
+</table>
+<h2 id="theme_dev">theme_dev<a class="headerlink" href="#theme_dev" title="Permanent link">&para;</a></h2>
+<p>Theme Dev — 11 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>theme_create</code></td>
+<td>Create a new Drupal theme with full scaffolding.<br><em>Kicking off a new custom theme without hand-writing the info.yml, .theme, and templates</em></td>
+<td><code>{"name": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>theme_library_create</code></td>
+<td>Create or update a theme library.<br><em>Adding or versioning a CSS/JS library so the theme can finally attach new assets</em></td>
+<td><code>{"machine_name": "value", "library_name": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>theme_region_create</code></td>
+<td>Add a region to theme.<br><em>A layout needs one more sidebar without hand-editing the region list in info.yml</em></td>
+<td><code>{"machine_name": "value", "region_name": "value", "region_label": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>theme_template_override</code></td>
+<td>Create a template override in theme.<br><em>Copying a core template into the theme so markup can be edited without patching core</em></td>
+<td><code>{"machine_name": "value", "template_name": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>theme_preprocess_function</code></td>
+<td>Add a preprocess function to theme.<br><em>Exposing an extra variable to Twig without remembering the exact hook signature</em></td>
+<td><code>{"machine_name": "value", "hook": "value", "code": "value"}</code></td>
+<td>🧩 ddev · 🧩 lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>theme_breakpoint_create</code></td>
+<td>Add a breakpoint to theme.<br><em>Defining breakpoints that match the designer's specs for responsive images</em></td>
+<td><code>{"machine_name": "value", "breakpoint_id": "value", "label": "value", "media_query": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>theme_base_change</code></td>
+<td>Change the base theme.<br><em>Moving off a starter theme once the design system no longer needs it</em></td>
+<td><code>{"machine_name": "value", "new_base_theme": "value"}</code></td>
+<td>🧩 ddev · 🧩 lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>theme_settings_form</code></td>
+<td>Generate theme settings form.<br><em>Giving site builders a settings form for logo, color, or layout toggles in the UI</em></td>
+<td><code>{"machine_name": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>theme_asset_optimize</code></td>
+<td>Configure theme asset optimization.<br><em>Trimming CSS/JS aggregation settings while chasing a slow first paint</em></td>
+<td><code>{"machine_name": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>theme_debug_enable</code></td>
+<td>Enable theme debugging (Twig debug, etc.).<br><em>Chasing which Twig template actually rendered a block when the output looks wrong</em></td>
+<td><code>{"machine_name": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>theme_lint_twig</code></td>
+<td>Lint Twig templates in theme.<br><em>Catching a syntax slip before a cache rebuild white-screens the page</em></td>
+<td><code>{"machine_name": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+</tbody>
+</table>
+<h2 id="theme_analysis">theme_analysis<a class="headerlink" href="#theme_analysis" title="Permanent link">&para;</a></h2>
+<p>Theme Analysis — 8 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="../#theme_active"><code>theme_active</code></a></td>
+<td>List the site's themes: default, admin, and every enabled one.<br><em>Confirming which theme owns the front end versus the admin before making changes</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>theme_info</code></td>
+<td>Describe one theme: metadata, base-theme chain, regions, libraries.<br><em>Checking a theme's base-theme chain and libraries before building on top of it</em></td>
+<td><code>{"theme_name": "olivero"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>theme_regions</code></td>
+<td>Region layout of a theme with the blocks placed in each one.<br><em>Planning a block layout and needing to know which regions actually exist</em></td>
+<td><code>{"theme_name": "olivero"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><a href="../#theme_blocks"><code>theme_blocks</code></a></td>
+<td>List placed blocks with optional theme, region, and text filters.<br><em>Hunting down which region a stray block is placed in across enabled themes</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>theme_templates</code></td>
+<td>List a theme's Twig templates (<code>*.html.twig</code>) with sizes.<br><em>Surveying how many templates a theme ships before deciding where to add overrides</em></td>
+<td><code>{"theme_name": "olivero"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>theme_template_overrides</code></td>
+<td>Which core/module templates a theme overrides, and which it invented.<br><em>Checking whether your theme already overrides a module template you are about to edit</em></td>
+<td><code>{"theme_name": "olivero"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><a href="../#template_suggestions"><code>template_suggestions</code></a></td>
+<td>Twig template names Drupal will try for an entity, specific first.<br><em>Naming a template like node--article--unpublished.html.twig and verifying Drupal looks for it</em></td>
+<td><code>{"entity_type": "node"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><a href="../#view_template_info"><code>view_template_info</code></a></td>
+<td>Template names for overriding a Views display, verified against the site.<br><em>Overriding a Views display and needing the exact template names the site will try</em></td>
+<td><code>{"view_name": "content"}</code></td>
+<td>🧩 ddev · 🧩 lando · 🧪 unit</td>
+</tr>
+</tbody>
+</table>
+<h2 id="code_audit">code_audit<a class="headerlink" href="#code_audit" title="Permanent link">&para;</a></h2>
+<p>Code Audit — 7 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>code_audit_phpstan</code></td>
+<td>Run PHPStan static analysis on Drupal custom modules.<br><em>Finding type errors and dead code in a custom module before it hits code review</em></td>
+<td><code>{"path": "/about"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>drupal_check</code></td>
+<td>Run Drupal Check for deprecated code detection.<br><em>Upgrading to Drupal 11 and needing to know which custom code uses deprecated APIs</em></td>
+<td><code>{"path": "/about"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>code_sniffer</code></td>
+<td>Run PHP_CodeSniffer with Drupal coding standards.<br><em>Checking a patch against Drupal coding standards before submitting it</em></td>
+<td><code>{"path": "/about"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>deprecation_scan</code></td>
+<td>Scan for deprecated Drupal API usage.<br><em>Scoping how much work a core upgrade will take across the whole custom codebase</em></td>
+<td><code>{"path": "/about"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>security_audit</code></td>
+<td>Run security-focused static analysis.<br><em>Getting a strict static analysis pass over hand-written code prior to an external review</em></td>
+<td><code>{"path": "/about"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>composer_audit</code></td>
+<td>Run Composer security audit on dependencies.<br><em>Before deploying, checking whether installed dependencies carry known advisories</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>code_quality_report</code></td>
+<td>Run multiple code quality tools and generate combined report.<br><em>Wanting one combined lint and analysis summary instead of running three tools separately</em></td>
+<td><code>{"path": "/about"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+</tbody>
+</table>
+<h2 id="security_audit">security_audit<a class="headerlink" href="#security_audit" title="Permanent link">&para;</a></h2>
+<p>Security Audit — 10 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>security_scan</code></td>
+<td>Run security-focused SAST using PHPStan with security extensions.<br><em>A pre-release SAST pass on custom code where only PHPStan and its security extension matter</em></td>
+<td><code>{"path": "/about"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>dependency_scan</code></td>
+<td>Scan dependencies for vulnerabilities using Composer audit and other tools.<br><em>Checking composer packages against vulnerability advisories before tagging a release</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>config_security_check</code></td>
+<td>Check Drupal configuration for security issues.<br><em>Auditing exported config for risky settings before pushing it to production</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>permission_audit</code></td>
+<td>Audit user permissions and roles.<br><em>After a role change, confirming no regular user quietly gained an admin-only permission</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>sql_injection_scan</code></td>
+<td>Scan for SQL injection vulnerabilities in custom code.<br><em>Reviewing custom database queries for unsanitized input before the code goes live</em></td>
+<td><code>{"path": "/about"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>xss_scan</code></td>
+<td>Scan for XSS vulnerabilities in custom code.<br><em>Checking custom output for unescaped user-supplied input ahead of a security review</em></td>
+<td><code>{"path": "/about"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>csp_audit</code></td>
+<td>Content Security Policy audit.<br><em>The browser console shows CSP violations and you need to know which directive to relax</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>file_permissions_audit</code></td>
+<td>Audit file permissions for security issues.<br><em>Hardening a public files directory where an uploaded executable would be a problem</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><a href="../#code_security_scan"><code>code_security_scan</code></a></td>
+<td>Scan custom code for vulnerability patterns — no tools to install.<br><em>A quick vulnerability-pattern sweep of custom modules with no vendor tools installed</em></td>
+<td><code>{}</code></td>
+<td>🧩 ddev · 🧩 lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><a href="../#route_access_audit"><code>route_access_audit</code></a></td>
+<td>Classify every route's access control from *.routing.yml files.<br><em>Finding routes with no access check before the site is exposed publicly</em></td>
+<td><code>{}</code></td>
+<td>🧩 ddev · 🧩 lando · 🧪 unit</td>
+</tr>
+</tbody>
+</table>
+<h2 id="headless">headless<a class="headerlink" href="#headless" title="Permanent link">&para;</a></h2>
+<p>Headless — 10 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>jsonapi_schema_get</code></td>
+<td>Get JSON:API schema (OpenAPI/Swagger).<br><em>Building a front-end client and needing the whole JSON:API surface in OpenAPI form</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>jsonapi_include_optimize</code></td>
+<td>Get optimized include paths for entity type.<br><em>A JSON:API request is round-tripping several times and you want the correct include path</em></td>
+<td><code>{"entity_type": "node", "includes": []}</code></td>
+<td>⚠️ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>jsonapi_sparse_fieldsets</code></td>
+<td>Get entity with sparse fieldsets (only requested fields).<br><em>Shrinking a heavy JSON:API response down to only the fields the page renders</em></td>
+<td><code>{"entity_type": "node", "fields": {"title": "Hello"}}</code></td>
+<td>✅ ddev · 🧩 lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>graphql_schema_get</code></td>
+<td>Get GraphQL schema.<br><em>Writing a GraphQL query without knowing which types and fields the site exposes</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>graphql_query</code></td>
+<td>Execute a GraphQL query.<br><em>Fetching exactly the content fields a component needs from a decoupled front end</em></td>
+<td><code>{"query": "keyword"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>graphql_schema_extend</code></td>
+<td>Extend GraphQL schema with custom fields (requires schema customization module).<br><em>A component needs a computed field that Drupal's default schema does not expose</em></td>
+<td><code>{"type_name": "value", "fields": {"title": "Hello"}}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>nextjs_helpers_generate</code></td>
+<td>Generate Next.js helper functions for Drupal entities.<br><em>Scaffolding typed fetch helpers for a Next.js site consuming Drupal content</em></td>
+<td><code>{"entity_types": []}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>gatsby_helpers_generate</code></td>
+<td>Generate Gatsby source plugin config and helpers.<br><em>Wiring a Gatsby site to Drupal data without writing the source plugin config by hand</em></td>
+<td><code>{"entity_types": []}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>jsonapi_resources_list</code></td>
+<td>List all available JSON:API resources.<br><em>Discovering which endpoints exist before writing a single API request</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>jsonapi_resource_types</code></td>
+<td>Get all resource types available in JSON:API.<br><em>Checking available types and bundles before filtering a JSON:API collection query</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+</tbody>
+</table>
+<h2 id="drupal_org">drupal_org<a class="headerlink" href="#drupal_org" title="Permanent link">&para;</a></h2>
+<p>Drupal.org — 12 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>module_search</code></td>
+<td>Search Drupal.org for modules by name or description.<br><em>Looking for an existing contributed solution before deciding to build a custom module</em></td>
+<td><code>{"query": "keyword"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>module_get</code></td>
+<td>Get module details from Drupal.org by machine name.<br><em>Vetting a module's maintenance status before adding it to the composer require list</em></td>
+<td><code>{"project_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>module_versions</code></td>
+<td>Get all available releases for a module.<br><em>Pinning an exact release in composer.lock instead of guessing at a tag</em></td>
+<td><code>{"project_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>module_dependencies</code></td>
+<td>Get the packages a module release requires.<br><em>Checking what a module will pull into a lean build before committing to it</em></td>
+<td><code>{"project_id": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>theme_search</code></td>
+<td>Search Drupal.org for themes by name or description.<br><em>Hunting for a contributed theme to base a new client site on</em></td>
+<td><code>{"query": "keyword"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>theme_get</code></td>
+<td>Get theme details from Drupal.org by machine name.<br><em>Confirming a contrib theme is actively maintained before adopting it</em></td>
+<td><code>{"project_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>release_history</code></td>
+<td>Get release history for a project.<br><em>Judging whether a project is alive by looking at its release cadence</em></td>
+<td><code>{"project_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>project_usage</code></td>
+<td>Get download/usage statistics for a project.<br><em>Weighing a module choice by how many production sites actually run it</em></td>
+<td><code>{"project_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>module_compatibility</code></td>
+<td>Check whether a project has releases for a given core version.<br><em>Before a Drupal 11 upgrade, checking which contrib projects still publish releases</em></td>
+<td><code>{"project_id": "value"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>module_issues_search</code></td>
+<td>Search a module's drupal.org issue queue for issues that match a problem.<br><em>A contrib bug is blocking you and you want to see whether someone already filed it</em></td>
+<td><code>{"module_name": "value", "problem_description": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>module_popular</code></td>
+<td>List the most-installed modules on Drupal.org, newest usage first.<br><em>Browsing what the community widely installs when the shortlist is still empty</em></td>
+<td><code>{}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>module_recommendation</code></td>
+<td>Recommend modules for a need: what the local codebase already ships, plus drupal.org options.<br><em>Turning a plain need like add a newsletter into options filtered by what is already installed</em></td>
+<td><code>{"need": "value"}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+</tbody>
+</table>
+<h2 id="testing">testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h2>
+<p>Testing — 9 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>test_run_phpunit</code></td>
+<td>Run PHPUnit tests.<br><em>Verifying a change to custom logic did not break existing unit behavior before committing</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>test_run_kernel</code></td>
+<td>Run Kernel tests.<br><em>Exercising hooks and entity storage against a real Drupal kernel after a change</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>test_run_behat</code></td>
+<td>Run Behat tests.<br><em>Checking a user-facing workflow end to end before calling a feature done</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>test_run_nightwatch</code></td>
+<td>Run Nightwatch tests.<br><em>Validating browser-side JS and admin UI behavior ahead of a release</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>test_scaffold_phpunit</code></td>
+<td>Scaffold a PHPUnit test class.<br><em>Starting a test for a custom class without recalling the Drupal TestCase boilerplate</em></td>
+<td><code>{"module": "mymodule"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>test_scaffold_behat</code></td>
+<td>Scaffold a Behat feature file.<br><em>Turning a user story into an executable feature file in one step</em></td>
+<td><code>{"module": "mymodule", "feature_name": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>test_scaffold_nightwatch</code></td>
+<td>Scaffold a Nightwatch test.<br><em>Adding browser coverage for a new admin workflow the team just shipped</em></td>
+<td><code>{"module": "mymodule", "test_name": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>test_coverage_report</code></td>
+<td>Generate test coverage report.<br><em>Seeing which parts of a custom module still have zero test coverage</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>test_list_suites</code></td>
+<td>List available test suites.<br><em>Not sure which runner applies, so checking what test suites this site exposes</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+</tbody>
+</table>
+<h2 id="accessibility">accessibility<a class="headerlink" href="#accessibility" title="Permanent link">&para;</a></h2>
+<p>Accessibility — 5 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>accessibility_axe_scan</code></td>
+<td>Run axe-core accessibility scan on a URL.<br><em>Running an automated accessibility check on a key page before an audit or launch</em></td>
+<td><code>{"url": "value"}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>accessibility_wcag_check</code></td>
+<td>Check WCAG compliance for entity content.<br><em>Before publishing, checking a content type's rendered output against WCAG criteria</em></td>
+<td><code>{"entity_type": "node", "entity_id": "value"}</code></td>
+<td>✅ ddev · ⚠️ lando · ❔ not live-verified</td>
+</tr>
+<tr>
+<td><code>accessibility_color_contrast</code></td>
+<td>Check color contrast ratio.<br><em>Choosing a brand color pairing that still passes AA contrast on text</em></td>
+<td><code>{"foreground": "value", "background": "value"}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>accessibility_aria_validate</code></td>
+<td>Validate ARIA attributes on entity.<br><em>A custom template's accordion misbehaves and the ARIA markup may be at fault</em></td>
+<td><code>{"entity_type": "node", "entity_id": "value"}</code></td>
+<td>✅ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>accessibility_report_generate</code></td>
+<td>Generate comprehensive accessibility report.<br><em>Handing an auditor one consolidated report instead of scattered scan results</em></td>
+<td><code>{"urls": []}</code></td>
+<td>✅ ddev · ✅ lando · ❔ not live-verified</td>
+</tr>
+</tbody>
+</table>
+<h2 id="exports">exports<a class="headerlink" href="#exports" title="Permanent link">&para;</a></h2>
+<p>Exports — 4 tools.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description &amp; use case</th>
+<th>Example</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="../#export_nodes"><code>export_nodes</code></a></td>
+<td>Export a node inventory to a CSV or Excel file on disk.<br><em>Handing a client a full content inventory without exporting by hand</em></td>
+<td><code>{}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>export_users</code></td>
+<td>Export the site's user accounts to a CSV or Excel file on disk.<br><em>Preparing a user list for a migration or an account cleanup review</em></td>
+<td><code>{}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>export_media</code></td>
+<td>Export the media library to a CSV or Excel file on disk.<br><em>Auditing the media library for unused assets before a cleanup sprint</em></td>
+<td><code>{}</code></td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
+</tr>
+<tr>
+<td><code>export_taxonomy</code></td>
+<td>Export taxonomy terms to a CSV or Excel file on disk.<br><em>Mapping existing terms into a new vocabulary structure during a re-architecture</em></td>
+<td><code>{}</code></td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
