@@ -98,8 +98,13 @@ def _provision_node() -> str:
 # DDEV 1.24 silently drops, leaving an empty docroot so nginx serves the
 # project root and every request 404s. Running it here catches that.
 STEPS = [
+    # project_name is "." because the server itself runs inside PROJECT
+    # (main() spawns it with `cd {PROJECT}`): passing "drupal-live" here
+    # resolved against the server's cwd and nested a second
+    # drupal-live/drupal-live/.ddev/config.yaml, which ddev start then
+    # could not find - the first CI run failed exactly there.
     ("write .ddev/config.yaml", "ddev_setup", {
-        "project_name": "drupal-live",
+        "project_name": ".",
         "drupal_version": "10",
         "docroot": "web",
     }, False),
