@@ -24,7 +24,10 @@ class DrushClient:
         if not self._drush:
             self._drush = ["drush"]
         self._alias = str(getattr(settings, "DRUSH_ALIAS", "") or "")
-        self._timeout = 120  # seconds
+        # Not retried anywhere: drush commands mutate by default, and a
+        # timed-out `user:create` that actually succeeded would be created
+        # twice by a retry.
+        self._timeout = int(getattr(settings, "DRUSH_TIMEOUT", 120))
 
     def _command(self, command: str, args: list[str], with_format: bool = True) -> list[str]:
         argv = list(self._drush)

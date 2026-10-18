@@ -1,5 +1,6 @@
 """Base HTTP client for Drupal REST endpoints."""
 
+import asyncio
 from typing import Any, cast
 
 import httpx
@@ -11,11 +12,15 @@ class DrupalBaseClient:
     # Media type for requests. JSON:API rejects application/json with 415.
     _media_type = "application/json"
 
+    # Backoff before the first retry, doubled per further attempt.
+    _retry_backoff = 0.5
+
     def __init__(self, settings: Any, auth_manager: Any = None):
         self.settings = settings
         self.auth_manager = auth_manager
         self._base_url = settings.DRUPAL_BASE_URL.rstrip("/")
-        self._timeout = 60
+        self._timeout = int(getattr(settings, "DRUPAL_HTTP_TIMEOUT", 60))
+        self._retries = max(0, int(getattr(settings, "DRUPAL_HTTP_RETRIES", 2)))
         self._verify_ssl = bool(getattr(settings, "DRUPAL_VERIFY_SSL", True))
 
     def _cookies(self) -> dict[str, str]:
@@ -113,17 +118,41 @@ class DrupalBaseClient:
         json_body: Any = None,
         data: dict[str, Any] | None = None,
     ) -> httpx.Response:
-        """Perform an HTTP request and return the raw response."""
+        """Perform an HTTP request and return the raw response.
+
+        Idempotent reads (GET) retry transient failures — timeouts, connection
+        resets, and 502/503/504 — with a short backoff: a busy dev container
+        answers slowly under load without anything being wrong with the
+        request, and one dropped read used to be enough to fail a tool that
+        then reported nothing actionable.
+
+        Mutations are never retried. A POST/PATCH/DELETE that timed out may
+        already have landed on the site, and re-issuing it could duplicate a
+        node or double a deletion; the caller gets the failure and decides.
+        """
         url = self._build_url(endpoint)
-        async with self._client() as client:
-            return await client.request(
-                method,
-                url,
-                headers=self._headers(),
-                params=params,
-                json=json_body,
-                data=data,
-            )
+        attempts = 1 + (self._retries if method == "GET" else 0)
+        for attempt in range(attempts):
+            try:
+                async with self._client() as client:
+                    response = await client.request(
+                        method,
+                        url,
+                        headers=self._headers(),
+                        params=params,
+                        json=json_body,
+                        data=data,
+                    )
+            except httpx.TransportError:
+                # ReadTimeout, ConnectError, protocol resets: no usable
+                # response came back, so nothing may have been applied yet.
+                if attempt + 1 >= attempts:
+                    raise
+            else:
+                if response.status_code not in (502, 503, 504) or attempt + 1 >= attempts:
+                    return response
+            await asyncio.sleep(self._retry_backoff * (2**attempt))
+        raise AssertionError("unreachable: the loop always returns or raises")  # pragma: no cover
 
     async def get(
         self,

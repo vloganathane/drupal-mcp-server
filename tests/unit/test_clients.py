@@ -8,6 +8,7 @@ import httpx
 import pytest
 
 from drupal_mcp_server.clients import JSONAPIClient
+from drupal_mcp_server.clients.base import DrupalBaseClient
 
 
 class FakeSettings:
@@ -794,3 +795,105 @@ def test_list_arguments_are_not_character_split():
     from drupal_mcp_server.clients.drush import DrushClient
 
     assert DrushClient._flatten(["cron"]) == ["cron"]
+
+
+# --- Transient-failure retries (DRUPAL_HTTP_RETRIES / DRUPAL_HTTP_TIMEOUT) ---
+
+
+@pytest.mark.asyncio
+async def test_get_retries_a_transient_read_timeout(monkeypatch: pytest.MonkeyPatch):
+    """A dropped read under host load must not fail the tool outright."""
+    calls = {"n": 0}
+
+    def responder(entry: dict[str, Any]) -> FakeResponse:
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise httpx.ReadTimeout("timed out")
+        return FakeResponse()
+
+    _capture(monkeypatch, responder=responder)
+    client = DrupalBaseClient(FakeSettings())
+    client._retry_backoff = 0
+    assert await client.get("/ping") == {"data": []}
+    assert calls["n"] == 2
+
+
+@pytest.mark.asyncio
+async def test_get_gives_up_after_the_configured_attempts(monkeypatch: pytest.MonkeyPatch):
+    settings = FakeSettings()
+    settings.DRUPAL_HTTP_RETRIES = 1
+    calls = {"n": 0}
+
+    def responder(entry: dict[str, Any]) -> FakeResponse:
+        calls["n"] += 1
+        raise httpx.ReadTimeout("timed out")
+
+    _capture(monkeypatch, responder=responder)
+    client = DrupalBaseClient(settings)
+    client._retry_backoff = 0
+    with pytest.raises(httpx.ReadTimeout):
+        await client.get("/ping")
+    assert calls["n"] == 2  # the original attempt plus one retry
+
+
+@pytest.mark.asyncio
+async def test_mutation_is_never_retried(monkeypatch: pytest.MonkeyPatch):
+    """A timed-out POST may already have landed; re-issuing it could
+    duplicate whatever it created."""
+    calls = {"n": 0}
+
+    def responder(entry: dict[str, Any]) -> FakeResponse:
+        calls["n"] += 1
+        raise httpx.ReadTimeout("timed out")
+
+    _capture(monkeypatch, responder=responder)
+    client = DrupalBaseClient(FakeSettings())
+    with pytest.raises(httpx.ReadTimeout):
+        await client.post("/ping", json_body={"a": 1})
+    assert calls["n"] == 1
+
+
+@pytest.mark.asyncio
+async def test_get_retries_a_gateway_error(monkeypatch: pytest.MonkeyPatch):
+    calls = {"n": 0}
+
+    def responder(entry: dict[str, Any]) -> FakeResponse:
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return FakeResponse(status_code=503, content=b"")
+        return FakeResponse()
+
+    _capture(monkeypatch, responder=responder)
+    client = DrupalBaseClient(FakeSettings())
+    client._retry_backoff = 0
+    assert await client.get("/ping") == {"data": []}
+    assert calls["n"] == 2
+
+
+@pytest.mark.asyncio
+async def test_get_does_not_retry_a_client_error(monkeypatch: pytest.MonkeyPatch):
+    calls = {"n": 0}
+
+    def responder(entry: dict[str, Any]) -> FakeResponse:
+        calls["n"] += 1
+        return FakeResponse(status_code=404, content=b'{"errors": []}')
+
+    _capture(monkeypatch, responder=responder)
+    client = DrupalBaseClient(FakeSettings())
+    with pytest.raises(httpx.HTTPStatusError):
+        await client.get("/ping")
+    assert calls["n"] == 1
+
+
+def test_http_timeout_comes_from_settings():
+    settings = FakeSettings()
+    settings.DRUPAL_HTTP_TIMEOUT = 5
+    assert DrupalBaseClient(settings)._timeout == 5
+
+
+def test_drush_timeout_comes_from_settings():
+    from drupal_mcp_server.clients.drush import DrushClient
+
+    settings = FakeSettings()
+    settings.DRUSH_TIMEOUT = 7
+    assert DrushClient(settings)._timeout == 7

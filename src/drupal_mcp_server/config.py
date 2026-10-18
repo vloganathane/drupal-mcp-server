@@ -33,6 +33,18 @@ class Settings(BaseSettings):
         default=True,
         description="Verify TLS certificates. Set false for self-signed dev certs (DDEV, Lando).",
     )
+    DRUPAL_HTTP_TIMEOUT: int = Field(
+        default=60,
+        description="Timeout in seconds for one outbound HTTP request to Drupal",
+    )
+    DRUPAL_HTTP_RETRIES: int = Field(
+        default=2,
+        description=(
+            "Extra attempts for GET requests on transient failures (timeout, "
+            "connection reset, 502/503/504). Mutations are never retried: a "
+            "timed-out POST may already have landed."
+        ),
+    )
 
     # Drush
     DRUSH_PATH: str = Field(
@@ -43,6 +55,10 @@ class Settings(BaseSettings):
         ),
     )
     DRUSH_ALIAS: str = Field(default="@self", description="Drush site alias")
+    DRUSH_TIMEOUT: int = Field(
+        default=120,
+        description="Timeout in seconds for one drush command. Not retried: drush commands mutate.",
+    )
 
     # Local codebase analysis (codebase index, theme templates, local scans)
     DRUPAL_ROOT: str | None = Field(

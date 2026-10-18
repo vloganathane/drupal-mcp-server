@@ -10,6 +10,8 @@ All configuration is done via environment variables or a `.env` file.
 | `DRUPAL_JSONAPI_PATH` | `/jsonapi` | JSON:API endpoint path |
 | `DRUPAL_GRAPHQL_PATH` | `/graphql` | GraphQL endpoint path |
 | `DRUPAL_VERIFY_SSL` | `true` | Set `false` for self-signed dev certificates (DDEV, Lando) |
+| `DRUPAL_HTTP_TIMEOUT` | `60` | Timeout in seconds for one outbound HTTP request to Drupal |
+| `DRUPAL_HTTP_RETRIES` | `2` | Extra attempts for **GET** requests on transient failures (timeout, connection reset, 502/503/504). Mutations are never retried: a timed-out POST may already have landed |
 
 ## Authentication
 
@@ -97,6 +99,7 @@ NVIDIA_NIM_MODEL=nvidia/nemotron-3-ultra
 |----------|---------|-------------|
 | `DRUSH_PATH` | `drush` | Command used to run Drush. May contain arguments |
 | `DRUSH_ALIAS` | `@self` | Drush site alias |
+| `DRUSH_TIMEOUT` | `120` | Timeout in seconds for one drush command. Not retried: drush commands mutate |
 
 Container-based setups are supported by putting the wrapper in `DRUSH_PATH`
 and starting the MCP server from the project directory, so the wrapper can
