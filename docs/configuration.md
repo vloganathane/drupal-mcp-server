@@ -36,6 +36,13 @@ DRUPAL_OAUTH_CLIENT_SECRET=your-client-secret
 DRUPAL_OAUTH_TOKEN_URL=https://yoursite.com/oauth/token
 ```
 
+These drive the **outbound** leg: the server POSTs
+`grant_type=client_credentials` to `DRUPAL_OAUTH_TOKEN_URL` and sends the
+resulting bearer to Drupal ([Architecture](architecture.md#auth-strategy-selection)).
+The same `DRUPAL_OAUTH_CLIENT_ID` doubles as the HTTP-transport guard's
+intent switch below — MCP-side tokens are issued and checked in-process,
+not by this endpoint ([ADR 0005](adr/0005-oauth-token-validation.md)).
+
 ### Bearer Token
 
 ```bash
@@ -63,8 +70,12 @@ transport is not just an API — anyone who can reach the bind address can run
 commands. Two defaults protect against that:
 
 - **the server refuses to start** an `http`/`sse`/`streamable-http` transport
-  unless OAuth is configured (`DRUPAL_OAUTH_CLIENT_ID`/`CLIENT_SECRET`/`TOKEN_URL`).
-  Set `MCP_ALLOW_INSECURE_HTTP=1` to override — that is a deliberate
+  unless `DRUPAL_OAUTH_CLIENT_ID` is set — the guard's deliberate-intent
+  switch. Once bound, tokens are issued and checked **in-process** by
+  FastMCP's bearer middleware, not delegated to Drupal
+  ([ADR 0005](adr/0005-oauth-token-validation.md)); `CLIENT_SECRET` and
+  `TOKEN_URL` belong to the outbound leg above. Set
+  `MCP_ALLOW_INSECURE_HTTP=1` to override — that is a deliberate
   decision, not an oversight, and only sane on loopback behind a trusted network;
 - **`MCP_HOST` binds `127.0.0.1`** rather than every interface. Serving to the
   network on purpose means setting `MCP_HOST` (and, typically, OAuth) on

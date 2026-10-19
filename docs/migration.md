@@ -76,8 +76,8 @@ New required variables:
 MCP_TRANSPORT=streamable-http
 MCP_HOST=127.0.0.1
 MCP_PORT=8000
-# HTTP transports refuse to start without OAuth; either configure
-# DRUPAL_OAUTH_CLIENT_ID/CLIENT_SECRET/TOKEN_URL or opt in explicitly:
+# HTTP transports refuse to start without an OAuth client; either set
+# DRUPAL_OAUTH_CLIENT_ID or opt in explicitly:
 MCP_ALLOW_INSECURE_HTTP=1
 ```
 

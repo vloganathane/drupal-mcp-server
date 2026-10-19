@@ -12,11 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 - Refuse to start an `http`, `sse` or `streamable-http` transport
-  unless OAuth is configured (`DRUPAL_OAUTH_CLIENT_ID`/`CLIENT_SECRET`/
-  `TOKEN_URL`). The tool surface executes drush, composer and shell
-  commands, so an unauthenticated listener was remote code execution
-  for anyone who could reach the bind address;
-  `MCP_ALLOW_INSECURE_HTTP=1` opts back in deliberately.
+  unless an OAuth client (`DRUPAL_OAUTH_CLIENT_ID`) is set. The tool
+  surface executes drush, composer and shell commands, so an
+  unauthenticated listener was remote code execution for anyone who
+  could reach the bind address; `MCP_ALLOW_INSECURE_HTTP=1` opts back
+  in deliberately.
 - `MCP_HOST` now defaults to `127.0.0.1` instead of `0.0.0.0`:
   serving to the network should be a decision, not a default.
 
