@@ -1186,6 +1186,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/0005-oauth-token-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0005 OAuth Token Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1629,6 +1657,12 @@ keep working on sites that do not expose <code>/user/login</code>.</p>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nv">DRUPAL_OAUTH_CLIENT_SECRET</span><span class="o">=</span>your-client-secret
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nv">DRUPAL_OAUTH_TOKEN_URL</span><span class="o">=</span>https://yoursite.com/oauth/token
 </code></pre></div>
+<p>These drive the <strong>outbound</strong> leg: the server POSTs
+<code>grant_type=client_credentials</code> to <code>DRUPAL_OAUTH_TOKEN_URL</code> and sends the
+resulting bearer to Drupal (<a href="../architecture/#auth-strategy-selection">Architecture</a>).
+The same <code>DRUPAL_OAUTH_CLIENT_ID</code> doubles as the HTTP-transport guard's
+intent switch below — MCP-side tokens are issued and checked in-process,
+not by this endpoint (<a href="../adr/0005-oauth-token-validation/">ADR 0005</a>).</p>
 <h3 id="bearer-token">Bearer Token<a class="headerlink" href="#bearer-token" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nv">DRUPAL_API_TOKEN</span><span class="o">=</span>your-pre-obtained-token
 </code></pre></div>
@@ -1682,8 +1716,12 @@ transport is not just an API — anyone who can reach the bind address can run
 commands. Two defaults protect against that:</p>
 <ul>
 <li><strong>the server refuses to start</strong> an <code>http</code>/<code>sse</code>/<code>streamable-http</code> transport
-  unless OAuth is configured (<code>DRUPAL_OAUTH_CLIENT_ID</code>/<code>CLIENT_SECRET</code>/<code>TOKEN_URL</code>).
-  Set <code>MCP_ALLOW_INSECURE_HTTP=1</code> to override — that is a deliberate
+  unless <code>DRUPAL_OAUTH_CLIENT_ID</code> is set — the guard's deliberate-intent
+  switch. Once bound, tokens are issued and checked <strong>in-process</strong> by
+  FastMCP's bearer middleware, not delegated to Drupal
+  (<a href="../adr/0005-oauth-token-validation/">ADR 0005</a>); <code>CLIENT_SECRET</code> and
+  <code>TOKEN_URL</code> belong to the outbound leg above. Set
+  <code>MCP_ALLOW_INSECURE_HTTP=1</code> to override — that is a deliberate
   decision, not an oversight, and only sane on loopback behind a trusted network;</li>
 <li><strong><code>MCP_HOST</code> binds <code>127.0.0.1</code></strong> rather than every interface. Serving to the
   network on purpose means setting <code>MCP_HOST</code> (and, typically, OAuth) on

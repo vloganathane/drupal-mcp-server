@@ -13,7 +13,7 @@
       
       
       
-        <link rel="prev" href="../adr/0004-http-transport/">
+        <link rel="prev" href="../adr/0005-oauth-token-validation/">
       
       
         <link rel="next" href="../SECURITY/">
@@ -954,6 +954,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/0005-oauth-token-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0005 OAuth Token Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1747,11 +1775,11 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <h3 id="security">Security<a class="headerlink" href="#security" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Refuse to start an <code>http</code>, <code>sse</code> or <code>streamable-http</code> transport
-  unless OAuth is configured (<code>DRUPAL_OAUTH_CLIENT_ID</code>/<code>CLIENT_SECRET</code>/
-  <code>TOKEN_URL</code>). The tool surface executes drush, composer and shell
-  commands, so an unauthenticated listener was remote code execution
-  for anyone who could reach the bind address;
-  <code>MCP_ALLOW_INSECURE_HTTP=1</code> opts back in deliberately.</li>
+  unless an OAuth client (<code>DRUPAL_OAUTH_CLIENT_ID</code>) is set. The tool
+  surface executes drush, composer and shell commands, so an
+  unauthenticated listener was remote code execution for anyone who
+  could reach the bind address; <code>MCP_ALLOW_INSECURE_HTTP=1</code> opts back
+  in deliberately.</li>
 <li><code>MCP_HOST</code> now defaults to <code>127.0.0.1</code> instead of <code>0.0.0.0</code>:
   serving to the network should be a decision, not a default.</li>
 </ul>
