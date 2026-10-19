@@ -81,6 +81,11 @@ commands. Two defaults protect against that:
   network on purpose means setting `MCP_HOST` (and, typically, OAuth) on
   purpose.
 
+Any client that can reach the port can register itself (RFC 7591) and
+walk the PKCE flow to a token: the flow proves the caller speaks MCP's
+OAuth dialect, not who the user is — which is why the loopback default
+is doing real work. See [ADR 0005](adr/0005-oauth-token-validation.md).
+
 ## AI Providers
 
 ```bash
