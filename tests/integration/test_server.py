@@ -239,6 +239,77 @@ def test_http_transport_accepts_a_token_it_issued_and_refuses_the_others() -> No
     assert forged == 401
 
 
+def test_a_valid_token_missing_a_required_scope_is_refused() -> None:
+    """Authentication and authorization are separate checks.
+
+    The provider defaults `required_scopes` to
+    `["drupal:read", "drupal:write"]` and the production factory passes
+    no override, so every token accepted at the socket must carry both.
+    The issued-and-accepted test above proves identity is checked; this
+    proves authority is — without it the whole role/scope table could be
+    decorative and every existing test would still pass.
+    """
+    import httpx
+    from fastmcp import FastMCP
+
+    from drupal_mcp_server.auth.mcp_oauth import DrupalOAuthProvider
+
+    base = "https://example.test"
+    initialize = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+            "protocolVersion": "2024-11-05",
+            "capabilities": {},
+            "clientInfo": {"name": "probe", "version": "1"},
+        },
+    }
+
+    async def probe(scopes: list[str]) -> int:
+        # No required_scopes argument: the constructor default is what
+        # get_mcp_oauth_provider() hands to a real socket.
+        provider = DrupalOAuthProvider(base_url=base)
+        mcp = FastMCP("probe", auth=provider)
+
+        @mcp.tool
+        async def ping() -> str:
+            """Ping."""
+            return "pong"
+
+        client_info = type("C", (), {"client_id": "client-1"})()
+        params = type(
+            "P",
+            (),
+            {
+                "redirect_uri": "https://example.test/callback",
+                "code_challenge": None,
+                "scopes": scopes,
+            },
+        )()
+        redirect = await provider.authorize(client_info, params)
+        token = await provider.exchange_authorization_code(
+            client_info, str(redirect).split("code=")[1]
+        )
+
+        app = mcp.http_app(path="/mcp")
+        async with app.lifespan(app):
+            async with httpx.AsyncClient(
+                transport=httpx.ASGITransport(app=app), base_url=base
+            ) as client:
+                response = await client.post(
+                    "/mcp",
+                    json=initialize,
+                    headers={"Authorization": f"Bearer {token.access_token}"},
+                )
+                return response.status_code
+
+    read_only = asyncio.run(probe(["drupal:read"]))
+    full = asyncio.run(probe(["drupal:read", "drupal:write"]))
+    assert read_only == 403, "a token missing drupal:write passed the scope check"
+    assert full == 200, "the production default scopes over-block a complete token"
+
+
 def test_required_parameters_are_declared_in_properties() -> None:
     """A `required` entry with no matching property is unsatisfiable, so a
     client could never construct a valid call for that tool."""

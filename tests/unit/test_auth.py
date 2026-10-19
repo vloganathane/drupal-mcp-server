@@ -334,3 +334,87 @@ def test_no_auth_at_all_yields_no_authorization_header():
         DRUPAL_API_TOKEN = None
 
     assert "Authorization" not in AuthManager(Anonymous()).get_headers()
+
+
+def _outbound_settings() -> FakeSettings:
+    """The settings shape that selects client-credentials auth."""
+
+    class Outbound(FakeSettings):
+        DRUPAL_OAUTH_TOKEN_URL = "https://example.test/oauth/token"
+        DRUPAL_OAUTH_CLIENT_ID = "mcp-client"
+        DRUPAL_OAUTH_CLIENT_SECRET = "mcp-secret"
+        DRUPAL_USERNAME = None
+        DRUPAL_PASSWORD = None
+
+    return Outbound()
+
+
+def test_client_credentials_leg_posts_the_configured_grant(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """`DRUPAL_OAUTH_TOKEN_URL` selects client-credentials auth, yet every
+    other test sets it to None to reach the session path — so the grant
+    that actually reaches Drupal, carrying these credentials, was never
+    observed.
+    """
+    from drupal_mcp_server.auth import AuthManager
+
+    posted: dict[str, Any] = {}
+
+    class _Resp:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict[str, str]:
+            return {"access_token": "tok-outbound"}
+
+    def _post(url: str, *, data: dict[str, str], timeout: float) -> _Resp:
+        posted.update({"url": url, "data": data, "timeout": timeout})
+        return _Resp()
+
+    monkeypatch.setattr("httpx.post", _post)
+    manager = AuthManager(_outbound_settings())
+
+    assert posted == {
+        "url": "https://example.test/oauth/token",
+        "data": {
+            "grant_type": "client_credentials",
+            "client_id": "mcp-client",
+            "client_secret": "mcp-secret",
+        },
+        "timeout": 30.0,
+    }
+    assert manager.get_headers() == {"Authorization": "Bearer tok-outbound"}
+
+
+def test_an_unreachable_token_endpoint_degrades_to_an_empty_bearer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Startup must not crash when Drupal is unreachable: the fetch
+    swallows the failure and the leg degrades to an empty bearer rather
+    than raising — the failure mode, pinned so it stays visible."""
+    from drupal_mcp_server.auth import AuthManager
+
+    def _post(*args: Any, **kwargs: Any) -> None:
+        raise ConnectionError("connection refused")
+
+    monkeypatch.setattr("httpx.post", _post)
+    manager = AuthManager(_outbound_settings())
+
+    assert manager.get_headers() == {"Authorization": "Bearer "}
+
+
+def test_the_network_provider_ships_the_read_and_write_requirement() -> None:
+    """The factory hands the socket the constructor default — pin it, so
+    the guard cannot silently widen to "any authenticated token"."""
+    from drupal_mcp_server.auth import AuthManager
+
+    class Networked(FakeSettings):
+        MCP_TRANSPORT = "http"
+        DRUPAL_OAUTH_CLIENT_ID = "mcp-client"
+
+    settings = Networked()
+    provider = AuthManager(settings).get_mcp_oauth_provider(settings)
+
+    assert provider is not None
+    assert provider.required_scopes == ["drupal:read", "drupal:write"]
