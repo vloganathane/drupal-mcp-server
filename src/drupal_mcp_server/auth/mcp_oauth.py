@@ -1,20 +1,34 @@
-"""OAuth 2.1 authentication provider for FastMCP HTTP transport with per-session scopes."""
+"""In-process OAuth 2.1 authorization server for the MCP HTTP transport.
 
-from typing import Any
+Codes and access tokens are issued and validated from memory; nothing is
+delegated to Drupal (see ADR 0005). The Drupal OAuth credentials handed
+in via the constructor belong to the outbound client-credentials leg and
+are stored for follow-up wiring only.
+"""
+
+from typing import Any, cast
 
 from fastmcp.server.auth import AccessToken as FastMCPAccessToken
 from fastmcp.server.auth import OAuthProvider
 from mcp.server.auth.provider import (
     AccessToken,
+    AuthorizationCode,
     AuthorizationCodeT,
     AuthorizationParams,
+    RefreshToken,
     RefreshTokenT,
 )
+from mcp.server.auth.settings import ClientRegistrationOptions
 from mcp.shared.auth import OAuthClientInformationFull, OAuthToken
+from pydantic import AnyUrl
 
 
 class DrupalOAuthProvider(OAuthProvider):
-    """OAuth 2.1 provider with Drupal integration and per-session scopes."""
+    """In-process OAuth 2.1 provider with per-session scopes.
+
+    Issues its own codes and tokens (no Drupal delegation — see ADR 0005),
+    so the flow verifies that the caller speaks OAuth, not who the user is.
+    """
     
     # Define available scopes
     SCOPES = {
@@ -49,6 +63,12 @@ class DrupalOAuthProvider(OAuthProvider):
         super().__init__(
             base_url=base_url,
             required_scopes=required_scopes or ["drupal:read", "drupal:write"],
+            # Without registration the client registry can never be
+            # populated, /token rejects every client as invalid_client,
+            # and no MCP client can obtain a token over the wire. Dynamic
+            # client registration is what the MCP spec expects of a remote
+            # authorization server; it proves client-ness, not identity.
+            client_registration_options=ClientRegistrationOptions(enabled=True),
         )
         self._drupal_client_id = client_id
         self._drupal_client_secret = client_secret
@@ -133,18 +153,60 @@ class DrupalOAuthProvider(OAuthProvider):
         client: OAuthClientInformationFull,
         authorization_code: str,
     ) -> AuthorizationCodeT | None:
-        """Load an authorization code."""
-        auth_code_str = str(authorization_code)
-        return self._auth_codes.get(auth_code_str)  # type: ignore[return-value]
+        """Load an authorization code as the model the SDK validates.
+
+        The token handler reads `.client_id`, `.expires_at`,
+        `.redirect_uri` and `.code_challenge` off the result to reject
+        foreign, expired, redirected and non-PKCE exchanges. Handing back
+        the dict the code was stored in raised `AttributeError: 'dict'
+        object has no attribute 'client_id'` and turned every /token
+        request into a 500 — the same failure shape as the
+        load_access_token bug above: what the SDK is handed must be the
+        model, not the storage.
+        """
+        code_data = self._auth_codes.get(str(authorization_code))
+        if code_data is None:
+            return None
+        return cast(
+            "AuthorizationCodeT",
+            AuthorizationCode(
+                code=str(code_data.get("code") or authorization_code),
+                scopes=list(code_data.get("scopes") or []),
+                expires_at=float(code_data.get("expires_at") or 0),
+                client_id=str(code_data.get("client_id") or ""),
+                code_challenge=str(code_data.get("code_challenge") or ""),
+                redirect_uri=cast(
+                    "AnyUrl",
+                    code_data.get("redirect_uri") or "http://127.0.0.1/callback",
+                ),
+                redirect_uri_provided_explicitly=bool(
+                    code_data.get("redirect_uri_provided_explicitly")
+                ),
+            ),
+        )
     
     async def load_refresh_token(
         self,
         client: OAuthClientInformationFull,
         refresh_token: str,
     ) -> RefreshTokenT | None:
-        """Load a refresh token."""
-        refresh_token_str = str(refresh_token)
-        return self._refresh_tokens.get(refresh_token_str)  # type: ignore[return-value]
+        """Load a refresh token as the model the SDK validates.
+
+        Same contract as load_authorization_code: the handler reads
+        `.client_id` and `.scopes` off the result, and the stored dict
+        answered with AttributeError.
+        """
+        token_data = self._refresh_tokens.get(str(refresh_token))
+        if token_data is None:
+            return None
+        return cast(
+            "RefreshTokenT",
+            RefreshToken(
+                token=str(refresh_token),
+                client_id=str(token_data.get("client_id") or ""),
+                scopes=list(token_data.get("scopes") or []),
+            ),
+        )
     
     async def get_client(self, client_id: str) -> OAuthClientInformationFull | None:
         """Get client information."""
@@ -155,15 +217,28 @@ class DrupalOAuthProvider(OAuthProvider):
         self._clients[client_info.client_id] = client_info
     
     async def authorize(self, client: OAuthClientInformationFull, params: AuthorizationParams) -> str:
-        """Handle authorization request - redirect to Drupal OAuth."""
+        """Issue an authorization code in-process.
+
+        No user identity is verified here — the missing Drupal-side
+        delegation is recorded in ADR 0005 and is exactly what a future
+        proxied flow would replace.
+        """
         # Generate auth code
         import secrets
+        import time
         auth_code = secrets.token_urlsafe(32)
         self._auth_codes[auth_code] = {
+            "code": auth_code,
             "client_id": client.client_id,
             "redirect_uri": params.redirect_uri,
-            "scopes": params.scopes,
+            "scopes": list(params.scopes or []),
             "code_challenge": params.code_challenge,
+            # RFC 6749 §10.5: codes must expire. The SDK's token handler
+            # enforces the deadline off the loaded model.
+            "expires_at": time.time() + 600,
+            "redirect_uri_provided_explicitly": bool(
+                getattr(params, "redirect_uri_provided_explicitly", False)
+            ),
         }
         
         # Redirect back to client with auth code
@@ -175,7 +250,9 @@ class DrupalOAuthProvider(OAuthProvider):
         authorization_code: AuthorizationCodeT,
     ) -> OAuthToken:
         """Exchange authorization code for access token."""
-        auth_code_str = str(authorization_code)
+        # The SDK's token handler hands back the loaded model; the unit
+        # tests hand the raw string. Both resolve to the stored code.
+        auth_code_str = str(getattr(authorization_code, "code", authorization_code))
         if auth_code_str not in self._auth_codes:
             raise ValueError("Invalid authorization code")
         
@@ -215,7 +292,9 @@ class DrupalOAuthProvider(OAuthProvider):
         scopes: list[str],
     ) -> OAuthToken:
         """Exchange refresh token for new access token."""
-        refresh_token_str = str(refresh_token)
+        # Same as exchange_authorization_code: the SDK passes the loaded
+        # RefreshToken model, the unit tests the raw string.
+        refresh_token_str = str(getattr(refresh_token, "token", refresh_token))
         if refresh_token_str not in self._refresh_tokens:
             raise ValueError("Invalid refresh token")
         

@@ -418,3 +418,55 @@ def test_the_network_provider_ships_the_read_and_write_requirement() -> None:
 
     assert provider is not None
     assert provider.required_scopes == ["drupal:read", "drupal:write"]
+
+
+@pytest.mark.asyncio
+async def test_loaded_codes_and_refresh_tokens_are_models_not_dicts() -> None:
+    """The wire path hands the SDK's token handler whatever these loaders
+    return, and it reads `.client_id`, `.expires_at`, `.redirect_uri` and
+    `.code_challenge` off the result. The stored dicts answered with
+    AttributeError and every over-the-wire /token request became a 500 —
+    the third instance of the dict-versus-model shape (after
+    load_access_token, and previously unnoticed because the exchanges were
+    only ever driven with raw strings, which `str()` happens to pass
+    through). Both exchanges must also accept the loaded models.
+    """
+    from drupal_mcp_server.auth.mcp_oauth import DrupalOAuthProvider
+
+    provider = DrupalOAuthProvider(base_url="https://example.test")
+    client_info = type("C", (), {"client_id": "client-1"})()
+    params = type(
+        "P",
+        (),
+        {
+            "redirect_uri": "https://example.test/callback",
+            "redirect_uri_provided_explicitly": True,
+            "code_challenge": "challenge-xyz",
+            "scopes": ["drupal:read", "drupal:write"],
+        },
+    )()
+    redirect = await provider.authorize(client_info, params)
+    code = str(redirect).split("code=")[1]
+
+    loaded = await provider.load_authorization_code(client_info, code)
+    assert loaded is not None
+    assert loaded.code == code
+    assert loaded.client_id == "client-1"
+    assert loaded.scopes == ["drupal:read", "drupal:write"]
+    assert loaded.code_challenge == "challenge-xyz"
+    assert loaded.expires_at > time.time()
+    assert str(loaded.redirect_uri) == "https://example.test/callback"
+    assert loaded.redirect_uri_provided_explicitly is True
+
+    token = await provider.exchange_authorization_code(client_info, loaded)
+    assert token.access_token
+
+    refresh_loaded = await provider.load_refresh_token(client_info, token.refresh_token)
+    assert refresh_loaded is not None
+    assert refresh_loaded.client_id == "client-1"
+    assert refresh_loaded.scopes == ["drupal:read", "drupal:write"]
+
+    refreshed = await provider.exchange_refresh_token(
+        client_info, refresh_loaded, ["drupal:read", "drupal:write"]
+    )
+    assert refreshed.access_token
