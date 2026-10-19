@@ -44,6 +44,7 @@ nav:
           - 0002 Pydantic Settings: adr/0002-pydantic-settings.md
           - 0003 Subprocess Drush: adr/0003-subprocess-drush.md
           - 0004 HTTP Transport: adr/0004-http-transport.md
+          - 0005 OAuth Token Validation: adr/0005-oauth-token-validation.md
   - Project:
       - Changelog: CHANGELOG.md
       - Security: SECURITY.md
