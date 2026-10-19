@@ -339,7 +339,7 @@ def render(tools: list[Tool]) -> str:
         )
     out.append("")
 
-    for category, module in sections:
+    for _category, module in sections:
         mod_tools = by_module[module]
         out.append(f"## {module}")
         out.append("")
