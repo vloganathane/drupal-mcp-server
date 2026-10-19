@@ -1473,6 +1473,12 @@ the credential split honestly:</p>
   is implemented; the <code>_drupal_*</code> attributes, <code>ROLE_SCOPES</code> and the
   <code>_oauth_provider</code> routes are recorded as follow-up — remove or wire,
   never wire without an auth decision.</li>
+<li>Dynamic client registration is enabled (<code>ClientRegistrationOptions</code>)
+  so spec-conformant clients can complete discovery → registration →
+  authorize → token over the wire. A live probe on 2026-10-19 had shown
+  <code>/register</code> unmounted and the client registry unpopulatable, so no
+  client could obtain a token at all. Registration proves the caller
+  speaks OAuth, not who the user is.</li>
 </ul>
 <p>When a multi-user networked deployment needs Drupal-side identity, pick
 one of:</p>

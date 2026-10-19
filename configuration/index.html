@@ -1727,6 +1727,10 @@ commands. Two defaults protect against that:</p>
   network on purpose means setting <code>MCP_HOST</code> (and, typically, OAuth) on
   purpose.</li>
 </ul>
+<p>Any client that can reach the port can register itself (RFC 7591) and
+walk the PKCE flow to a token: the flow proves the caller speaks MCP's
+OAuth dialect, not who the user is — which is why the loopback default
+is doing real work. See <a href="../adr/0005-oauth-token-validation/">ADR 0005</a>.</p>
 <h2 id="ai-providers">AI Providers<a class="headerlink" href="#ai-providers" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nv">DEFAULT_AI_PROVIDER</span><span class="o">=</span>ollama
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nv">AI_ENABLED</span><span class="o">=</span><span class="nb">true</span>
