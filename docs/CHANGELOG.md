@@ -7,6 +7,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-10-19
+
+### Security
+
+- Refuse to start an `http`, `sse` or `streamable-http` transport
+  unless OAuth is configured (`DRUPAL_OAUTH_CLIENT_ID`/`CLIENT_SECRET`/
+  `TOKEN_URL`). The tool surface executes drush, composer and shell
+  commands, so an unauthenticated listener was remote code execution
+  for anyone who could reach the bind address;
+  `MCP_ALLOW_INSECURE_HTTP=1` opts back in deliberately.
+- `MCP_HOST` now defaults to `127.0.0.1` instead of `0.0.0.0`:
+  serving to the network should be a decision, not a default.
+
+### Added
+
+- `DRUPAL_HTTP_RETRIES` (default 2): idempotent GET requests retry
+  transient failures — timeouts, connection resets, and 502/503/504 —
+  with a short backoff, so one dropped read under host load no longer
+  fails the tool outright. Mutations are never retried: a timed-out
+  POST may already have landed, and re-issuing it could duplicate a
+  node or double a deletion.
+- `DRUPAL_HTTP_TIMEOUT` (60) and `DRUSH_TIMEOUT` (120) make the
+  previously hardcoded request budgets configurable.
+
+### Testing
+
+- A weekly and on-demand CI job (`.github/workflows/live-sweep.yml`)
+  provisions a fresh DDEV site, bootstraps it through the MCP tools,
+  sweeps all 414 tools and gates the result with
+  `tests/live/compare_sweeps.py`: DEAD or a baseline-OK tool turning
+  REJECTED/UPSTREAM fails the run, while timing-only slips warn. The
+  committed ddev baseline is now produced by that job on a pristine
+  site, so the gate compares like with like. The job's first runs
+  surfaced and fixed eight setup defects — swallowed ddev returncodes,
+  an install gate that trusted the public URL and could re-run
+  `site:install` on a live site, a nested `.ddev/config.yaml`, a
+  PSR-4 case bug, a missing `commerce_shipping` require, and missing
+  layout/paragraph fixtures among them.
+- CI matrix extended to Python 3.13 and 3.14, and all GitHub Actions
+  bumped off the deprecated Node 20 runtime.
+
+### Documentation
+
+- `docs/agents.md` and both READMEs referenced `content_list`, a tool
+  that does not exist in the package — the documented spot check
+  failed with "no such tool". Examples now use `list_vocabularies`
+  and `inventory_content_types`, both verified against a live site.
+- Document the retry/timeout settings and the HTTP transport security
+  posture ("Serving over HTTP" in the configuration guide).
+
 ## [0.3.2] - 2026-10-18
 
 ### Fixed
