@@ -284,6 +284,12 @@ def test_http_transport_hands_auth_to_the_server_not_to_run(monkeypatch) -> None
     # is decided from a stale stdio setting.
     get_settings.cache_clear()
     monkeypatch.setenv("MCP_TRANSPORT", "http")
+    # run_server refuses to bind a network transport without OAuth, so
+    # configure it: this test is about the provider being installed on the
+    # server, which is the authenticated path anyway.
+    monkeypatch.setenv("DRUPAL_OAUTH_CLIENT_ID", "test-client")
+    monkeypatch.setenv("DRUPAL_OAUTH_CLIENT_SECRET", "test-secret")
+    monkeypatch.setenv("DRUPAL_OAUTH_TOKEN_URL", "https://example.test/oauth/token")
     try:
         run_server()
     finally:
