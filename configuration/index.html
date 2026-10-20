@@ -1699,6 +1699,16 @@ not by this endpoint (<a href="../adr/0005-oauth-token-validation/">ADR 0005</a>
 <td>Permit an HTTP transport without OAuth (see below)</td>
 </tr>
 <tr>
+<td><code>MCP_READ_ONLY</code></td>
+<td><code>false</code></td>
+<td>Expose only read-only tools — writes, file output and command execution are hidden (see below)</td>
+</tr>
+<tr>
+<td><code>MCP_RATE_LIMIT</code></td>
+<td><code>0</code></td>
+<td>HTTP requests per minute per client, <code>0</code> disables (see below)</td>
+</tr>
+<tr>
 <td><code>MCP_SERVER_NAME</code></td>
 <td><code>drupal-mcp-server</code></td>
 <td>Server name in MCP protocol</td>
@@ -1731,6 +1741,31 @@ commands. Two defaults protect against that:</p>
 walk the PKCE flow to a token: the flow proves the caller speaks MCP's
 OAuth dialect, not who the user is — which is why the loopback default
 is doing real work. See <a href="../adr/0005-oauth-token-validation/">ADR 0005</a>.</p>
+<p>Two further controls narrow what an authenticated socket can do, both
+opt-in:</p>
+<ul>
+<li><strong><code>MCP_READ_ONLY=1</code></strong> exposes only tools whose names read as queries
+  (<code>list_</code>/<code>get_</code>/<code>find_</code>/<code>search_</code> prefixes, <code>_list</code>/<code>_get</code>/<code>_audit</code>/
+  <code>_scan</code>/... suffixes, plus a vetted extras list) — 185 of the 414
+  tools. Everything that writes to the site, writes files, or executes
+  drush/composer/shell commands is <strong>not registered at all</strong>, so
+  <code>tools/list</code> cannot advertise it and a call by the name fails as an
+  unknown tool. The classifier is deliberately fail-closed: a future
+  tool stays hidden until its name reads as a query, because a wrong
+  allow is a write while a wrong deny is an operator flipping the flag.
+  A single exception, <code>search_api_*</code>, is pinned the other way — the
+  <code>search_</code> prefix heads a mutation family (create/reindex/clear/
+  enable), so those eight names are denied explicitly while the
+  family's readers pass on their own suffixes.</li>
+<li><strong><code>MCP_RATE_LIMIT=120</code></strong> puts a token bucket of 120 requests/minute
+  on every HTTP route — MCP endpoints, custom routes, and the OAuth
+  token endpoint alike — answering <code>429</code> with <code>Retry-After</code> past the
+  budget, and reporting <code>X-RateLimit-Limit</code>/<code>X-RateLimit-Remaining</code> on
+  the way through. The bucket is keyed by bearer token when the request
+  carries one (a credential being guessed burns its own budget, not the
+  shared address of every client behind it), else by client IP.
+  <code>0</code> — the default — disables it.</li>
+</ul>
 <h2 id="ai-providers">AI Providers<a class="headerlink" href="#ai-providers" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nv">DEFAULT_AI_PROVIDER</span><span class="o">=</span>ollama
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nv">AI_ENABLED</span><span class="o">=</span><span class="nb">true</span>

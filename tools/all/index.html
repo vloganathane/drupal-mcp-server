@@ -2505,7 +2505,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>get_node</code></td>
 <td>Get a single node by ID with optional relationship includes.<br><em>Fetch one node with its referenced entities in a single request</em></td>
 <td><code>{"nid": "123"}</code></td>
-<td>✅ ddev · ⚠️ lando · ❔ no offline tests</td>
+<td>✅ ddev · ⚠️ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>update_node</code></td>
@@ -2597,7 +2597,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><a href="../#create_user"><code>create_user</code></a></td>
 <td>Create a user account.<br><em>Onboard a new team member with an account and roles in one step</em></td>
 <td><code>{"mail": "value", "name": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>get_user</code></td>
@@ -2621,7 +2621,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>delete_user</code></td>
 <td>Delete a user account.<br><em>Remove a spam or test account as part of periodic user maintenance</em></td>
 <td><code>{"uid": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>list_users</code></td>
@@ -2633,13 +2633,13 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>assign_role</code></td>
 <td>Assign a role to a user.<br><em>Grant an editor elevated permissions after a promotion or project kickoff</em></td>
 <td><code>{"uid": "value", "role": "value"}</code></td>
-<td>⚠️ ddev · ⚠️ lando · ❔ no offline tests</td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>remove_role</code></td>
 <td>Remove a role from a user.<br><em>Revoke elevated access when someone leaves a project or changes responsibilities</em></td>
 <td><code>{"uid": "value", "role": "value"}</code></td>
-<td>⚠️ ddev · ⚠️ lando · ❔ no offline tests</td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>list_roles</code></td>
@@ -2657,13 +2657,13 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>block_user</code></td>
 <td>Block a user account.<br><em>Suspend an account immediately after reported spam while preserving its content</em></td>
 <td><code>{"uid": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>unblock_user</code></td>
 <td>Unblock a user account.<br><em>Restore access for a legitimately suspended user after their issue is resolved</em></td>
 <td><code>{"uid": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 </tbody>
 </table>
@@ -2707,7 +2707,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>list_vocabularies</code></td>
 <td>List all taxonomy vocabularies.<br><em>Survey the site's classification schemes before tagging or migration work</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>create_term</code></td>
@@ -3017,19 +3017,19 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>config_set</code></td>
 <td>Set a single configuration value.<br><em>Tweaking a single setting, like the site name, without running a full config import</em></td>
 <td><code>{"name": "value", "value": {}}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>export_config</code></td>
 <td>Export Drupal configuration to files.<br><em>Snapshotting active configuration into files before starting a deployment</em></td>
 <td><code>{}</code></td>
-<td>⚠️ ddev · ⚠️ lando · ❔ no offline tests</td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>import_config</code></td>
 <td>Import Drupal configuration from files.<br><em>Applying configuration committed to the repo after deploying new code</em></td>
 <td><code>{}</code></td>
-<td>⚠️ ddev · ⚠️ lando · ❔ no offline tests</td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>sync_config</code></td>
@@ -3041,7 +3041,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>diff_config</code></td>
 <td>Show differences in configuration between environments.<br><em>Explaining why two environments behave differently before touching either one</em></td>
 <td><code>{"config_name": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>split_config</code></td>
@@ -3411,7 +3411,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>pathauto_generate</code></td>
 <td>Generate pathauto aliases.<br><em>Backfill aliases for content created before a pattern existed or was fixed</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>pathauto_token_list</code></td>
@@ -3567,79 +3567,79 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>search_api_server_list</code></td>
 <td>List all Search API servers.<br><em>Checking which search backends exist before wiring up a new index</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>search_api_server_get</code></td>
 <td>Get a single Search API server by ID.<br><em>Inspecting a server's backend settings when searches return unexpected results</em></td>
 <td><code>{"server_id": "value"}</code></td>
-<td>⚠️ ddev · ⚠️ lando · ❔ no offline tests</td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>search_api_server_create</code></td>
 <td>Create a new Search API server.<br><em>Standing up a search backend on a site that has none configured yet</em></td>
 <td><code>{"id": "1", "label": "value"}</code></td>
-<td>⚠️ ddev · ⚠️ lando · ❔ no offline tests</td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>search_api_index_list</code></td>
 <td>List Search API indexes.<br><em>Finding the right index to query or reindex before touching search config</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>search_api_index_get</code></td>
 <td>Get a single Search API index by ID.<br><em>Reviewing an index's datasource and processors to debug missing results</em></td>
 <td><code>{"index_id": "value"}</code></td>
-<td>⚠️ ddev · ⚠️ lando · ❔ no offline tests</td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>search_api_index_create</code></td>
 <td>Create a new Search API index.<br><em>Adding search to a new content type by wiring an index to an existing server</em></td>
 <td><code>{"id": "1", "label": "value", "server_id": "value", "datasource": "value"}</code></td>
-<td>⚠️ ddev · ⚠️ lando · ❔ no offline tests</td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>search_api_index_update</code></td>
 <td>Update a Search API index.<br><em>Tuning processors or renaming an index after a content model change</em></td>
 <td><code>{"index_id": "value"}</code></td>
-<td>⚠️ ddev · ⚠️ lando · ❔ no offline tests</td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>search_api_index_reindex</code></td>
 <td>Trigger reindexing of a Search API index.<br><em>Content changed outside Drupal and search results are stale</em></td>
 <td><code>{"index_id": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>search_api_index_clear</code></td>
 <td>Clear a Search API index.<br><em>Rebuilding a corrupted or outdated index from scratch during maintenance</em></td>
 <td><code>{"index_id": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>search_api_server_enable</code></td>
 <td>Enable a Search API server.<br><em>Turning search back on after maintenance on the backend is finished</em></td>
 <td><code>{"server_id": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>search_api_server_disable</code></td>
 <td>Disable a Search API server.<br><em>Taking search offline temporarily while the backend is being migrated</em></td>
 <td><code>{"server_id": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>search_api_facet_list</code></td>
 <td>List Search API facets.<br><em>Checking which facets exist and their facet_source_id before wiring up a block</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>search_api_facet_create</code></td>
 <td>Create a Search API facet.<br><em>Letting visitors narrow search results by a category or tag field</em></td>
 <td><code>{"id": "1", "label": "value", "index_id": "value", "field": "value"}</code></td>
-<td>⚠️ ddev · ⚠️ lando · ❔ no offline tests</td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
 </tr>
 </tbody>
 </table>
@@ -3763,13 +3763,13 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>language_enable</code></td>
 <td>Enable a language.<br><em>Turning a previously disabled language back on for an upcoming launch</em></td>
 <td><code>{"langcode": "en"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>language_disable</code></td>
 <td>Disable a language.<br><em>Pausing a language when translators aren't ready yet but content exists</em></td>
 <td><code>{"langcode": "en"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>language_delete</code></td>
@@ -4309,7 +4309,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>db_table_info</code></td>
 <td>Get table schema information.<br><em>Needing column names and types of one table before writing a WHERE clause or a report</em></td>
 <td><code>{"table": "value"}</code></td>
-<td>⚠️ ddev · ⚠️ lando · ❔ no offline tests</td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>db_count</code></td>
@@ -4389,19 +4389,19 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>acquia_deploy</code></td>
 <td>Deploy to Acquia Cloud via acquia-cli or Drush acquia integration.<br><em>Shipping a tested branch to an Acquia environment, with database updates and cache rebuild included</em></td>
 <td><code>{"environment": "value"}</code></td>
-<td>⚠️ ddev · ⚠️ lando · ❔ no offline tests</td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>backup_database</code></td>
 <td>Create database backup via Drush.<br><em>Taking a database dump first, before running updates, imports or other risky changes</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>cache_rebuild</code></td>
 <td>Clear and rebuild all Drupal caches via Drush.<br><em>After enabling a module or editing code, make the change take effect immediately instead of waiting</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>composer_install</code></td>
@@ -4419,7 +4419,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>composer_update</code></td>
 <td>Run composer update.<br><em>When ready to adopt newer dependency versions, run the update in the project directory</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>drush_cron</code></td>
@@ -4443,7 +4443,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>drush_updb</code></td>
 <td>Run database updates.<br><em>After the pending update list is checked, apply schema updates once a database backup exists</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>drush_php_eval</code></td>
@@ -4469,7 +4469,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>cron_run</code></td>
 <td>Run cron.<br><em>Running scheduled work immediately when the site's own cron has not fired on its own</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>cron_list</code></td>
@@ -4531,7 +4531,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>performance_cache_stats</code></td>
 <td>Get cache performance statistics.<br><em>Seeing whether cache bins are being churned instead of serving hits under traffic</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>performance_redis_info</code></td>
@@ -4549,7 +4549,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>performance_bigpipe_enable</code></td>
 <td>Enable or disable BigPipe.<br><em>Toggling BigPipe during a performance test, a reversible config change to revert afterwards</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>performance_memcached_stats</code></td>
@@ -4697,7 +4697,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>analyze_d7_site</code></td>
 <td>Analyze a Drupal 7 site for D10 upgrade readiness.<br><em>Scoping a Drupal 7 retirement before committing to a timeline</em></td>
 <td><code>{"site_url": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>analyze_d9_site</code></td>
@@ -4715,7 +4715,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>inventory_modules</code></td>
 <td>List all modules on a Drupal site.<br><em>Checking which contrib and custom modules a site runs before estimating upgrade effort</em></td>
 <td><code>{"site_url": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>map_modules_d7_to_d10</code></td>
@@ -4727,7 +4727,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>find_deprecated_code</code></td>
 <td>Scan custom modules for deprecated Drupal APIs.<br><em>Triaging a custom codebase by pointing at the specific files still calling removed APIs</em></td>
 <td><code>{"site_path": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><a href="../#find_entity_references"><code>find_entity_references</code></a></td>
@@ -5147,7 +5147,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>composer_audit</code></td>
 <td>Run Composer security audit on dependencies.<br><em>Before deploying, checking whether installed dependencies carry known advisories</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>code_quality_report</code></td>
@@ -5197,7 +5197,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>sql_injection_scan</code></td>
 <td>Scan for SQL injection vulnerabilities in custom code.<br><em>Reviewing custom database queries for unsanitized input before the code goes live</em></td>
 <td><code>{"path": "/about"}</code></td>
-<td>⚠️ ddev · ⚠️ lando · ❔ no offline tests</td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>xss_scan</code></td>
@@ -5209,7 +5209,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>csp_audit</code></td>
 <td>Content Security Policy audit.<br><em>The browser console shows CSP violations and you need to know which directive to relax</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>file_permissions_audit</code></td>
@@ -5301,7 +5301,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>jsonapi_resource_types</code></td>
 <td>Get all resource types available in JSON:API.<br><em>Checking available types and bundles before filtering a JSON:API collection query</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 </tbody>
 </table>
@@ -5407,7 +5407,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>test_run_phpunit</code></td>
 <td>Run PHPUnit tests.<br><em>Verifying a change to custom logic did not break existing unit behavior before committing</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>test_run_kernel</code></td>
@@ -5475,13 +5475,13 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>accessibility_axe_scan</code></td>
 <td>Run axe-core accessibility scan on a URL.<br><em>Running an automated accessibility check on a key page before an audit or launch</em></td>
 <td><code>{"url": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>accessibility_wcag_check</code></td>
 <td>Check WCAG compliance for entity content.<br><em>Before publishing, checking a content type's rendered output against WCAG criteria</em></td>
 <td><code>{"entity_type": "node", "entity_id": "value"}</code></td>
-<td>✅ ddev · ⚠️ lando · ❔ no offline tests</td>
+<td>✅ ddev · ⚠️ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>accessibility_color_contrast</code></td>
