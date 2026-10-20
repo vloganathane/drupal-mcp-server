@@ -59,11 +59,17 @@ migration_dependencies: {{}}
 
             os.makedirs(migration_dir, exist_ok=True)
 
-            # Generate source plugin
+            # PSR-4 both ways round: the class is StudlyCase and the
+            # file holding it carries the same name — "migrate_d7_nodes.php"
+            # with class Migrate_d7_nodes is never autoloadable on a
+            # case-sensitive filesystem — and the MigrateSourcePlugin
+            # annotation must be imported or discovery cannot resolve it.
+            class_name = "".join(part.capitalize() for part in module_name.split("_"))
             source_plugin = f"""<?php
 
 namespace Drupal\\{module_name}\\Plugin\\migrate\\source;
 
+use Drupal\\migrate\\Annotation\\MigrateSourcePlugin;
 use Drupal\\migrate\\Plugin\\migrate\\source\\SqlBase;
 use Drupal\\migrate\\Row;
 
@@ -75,7 +81,7 @@ use Drupal\\migrate\\Row;
  *   source_module = "{module_name}"
  * )
  */
-class {module_name.capitalize()} extends SqlBase {{
+class {class_name} extends SqlBase {{
 
   public function query() {{
     $query = $this->select('{{{module_name}}}_table', 't')
@@ -98,14 +104,24 @@ class {module_name.capitalize()} extends SqlBase {{
 
 }}
 """
-            source_path = os.path.join(migration_dir, f"{module_name}.php")
+            source_path = os.path.join(migration_dir, f"{class_name}.php")
             with open(source_path, "w") as f:
                 f.write(source_plugin)
 
-            # Generate migration YAML template
-            migration_yaml_dir = os.path.join(os.path.dirname(migration_dir), "..", "migrations")
+            # Sidecar files belong at the module root — migrations/, the
+            # info.yml and the .module — where the report says they are
+            # and where Drupal looks. base_path points inside the
+            # module's src tree, so the root is base_path minus the
+            # plugin directory; without that suffix, the cwd.
+            plugin_suffix = os.path.join("src", "Plugin", "migrate", "source")
+            root_prefix = (
+                base_path[: -len(plugin_suffix)] if base_path.endswith(plugin_suffix) else ""
+            )
+            module_root = os.path.normpath(root_prefix)  # "" -> "."
+            migration_yaml_dir = os.path.join(module_root, "migrations")
             os.makedirs(migration_yaml_dir, exist_ok=True)
 
+            # Generate migration YAML template
             migration_yaml = f"""id: {module_name}
 label: {module_name} migration
 migration_group: {module_name}
@@ -134,7 +150,7 @@ migration_dependencies: {{}}
                 f.write(migration_yaml)
 
             # Generate module info.yml if not exists
-            info_yml_path = os.path.join(os.path.dirname(migration_dir), "..", f"{module_name}.info.yml")
+            info_yml_path = os.path.join(module_root, f"{module_name}.info.yml")
             if not os.path.exists(info_yml_path):
                 info_yml = f"""name: {module_name}
 type: module
@@ -150,7 +166,7 @@ dependencies:
                     f.write(info_yml)
 
             # Generate .module file with hook_migrate_api
-            module_file_path = os.path.join(os.path.dirname(migration_dir), "..", f"{module_name}.module")
+            module_file_path = os.path.join(module_root, f"{module_name}.module")
             if not os.path.exists(module_file_path):
                 module_file = f"""<?php
 
@@ -187,10 +203,10 @@ function {module_name}_migrate_api() {{
                 "source_version": source_version,
                 "target_version": target_version,
                 "files_created": [
-                    f"src/Plugin/migrate/source/{module_name}.php",
-                    f"migrations/{module_name}.yml",
-                    f"{module_name}.info.yml",
-                    f"{module_name}.module",
+                    os.path.normpath(source_path),
+                    os.path.normpath(yaml_path),
+                    os.path.normpath(info_yml_path),
+                    os.path.normpath(module_file_path),
                 ],
                 "status": "generated",
                 "notes": "Generated source plugin, migration YAML, info.yml, and module file with hook_migrate_api",

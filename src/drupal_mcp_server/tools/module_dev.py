@@ -7,6 +7,17 @@ from typing import Any
 import yaml
 from fastmcp import FastMCP
 
+# A dependency in .info.yml is a module name. Class usage is the only
+# reliable in-code signal: \Drupal\webform\... means "depends on
+# webform". Core/Component/Symfony namespaces start uppercase and are
+# excluded by the pattern's lowercase requirement.
+_MODULE_USE_RE = re.compile(r"\\?Drupal\\([a-z_][a-z0-9_]*)\\")
+
+
+def _modules_used_in(content: str, own_module: str) -> set[str]:
+    r"""Modules referenced through ``Drupal\<module>\...`` class usage."""
+    return {name for name in _MODULE_USE_RE.findall(content) if name != own_module}
+
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
     drush = deps.get("drush_client")
@@ -396,8 +407,13 @@ class {class_name} {{
         plugin_info = plugin_types[plugin_type]
         class_name = class_name or f"{machine_name.capitalize()}{plugin_id.replace('_', ' ').title().replace(' ', '')}{plugin_type.replace('_', ' ').title().replace(' ', '')}"
         
-        # Build plugin directory
-        plugin_dir = os.path.join(module_path, "src", str(plugin_info["namespace"]))
+        # Build plugin directory. The namespace is a PHP fragment
+        # ("Plugin\\Block"); joined as one string it becomes a single
+        # directory named "Plugin\Block" on POSIX, putting the class
+        # file outside the PSR-4 tree where nothing can autoload it.
+        plugin_dir = os.path.join(
+            module_path, "src", *str(plugin_info["namespace"]).split("\\")
+        )
         os.makedirs(plugin_dir, exist_ok=True)
         
         # Build annotations
@@ -431,21 +447,37 @@ class {class_name} {{
         
         annotation_str = "\n".join(annotation_lines)
         annotation_class_short = str(plugin_info["annotation_class"]).split("\\")[-1]
-        
-        # Create plugin class
+
+        # The widget/formatter/views signatures name classes
+        # (FormStateInterface, FieldableEntityInterface, ResultRow) that
+        # must be imported: unqualified, they resolve into this plugin's
+        # own namespace and the first call fatals.
+        extra_imports = {
+            "field_widget": "use Drupal\\Core\\Form\\FormStateInterface;",
+            "field_formatter": "use Drupal\\Core\\Entity\\FieldableEntityInterface;",
+            "views_field": "use Drupal\\views\\ResultRow;",
+        }
+        import_block = (
+            f"use {plugin_info['base_class']};\n"
+            f"use {plugin_info['annotation_class']};\n"
+        )
+        if plugin_type in extra_imports:
+            import_block += extra_imports[plugin_type] + "\n"
+
+        # Create plugin class. The docblock must terminate before the
+        # class opens; it used to end at the annotation's ")" with no
+        # "*/", putting the class declaration inside a comment.
         plugin_class = f"""<?php
 
 namespace Drupal\\{machine_name}\\{plugin_info["namespace"]};
 
-use {plugin_info["base_class"]};
-use {plugin_info["annotation_class"]};
-
+{import_block}
 /**
  * {description or f"Plugin: {label}"}
  *
  * @{annotation_class_short}(
 {annotation_str}
-)
+ */
 """
         plugin_class += f"""class {class_name} extends {plugin_info["base_class"]} {{
 """
@@ -461,7 +493,7 @@ use {plugin_info["annotation_class"]};
     ];
   }
 """
-        elif plugin_type in ("field_widget", "field_formatter"):
+        elif plugin_type == "field_widget":
             plugin_class += """  /**
    * {@inheritdoc}
    */
@@ -472,6 +504,19 @@ use {plugin_info["annotation_class"]};
       '#default_value' => $items[$delta]->value ?? '',
     ];
     return $element;
+  }
+"""
+        elif plugin_type == "field_formatter":
+            # FormatterBase's abstract method is viewElements; the
+            # widget's formElement here made every generated formatter
+            # a fatal ("class contains 1 abstract method") on load.
+            plugin_class += """  /**
+   * {@inheritdoc}
+   */
+  public function viewElements(FieldableEntityInterface $entity, $langcode) {
+    return [
+      '#markup' => $this->t('Custom formatter output'),
+    ];
   }
 """
         elif plugin_type == "views_field":
@@ -557,6 +602,20 @@ use {plugin_info["annotation_class"]};
         if form_type not in form_types:
             available = list(form_types.keys())
             return {"error": f"Unknown form type: {form_type}. Available: {available}"}
+        
+        if form_type == "EntityForm":
+            # EntityForm used to fall into the FormBase branch: a class
+            # extending EntityForm while implementing none of its
+            # contract. Entity forms are routed with _entity_form and
+            # need an entity type this tool does not take, so refuse
+            # honestly instead of writing a class that cannot load.
+            return {
+                "error": (
+                    "EntityForm scaffolding needs an entity type and bundle: "
+                    "entity forms are routed with _entity_form, not _form, and "
+                    "this tool does not take a type. Use FormBase or ConfigForm."
+                )
+            }
         
         form_info = form_types[form_type]
         class_name = class_name or f"{machine_name.capitalize()}{form_name.replace('_', ' ').title().replace(' ', '')}{form_type}"
@@ -826,7 +885,7 @@ use Drupal\\Core\\Form\\FormStateInterface;
             "form_type": form_type,
             "form_id": form_id,
             "class_name": class_name,
-            "form_file": os.path.join("src", "Form", f"{class_name}.php"),
+            "form_file": form_file,
             "routing_file": routing_file,
             "base_class": form_info["base_class"],
         }
@@ -920,7 +979,7 @@ use Symfony\\Component\\HttpFoundation\\Response;
         return {
             "success": True,
             "class_name": class_name,
-            "controller_file": os.path.join("src", "Controller", f"{class_name}.php"),
+            "controller_file": controller_file,
             "routing_file": routing_file,
             "methods": methods,
         }
@@ -975,15 +1034,36 @@ use Symfony\\Component\\HttpFoundation\\Response;
         event_subscriber_dir = os.path.join(module_path, "src", "EventSubscriber")
         os.makedirs(event_subscriber_dir, exist_ok=True)
         
-        # Build getSubscribedEvents method
+        # Build getSubscribedEvents and one handler stub per subscribed
+        # method. The class used to define only the two kernel handlers
+        # no matter what was subscribed, so the first time a custom
+        # event fired Drupal called a method that did not exist.
         event_methods = []
+        handler_names: list[tuple[str, str]] = []
         for event in events:
             event_name = event.get("event", "kernel.request")
             method_name = event.get("method", "onKernelRequest")
             priority = event.get("priority", 0)
             event_methods.append(f'      "{event_name}" => [["{method_name}", {priority}]],')
+            if (method_name, event_name) not in handler_names:
+                handler_names.append((method_name, event_name))
         
         events_str = "\n".join(event_methods)
+        
+        handler_blocks = []
+        for subscribed_method, subscribed_event in handler_names:
+            if subscribed_event == "kernel.request":
+                type_hint = "RequestEvent $event"
+            elif subscribed_event == "kernel.response":
+                type_hint = "ResponseEvent $event"
+            else:
+                type_hint = "Event $event"
+            handler_blocks.append(
+                f"  public function {subscribed_method}({type_hint}) {{\n"
+                f"    // Handle {subscribed_event} event\n"
+                f"  }}\n"
+            )
+        handlers_str = "\n".join(handler_blocks)
         
         event_subscriber_class = f"""<?php
 
@@ -993,6 +1073,7 @@ use Symfony\\Component\\EventDispatcher\\EventSubscriberInterface;
 use Symfony\\Component\\HttpKernel\\KernelEvents;
 use Symfony\\Component\\HttpKernel\\Event\\RequestEvent;
 use Symfony\\Component\\HttpKernel\\Event\\ResponseEvent;
+use Symfony\\Contracts\\EventDispatcher\\Event;
 
 class {class_name} implements EventSubscriberInterface {{
   /**
@@ -1004,14 +1085,7 @@ class {class_name} implements EventSubscriberInterface {{
     ];
   }}
 
-  public function onKernelRequest(RequestEvent $event) {{
-    // Handle kernel.request event
-  }}
-
-  public function onKernelResponse(ResponseEvent $event) {{
-    // Handle kernel.response event
-  }}
-}}
+{handlers_str}}}
 """
         event_subscriber_file = os.path.join(event_subscriber_dir, f"{class_name}.php")
         with open(event_subscriber_file, "w") as f:
@@ -1037,7 +1111,7 @@ class {class_name} implements EventSubscriberInterface {{
             "success": True,
             "service_id": service_id,
             "class_name": class_name,
-            "subscriber_file": os.path.join("src", "EventSubscriber", f"{class_name}.php"),
+            "subscriber_file": event_subscriber_file,
             "services_file": services_file,
             "events": events,
         }
@@ -1111,12 +1185,12 @@ function {machine_name}_uninstall() {{
   // Add your uninstall logic here
 }}
 """,
-            "hook_config_import_create": f"""
+            "hook_config_presave": f"""
 /**
- * Implements hook_config_import_create().
+ * Implements hook_config_presave().
  */
-function {machine_name}_config_import_create($config_name, $config_storage) {{
-  // Add your config import create logic here
+function {machine_name}_config_presave(\\Drupal\\Core\\Config\\Config $config) {{
+  // Add your config presave logic here
 }}
 """,
         }
@@ -1178,19 +1252,14 @@ function {machine_name}_config_import_create($config_name, $config_storage) {{
             "core_version_requirement": "^10 || ^11",
         }
         
-        # Check for dependencies in hook implementations
-        deps = set()
-        if "hook_form_alter" in content:
-            deps.add("form")
-        if "hook_entity" in content:
-            deps.add("entity")
-        if "hook_cron" in content:
-            deps.add("cron")
-        if "hook_views" in content:
-            deps.add("views")
+        # Dependencies are module names, detected from class usage. The
+        # old check matched the literal text "hook_form_alter" and mapped
+        # hits to words that are not modules ("form", "entity", "cron"),
+        # producing info.yml files Drupal refuses to install.
+        deps = _modules_used_in(content, machine_name)
         
         if deps:
-            info_yml["dependencies"] = sorted(list(deps))
+            info_yml["dependencies"] = sorted(deps)
         
         with open(info_file, "w") as f:
             yaml.dump(info_yml, f, default_flow_style=False, sort_keys=False)
@@ -1438,74 +1507,29 @@ class {class_name} extends {base_class_name} {{
         else:
             info_yml = {}
         
-        # Analyze for dependencies
-        deps = set()
+        # Analyze for dependencies. Only module names are suggestable:
+        # the old scanner looked for `\(Foo::class\)` — a shape nothing
+        # in real PHP has — while its hook and plumbing maps suggested
+        # words like "form", "container" and "config", none of which are
+        # modules a site can install.
+        deps = _modules_used_in(content, machine_name)
         
-        # Check for service usage
-        service_pattern = r'\\\([a-zA-Z_][a-zA-Z0-9_]*::class\)'
-        for match in re.finditer(service_pattern, content):
-            service = match.group(1)
-            if service.startswith('Drupal\\'):
-                parts = service.split('\\')
-                if len(parts) >= 3 and parts[1] != machine_name:
-                    deps.add(parts[1].lower())
-        
-        # Check for hook implementations that imply dependencies
-        hook_deps = {
-            "hook_form_alter": "form",
-            "hook_entity_presave": "entity",
-            "hook_entity_insert": "entity",
-            "hook_entity_update": "entity",
-            "hook_entity_delete": "entity",
-            "hook_views_data": "views",
-            "hook_views_data_alter": "views",
-            "hook_views_query_alter": "views",
-            "hook_field_widget_info": "field",
-            "hook_field_formatter_info": "field",
-            "hook_block_view": "block",
-            "hook_menu": "menu",
-            "hook_cron": "cron",
-        }
-        
-        for hook, dep in hook_deps.items():
-            if f"function {machine_name}_{hook.replace('hook_', '')}" in content:
+        # Hooks whose implementation names a real module.
+        for hook, dep in (
+            ("views_data", "views"),
+            ("views_data_alter", "views"),
+            ("views_query_alter", "views"),
+        ):
+            if f"function {machine_name}_{hook}" in content:
                 deps.add(dep)
         
-        # Check for plugin types that imply dependencies
-        plugin_deps = {
-            "Plugin\\Block": "block",
-            "Plugin\\Field\\FieldWidget": "field",
-            "Plugin\\Field\\FieldFormatter": "field",
-            "Plugin\\views": "views",
-            "Plugin\\migrate": "migrate",
-            "Plugin\\rest": "rest",
-            "Plugin\\Action": "action",
-            "Plugin\\Condition": "condition",
-        }
-        
-        for plugin_ns, dep in plugin_deps.items():
-            if plugin_ns in content:
-                deps.add(dep)
-        
-        # Check for service injection
-        if "ContainerInterface" in content:
-            deps.add("container")
-        
-        # Check for config factory usage
-        if "ConfigFactoryInterface" in content or "config.factory" in content:
-            deps.add("config")
-        
-        # Read existing dependencies
-        if os.path.exists(info_file):
-            with open(info_file) as f:
-                info_yml = yaml.safe_load(f) or {}
-        else:
-            info_yml = {}
-        
+        # Read existing dependencies; "drupal:webform" already declares
+        # "webform", so suggestions must compare on the bare name.
         existing_deps = info_yml.get("dependencies", [])
+        declared = {str(dep).split(":")[-1] for dep in existing_deps}
         
         # Find missing dependencies
-        missing_deps = deps - set(existing_deps)
+        missing_deps = deps - declared
         
         return {
             "success": True,

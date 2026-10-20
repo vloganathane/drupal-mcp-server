@@ -546,7 +546,7 @@ Migration — 17 tools.
 | Tool | Description & use case | Example | Status |
 |------|------------------------|---------|--------|
 | `generate_migration_yaml` | Generate migration YAML configuration.<br>_Kicking off a new migration and needing a correctly shaped YAML stub to fill in_ | `{"migration_type": "value", "source": {}, "destination": {}}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `generate_module_migration` | Generate migration module for a custom module with source plugin, process plugins, and migration template.<br>_Scaffolding a custom migration module for a legacy source without hand-writing plugin boilerplate_ | `{"module_name": "value", "source_version": "value", "target_version": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `generate_module_migration` | Generate migration module for a custom module with source plugin, process plugins, and migration template.<br>_Scaffolding a custom migration module for a legacy source without hand-writing plugin boilerplate_ | `{"module_name": "value", "source_version": "value", "target_version": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `run_migration_test` | Test migration with limited records.<br>_Importing only a handful of records to confirm mappings before committing to a full run_ | `{"migration_id": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
 | `validate_migration` | Validate migration configuration.<br>_Confirming a migration is registered and seeing how many records it has already processed_ | `{"migration_id": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
 | `rollback_migration` | Rollback a completed migration.<br>_Undoing a test import so the same migration can run again cleanly after its mapping is fixed_ | `{"migration_id": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
@@ -617,16 +617,16 @@ Module Dev — 12 tools.
 |------|------------------------|---------|--------|
 | `module_create` | Create a new Drupal module with full scaffolding.<br>_Starting a custom module and wanting routing, services, permissions, and schema in place at once_ | `{"name": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `module_service_create` | Create a service definition with PHP class stub.<br>_Adding an injectable service to an existing module without hand-editing services.yml and the class_ | `{"machine_name": "value", "service_name": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
-| `module_plugin_create` | Create a plugin (block, field, views, etc.) with proper scaffolding.<br>_Needing a block, Views plugin, or field widget with the right base class and annotations wired_ | `{"machine_name": "value", "plugin_type": "value", "plugin_id": "value", "label": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
-| `module_form_create` | Create a form class (ConfigForm, ConfirmForm, FormBase, etc.) with proper scaffolding.<br>_Adding a settings or confirmation form and wanting its route and service registration handled too_ | `{"machine_name": "value", "form_name": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `module_controller_create` | Create a controller class with routing.<br>_Standing up a new page backed by a controller class with matching routing entries_ | `{"machine_name": "value", "controller_name": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `module_event_subscriber_create` | Create an event subscriber service with getSubscribedEvents method.<br>_Replacing a deprecated hook or Rules reaction with a subscriber correctly tagged in the container_ | `{"machine_name": "value", "subscriber_name": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `module_hook_implement` | Implement a hook in an existing module.<br>_Dropping a standard hook implementation into an existing module instead of typing boilerplate_ | `{"machine_name": "value", "hook": "value"}` | 🧩 ddev · 🧩 lando · ❔ no offline tests |
-| `module_info_generate` | Generate .info.yml from existing module code (reverse engineering).<br>_Adopting a module missing its .info.yml and inferring one from the code that already exists_ | `{"machine_name": "value"}` | 🧩 ddev · 🧩 lando · ❔ no offline tests |
-| `module_permission_create` | Create or update permissions.yml with custom permissions.<br>_Adding permission strings so roles can be granted access without editing YAML by hand_ | `{"machine_name": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `module_config_schema_create` | Create or update config schema YAML for module settings.<br>_Before config export or upgrade, giving module settings a typed schema Drupal will validate_ | `{"machine_name": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `module_plugin_create` | Create a plugin (block, field, views, etc.) with proper scaffolding.<br>_Needing a block, Views plugin, or field widget with the right base class and annotations wired_ | `{"machine_name": "value", "plugin_type": "value", "plugin_id": "value", "label": "value"}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
+| `module_form_create` | Create a form class (ConfigForm, ConfirmForm, FormBase, etc.) with proper scaffolding.<br>_Adding a settings or confirmation form and wanting its route and service registration handled too_ | `{"machine_name": "value", "form_name": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `module_controller_create` | Create a controller class with routing.<br>_Standing up a new page backed by a controller class with matching routing entries_ | `{"machine_name": "value", "controller_name": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `module_event_subscriber_create` | Create an event subscriber service with getSubscribedEvents method.<br>_Replacing a deprecated hook or Rules reaction with a subscriber correctly tagged in the container_ | `{"machine_name": "value", "subscriber_name": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `module_hook_implement` | Implement a hook in an existing module.<br>_Dropping a standard hook implementation into an existing module instead of typing boilerplate_ | `{"machine_name": "value", "hook": "value"}` | 🧩 ddev · 🧩 lando · 🧪 unit |
+| `module_info_generate` | Generate .info.yml from existing module code (reverse engineering).<br>_Adopting a module missing its .info.yml and inferring one from the code that already exists_ | `{"machine_name": "value"}` | 🧩 ddev · 🧩 lando · 🧪 unit |
+| `module_permission_create` | Create or update permissions.yml with custom permissions.<br>_Adding permission strings so roles can be granted access without editing YAML by hand_ | `{"machine_name": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `module_config_schema_create` | Create or update config schema YAML for module settings.<br>_Before config export or upgrade, giving module settings a typed schema Drupal will validate_ | `{"machine_name": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `module_test_create` | Create a PHPUnit/Kernel test skeleton.<br>_Starting coverage for a module and needing the right base class, directory, and group annotation_ | `{"machine_name": "value", "test_name": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
-| `module_dependencies_analyze` | Analyze module code and suggest missing dependencies.<br>_Before shipping, catching dependencies used in code but missing from the info.yml_ | `{"machine_name": "value"}` | 🧩 ddev · 🧩 lando · ❔ no offline tests |
+| `module_dependencies_analyze` | Analyze module code and suggest missing dependencies.<br>_Before shipping, catching dependencies used in code but missing from the info.yml_ | `{"machine_name": "value"}` | 🧩 ddev · 🧩 lando · 🧪 unit |
 
 ## theme_dev
 
@@ -634,7 +634,7 @@ Theme Dev — 11 tools.
 
 | Tool | Description & use case | Example | Status |
 |------|------------------------|---------|--------|
-| `theme_create` | Create a new Drupal theme with full scaffolding.<br>_Kicking off a new custom theme without hand-writing the info.yml, .theme, and templates_ | `{"name": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `theme_create` | Create a new Drupal theme with full scaffolding.<br>_Kicking off a new custom theme without hand-writing the info.yml, .theme, and templates_ | `{"name": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `theme_library_create` | Create or update a theme library.<br>_Adding or versioning a CSS/JS library so the theme can finally attach new assets_ | `{"machine_name": "value", "library_name": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `theme_region_create` | Add a region to theme.<br>_A layout needs one more sidebar without hand-editing the region list in info.yml_ | `{"machine_name": "value", "region_name": "value", "region_label": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `theme_template_override` | Create a template override in theme.<br>_Copying a core template into the theme so markup can be edited without patching core_ | `{"machine_name": "value", "template_name": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
@@ -739,8 +739,8 @@ Testing — 9 tools.
 | `test_run_behat` | Run Behat tests.<br>_Checking a user-facing workflow end to end before calling a feature done_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `test_run_nightwatch` | Run Nightwatch tests.<br>_Validating browser-side JS and admin UI behavior ahead of a release_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `test_scaffold_phpunit` | Scaffold a PHPUnit test class.<br>_Starting a test for a custom class without recalling the Drupal TestCase boilerplate_ | `{"module": "mymodule"}` | ✅ ddev · ✅ lando · 🧪 unit |
-| `test_scaffold_behat` | Scaffold a Behat feature file.<br>_Turning a user story into an executable feature file in one step_ | `{"module": "mymodule", "feature_name": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `test_scaffold_nightwatch` | Scaffold a Nightwatch test.<br>_Adding browser coverage for a new admin workflow the team just shipped_ | `{"module": "mymodule", "test_name": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `test_scaffold_behat` | Scaffold a Behat feature file.<br>_Turning a user story into an executable feature file in one step_ | `{"module": "mymodule", "feature_name": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `test_scaffold_nightwatch` | Scaffold a Nightwatch test.<br>_Adding browser coverage for a new admin workflow the team just shipped_ | `{"module": "mymodule", "test_name": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `test_coverage_report` | Generate test coverage report.<br>_Seeing which parts of a custom module still have zero test coverage_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `test_list_suites` | List available test suites.<br>_Not sure which runner applies, so checking what test suites this site exposes_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 

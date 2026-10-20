@@ -61,9 +61,6 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             "regions": regions,
         }
         
-        if libraries:
-            info_yml["libraries"] = libraries
-        
         info_path = os.path.join(theme_path, f"{machine_name}.info.yml")
         with open(info_path, "w") as f:
             yaml.dump(info_yml, f, default_flow_style=False, sort_keys=False)
