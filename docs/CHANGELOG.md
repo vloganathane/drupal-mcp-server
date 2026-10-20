@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.4] - 2026-10-20
+
+### Added
+
+- Dynamic client registration (`POST /register`, advertised as
+  `registration_endpoint`): an MCP client can now complete the whole
+  flow over a live socket — discovery → registration → PKCE
+  authorization → token exchange → authenticated call. Before this,
+  the client registry could never be populated and `/token` rejected
+  every client as `invalid_client`, so no wire client could obtain a
+  token at all.
+- Authorization codes expire ten minutes after issue (RFC 6749 §10.5),
+  enforced by the token endpoint.
+
+### Fixed
+
+- `load_authorization_code()` and `load_refresh_token()` returned the
+  raw dicts the tokens were stored in; the token handler reads
+  `.client_id`, `.expires_at`, `.redirect_uri` and `.code_challenge`
+  off the result, so every over-the-wire exchange died on
+  `AttributeError` and answered 500. Both loaders now return the
+  models the SDK validates — the same failure shape as 0.3.2's
+  `load_access_token` dict fix, the third in the family.
+- Both token exchanges only accepted raw strings (`str()` on a pydantic
+  model yields its repr), which worked for the unit tests and broke on
+  the models the SDK hands over the wire; each now accepts either.
+
+### Documentation
+
+- ADR 0005 records where MCP OAuth tokens are validated: the served
+  authorization server is in-process, the credentials split between
+  the guard's intent switch and the outbound client-credentials leg,
+  and introspection / proxy delegation / JWT verification are the
+  recorded options for Drupal-side identity.
+- The README, configuration guide and migration guide now say what the
+  guard actually checks (`DRUPAL_OAUTH_CLIENT_ID`), that MCP tokens
+  are issued in-process rather than delegated to Drupal, and that
+  self-service registration proves client-ness, not user identity.
+
+### Testing
+
+- A real-socket test drives the installed console script through
+  discovery, dynamic registration, PKCE authorize, exchange, an
+  authenticated call, code replay and refresh; unit tests pin scope
+  enforcement, the outbound client-credentials grant, and the
+  model-not-dict loaders.
+
 ## [0.3.3] - 2026-10-19
 
 ### Security
