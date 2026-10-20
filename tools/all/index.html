@@ -4581,7 +4581,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>generate_migration_yaml</code></td>
 <td>Generate migration YAML configuration.<br><em>Kicking off a new migration and needing a correctly shaped YAML stub to fill in</em></td>
 <td><code>{"migration_type": "value", "source": {}, "destination": {}}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>generate_module_migration</code></td>
@@ -4593,31 +4593,31 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>run_migration_test</code></td>
 <td>Test migration with limited records.<br><em>Importing only a handful of records to confirm mappings before committing to a full run</em></td>
 <td><code>{"migration_id": "value"}</code></td>
-<td>⚠️ ddev · ⚠️ lando · ❔ no offline tests</td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>validate_migration</code></td>
 <td>Validate migration configuration.<br><em>Confirming a migration is registered and seeing how many records it has already processed</em></td>
 <td><code>{"migration_id": "value"}</code></td>
-<td>⚠️ ddev · ⚠️ lando · ❔ no offline tests</td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>rollback_migration</code></td>
 <td>Rollback a completed migration.<br><em>Undoing a test import so the same migration can run again cleanly after its mapping is fixed</em></td>
 <td><code>{"migration_id": "value"}</code></td>
-<td>⚠️ ddev · ⚠️ lando · ❔ no offline tests</td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>sync_media_files</code></td>
 <td>Sync media files between paths.<br><em>Copying image files onto the new server before the content that references them is imported</em></td>
 <td><code>{"source_path": "value", "destination_path": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>🧩 ddev · 🧩 lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>migrate_taxonomy</code></td>
-<td>Migrate taxonomy vocabularies and their terms.<br><em>Rebuilding vocabularies and terms first so incoming content has somewhere to point</em></td>
+<td>Migrate taxonomy vocabularies and their terms to this site.<br><em>Rebuilding vocabularies and terms first so incoming content has somewhere to point</em></td>
 <td><code>{"vocabularies": {}}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>create_migration_plan</code></td>
@@ -4629,19 +4629,19 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>get_migration_plan</code></td>
 <td>Read a persisted migration plan and its tracked state.<br><em>Picking a migration back up in a new session and needing its source, mappings, and tracked state</em></td>
 <td><code>{"migration_id": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>list_migration_plans</code></td>
 <td>List all persisted migration plans.<br><em>Figuring out which migrations exist on this site and where each one stands</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>migration_status</code></td>
 <td>Summarize migration progress for a persisted plan.<br><em>Reporting how far a planned migration has progressed and whether anything is failing</em></td>
 <td><code>{"migration_id": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>migrate_records</code></td>
@@ -4653,7 +4653,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>record_migration_result</code></td>
 <td>Record the outcome of a manually executed migration operation.<br><em>Logging outcomes from a hand-run import so the plan's counts stay trustworthy later</em></td>
 <td><code>{"migration_id": "value", "entity_type": "node", "legacy_id": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>analyze_source_site</code></td>
@@ -4665,19 +4665,19 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>reconcile_migration_counts</code></td>
 <td>Compare recorded source counts with current target-site counts.<br><em>After an import run, spotting which entity types still fall short of the recorded source counts</em></td>
 <td><code>{"migration_id": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>run_migration_wave</code></td>
 <td>Fetch and migrate one resource type from the plan's source site into the target site.<br><em>Migrating one resource type at a time so any failure stays contained to a single wave</em></td>
 <td><code>{"migration_id": "value", "resource_type": "value"}</code></td>
-<td>⚠️ ddev · ⚠️ lando · ❔ no offline tests</td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>run_migration</code></td>
 <td>Run an ordered end-to-end migration for one or all planned entity types.<br><em>Executing the whole plan in dependency order once the plan exists and dry runs look right</em></td>
 <td><code>{"migration_id": "value"}</code></td>
-<td>⚠️ ddev · ⚠️ lando · ❔ no offline tests</td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
 </tr>
 </tbody>
 </table>
