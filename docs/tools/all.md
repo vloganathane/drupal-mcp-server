@@ -85,7 +85,7 @@ Content — 14 tools.
 | `fix_media_references` | Find broken media references across a content type.<br>_Diagnose missing images on a content type after media entities were removed_ | `{"content_type": "value"}` | ✅ ddev · 🧩 lando · ❔ no offline tests |
 | `bulk_update_aliases` | Regenerate URL aliases for a content type.<br>_Regenerate URL aliases for a content type after changing Pathauto patterns_ | `{"bundle": "article", "pattern": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
 | `analyze_content_quality` | Analyze content quality with AI for specific nodes or an entire type.<br>_Review recent articles for thin or inconsistent content before a quality audit_ | `{}` | ⚠️ ddev · 🧩 lando · ❔ no offline tests |
-| `generate_test_content` | Generate sample nodes for a bundle to populate a development site.<br>_Populate a development site with sample nodes to test layouts and views_ | `{"bundle": "article"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `generate_test_content` | Generate sample nodes for a bundle to populate a development site.<br>_Populate a development site with sample nodes to test layouts and views_ | `{"bundle": "article"}` | ✅ ddev · ✅ lando · 🧪 unit |
 
 ## users
 
@@ -194,9 +194,9 @@ Config — 8 tools.
 | `config_set` | Set a single configuration value.<br>_Tweaking a single setting, like the site name, without running a full config import_ | `{"name": "value", "value": {}}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `export_config` | Export Drupal configuration to files.<br>_Snapshotting active configuration into files before starting a deployment_ | `{}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
 | `import_config` | Import Drupal configuration from files.<br>_Applying configuration committed to the repo after deploying new code_ | `{}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
-| `sync_config` | Sync configuration between environments via Drush.<br>_Previewing then pushing config changes from one environment to another after review_ | `{"source_env": "value", "target_env": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `sync_config` | Sync configuration between environments via Drush.<br>_Previewing then pushing config changes from one environment to another after review_ | `{"source_env": "value", "target_env": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `diff_config` | Show differences in configuration between environments.<br>_Explaining why two environments behave differently before touching either one_ | `{"config_name": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
-| `split_config` | Split configuration into separate directories for atomic deployment.<br>_Extracting only the config objects a feature needs so deploys can ship independently_ | `{"config_names": []}` | 🧩 ddev · 🧩 lando · ❔ no offline tests |
+| `split_config` | Split configuration into separate directories for atomic deployment.<br>_Extracting only the config objects a feature needs so deploys can ship independently_ | `{"config_names": []}` | 🧩 ddev · 🧩 lando · 🧪 unit |
 | [`config_status`](index.md#config_status) | Compare active configuration with the exported sync directory.<br>_Checking pending configuration changes before deciding whether an import is safe_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 
 ## fields
@@ -349,9 +349,9 @@ Feeds — 12 tools.
 | `feeds_import_status` | Get feed import status.<br>_Checking whether an import kicked off earlier finished or hit errors_ | `{"feed_id": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `feeds_log_list` | List feed import logs.<br>_Looking for import history and being redirected to feeds\_import\_status instead_ | `{}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
 | `feeds_tamper_list` | List tamper plugins for a feed.<br>_Auditing field cleanup plugins chained onto a feed before editing import logic_ | `{"feed_id": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `feeds_parser_list` | List available feed parsers.<br>_Getting the exact parser plugin IDs when configuring a new feed_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `feeds_fetcher_list` | List available feed fetchers.<br>_Confirming which fetcher plugins are installed before creating a feed_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `feeds_processor_list` | List available feed processors.<br>_Finding what a feed can write to before creating the import_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `feeds_parser_list` | List available feed parsers.<br>_Getting the exact parser plugin IDs when configuring a new feed_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `feeds_fetcher_list` | List available feed fetchers.<br>_Confirming which fetcher plugins are installed before creating a feed_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `feeds_processor_list` | List available feed processors.<br>_Finding what a feed can write to before creating the import_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 
 ## multilingual
 
@@ -435,7 +435,7 @@ Contact — 9 tools.
 | `contact_message_list` | List contact form submissions.<br>_Seeing what visitors have written through the site's contact forms this week_ | `{}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
 | `contact_message_get` | Get a single contact message by ID.<br>_Reading one message in full so support can follow up on a specific complaint_ | `{"message_id": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
 | `contact_message_delete` | Delete a contact message.<br>_Deleting test messages that accumulated while a form was being developed_ | `{"message_id": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
-| `contact_spam_check` | Check if a contact message is spam.<br>_Deciding whether a suspicious message should be kept or purged from the inbox_ | `{"message_id": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `contact_spam_check` | Check if a contact message is spam.<br>_Deciding whether a suspicious message should be kept or purged from the inbox_ | `{"message_id": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
 
 ## commerce
 
@@ -505,8 +505,8 @@ Devops — 20 tools.
 | `composer_install` | Run composer install.<br>_A fresh clone or CI step where vendor is missing and the lock file must be installed_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `composer_require` | Require one or more packages via composer.<br>_Adding one or several contributed modules to the project straight through composer_ | `{"package": "value"}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
 | `composer_update` | Run composer update.<br>_When ready to adopt newer dependency versions, run the update in the project directory_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
-| `drush_cron` | Run cron.<br>_Triggering cron now so queues and aggregations run without waiting for the schedule_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `drush_watchdog` | Show recent log entries from watchdog.<br>_Debugging a reported error by pulling recent log entries filtered by type or severity_ | `{}` | ✅ ddev · 🧩 lando · ❔ no offline tests |
+| `drush_cron` | Run cron.<br>_Triggering cron now so queues and aggregations run without waiting for the schedule_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `drush_watchdog` | Show recent log entries from watchdog.<br>_Debugging a reported error by pulling recent log entries filtered by type or severity_ | `{}` | ✅ ddev · 🧩 lando · 🧪 unit |
 | `cache_clear` | Clear specific cache bins.<br>_Isolating stale output by clearing only the suspect cache bin rather than everything_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `drush_updb` | Run database updates.<br>_After the pending update list is checked, apply schema updates once a database backup exists_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `drush_php_eval` | Execute arbitrary PHP code via Drush.<br>_A quick one-line Drupal API call, like resetting a state key, without writing a module_ | `{"code": "value"}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
@@ -531,13 +531,13 @@ Performance — 7 tools.
 
 | Tool | Description & use case | Example | Status |
 |------|------------------------|---------|--------|
-| `performance_query_log` | Get slow query log.<br>_Hunting a slow page by finding which queries the site logged as slow in watchdog_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `performance_query_log` | Get the recent db_query watchdog entries (requires devel logging).<br>_Hunting a slow page by finding which queries the site logged as slow in watchdog_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `performance_cache_stats` | Get cache performance statistics.<br>_Seeing whether cache bins are being churned instead of serving hits under traffic_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
-| `performance_redis_info` | Get Redis server info.<br>_Diagnosing cache backend health when Redis is backing the site's cache bins_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `performance_bigpipe_status` | Check BigPipe status and configuration.<br>_Confirming whether BigPipe is enabled before investigating why page delivery looks plain_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `performance_redis_info` | Get Redis server info.<br>_Diagnosing cache backend health when Redis is backing the site's cache bins_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `performance_bigpipe_status` | Check BigPipe status and configuration.<br>_Confirming whether BigPipe is enabled before investigating why page delivery looks plain_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `performance_bigpipe_enable` | Enable or disable BigPipe.<br>_Toggling BigPipe during a performance test, a reversible config change to revert afterwards_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
-| `performance_memcached_stats` | Get Memcached statistics.<br>_Spotting evictions or memory limits in Memcached that explain repeated cache misses_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `performance_page_load_analyze` | Analyze page load performance.<br>_Getting a rough before and after number when comparing a page's response times_ | `{"url": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `performance_memcached_stats` | Get Memcached statistics.<br>_Spotting evictions or memory limits in Memcached that explain repeated cache misses_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `performance_page_load_analyze` | Analyze page load performance.<br>_Getting a rough before and after number when comparing a page's response times_ | `{"url": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
 
 ## migration
 
@@ -682,13 +682,13 @@ Security Audit — 10 tools.
 | Tool | Description & use case | Example | Status |
 |------|------------------------|---------|--------|
 | `security_scan` | Run security-focused SAST using PHPStan with security extensions.<br>_A pre-release SAST pass on custom code where only PHPStan and its security extension matter_ | `{"path": "/about"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
-| `dependency_scan` | Scan dependencies for vulnerabilities using Composer audit and other tools.<br>_Checking composer packages against vulnerability advisories before tagging a release_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `dependency_scan` | Scan dependencies for vulnerabilities using Composer audit and other tools.<br>_Checking composer packages against vulnerability advisories before tagging a release_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `config_security_check` | Check Drupal configuration for security issues.<br>_Auditing exported config for risky settings before pushing it to production_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `permission_audit` | Audit user permissions and roles.<br>_After a role change, confirming no regular user quietly gained an admin-only permission_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `sql_injection_scan` | Scan for SQL injection vulnerabilities in custom code.<br>_Reviewing custom database queries for unsanitized input before the code goes live_ | `{"path": "/about"}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
 | `xss_scan` | Scan for XSS vulnerabilities in custom code.<br>_Checking custom output for unescaped user-supplied input ahead of a security review_ | `{"path": "/about"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
 | `csp_audit` | Content Security Policy audit.<br>_The browser console shows CSP violations and you need to know which directive to relax_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
-| `file_permissions_audit` | Audit file permissions for security issues.<br>_Hardening a public files directory where an uploaded executable would be a problem_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `file_permissions_audit` | Audit file permissions for security issues.<br>_Hardening a public files directory where an uploaded executable would be a problem_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 | [`code_security_scan`](index.md#code_security_scan) | Scan custom code for vulnerability patterns — no tools to install.<br>_A quick vulnerability-pattern sweep of custom modules with no vendor tools installed_ | `{}` | 🧩 ddev · 🧩 lando · 🧪 unit |
 | [`route_access_audit`](index.md#route_access_audit) | Classify every route's access control from *.routing.yml files.<br>_Finding routes with no access check before the site is exposed publicly_ | `{}` | 🧩 ddev · 🧩 lando · 🧪 unit |
 
@@ -703,9 +703,9 @@ Headless — 10 tools.
 | `jsonapi_sparse_fieldsets` | Get entity with sparse fieldsets (only requested fields).<br>_Shrinking a heavy JSON:API response down to only the fields the page renders_ | `{"entity_type": "node", "fields": {"title": "Hello"}}` | ✅ ddev · 🧩 lando · 🧪 unit |
 | `graphql_schema_get` | Get GraphQL schema.<br>_Writing a GraphQL query without knowing which types and fields the site exposes_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `graphql_query` | Execute a GraphQL query.<br>_Fetching exactly the content fields a component needs from a decoupled front end_ | `{"query": "keyword"}` | ✅ ddev · ✅ lando · 🧪 unit |
-| `graphql_schema_extend` | Extend GraphQL schema with custom fields (requires schema customization module).<br>_A component needs a computed field that Drupal's default schema does not expose_ | `{"type_name": "value", "fields": {"title": "Hello"}}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `nextjs_helpers_generate` | Generate Next.js helper functions for Drupal entities.<br>_Scaffolding typed fetch helpers for a Next.js site consuming Drupal content_ | `{"entity_types": []}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `gatsby_helpers_generate` | Generate Gatsby source plugin config and helpers.<br>_Wiring a Gatsby site to Drupal data without writing the source plugin config by hand_ | `{"entity_types": []}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `graphql_schema_extend` | Extend GraphQL schema with custom fields.<br>_A component needs a computed field that Drupal's default schema does not expose_ | `{"type_name": "value", "fields": {"title": "Hello"}}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `nextjs_helpers_generate` | Generate Next.js helper functions for Drupal entities.<br>_Scaffolding typed fetch helpers for a Next.js site consuming Drupal content_ | `{"entity_types": []}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `gatsby_helpers_generate` | Generate Gatsby source plugin config and helpers.<br>_Wiring a Gatsby site to Drupal data without writing the source plugin config by hand_ | `{"entity_types": []}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `jsonapi_resources_list` | List all available JSON:API resources.<br>_Discovering which endpoints exist before writing a single API request_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `jsonapi_resource_types` | Get all resource types available in JSON:API.<br>_Checking available types and bundles before filtering a JSON:API collection query_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 
@@ -734,15 +734,15 @@ Testing — 9 tools.
 
 | Tool | Description & use case | Example | Status |
 |------|------------------------|---------|--------|
-| `test_run_phpunit` | Run PHPUnit tests.<br>_Verifying a change to custom logic did not break existing unit behavior before committing_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
-| `test_run_kernel` | Run Kernel tests.<br>_Exercising hooks and entity storage against a real Drupal kernel after a change_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `test_run_behat` | Run Behat tests.<br>_Checking a user-facing workflow end to end before calling a feature done_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `test_run_nightwatch` | Run Nightwatch tests.<br>_Validating browser-side JS and admin UI behavior ahead of a release_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `test_run_phpunit` | Run the site's PHPUnit tests (vendor/bin/phpunit).<br>_Verifying a change to custom logic did not break existing unit behavior before committing_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `test_run_kernel` | Run the site's Kernel-test suite (vendor/bin/phpunit).<br>_Exercising hooks and entity storage against a real Drupal kernel after a change_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `test_run_behat` | Run the site's Behat features (vendor/bin/behat).<br>_Checking a user-facing workflow end to end before calling a feature done_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `test_run_nightwatch` | Run Nightwatch tests (node_modules/.bin/nightwatch).<br>_Validating browser-side JS and admin UI behavior ahead of a release_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `test_scaffold_phpunit` | Scaffold a PHPUnit test class.<br>_Starting a test for a custom class without recalling the Drupal TestCase boilerplate_ | `{"module": "mymodule"}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `test_scaffold_behat` | Scaffold a Behat feature file.<br>_Turning a user story into an executable feature file in one step_ | `{"module": "mymodule", "feature_name": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `test_scaffold_nightwatch` | Scaffold a Nightwatch test.<br>_Adding browser coverage for a new admin workflow the team just shipped_ | `{"module": "mymodule", "test_name": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
-| `test_coverage_report` | Generate test coverage report.<br>_Seeing which parts of a custom module still have zero test coverage_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `test_list_suites` | List available test suites.<br>_Not sure which runner applies, so checking what test suites this site exposes_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `test_coverage_report` | Generate a test coverage report (vendor/bin/phpunit).<br>_Seeing which parts of a custom module still have zero test coverage_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `test_list_suites` | List the site's PHPUnit test suites.<br>_Not sure which runner applies, so checking what test suites this site exposes_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 
 ## accessibility
 
@@ -754,7 +754,7 @@ Accessibility — 5 tools.
 | `accessibility_wcag_check` | Check WCAG compliance for entity content.<br>_Before publishing, checking a content type's rendered output against WCAG criteria_ | `{"entity_type": "node", "entity_id": "value"}` | ✅ ddev · ⚠️ lando · 🧪 unit |
 | `accessibility_color_contrast` | Check color contrast ratio.<br>_Choosing a brand color pairing that still passes AA contrast on text_ | `{"foreground": "value", "background": "value"}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
 | `accessibility_aria_validate` | Validate ARIA attributes on entity.<br>_A custom template's accordion misbehaves and the ARIA markup may be at fault_ | `{"entity_type": "node", "entity_id": "value"}` | ✅ ddev · ⚠️ lando · 🧪 unit |
-| `accessibility_report_generate` | Generate comprehensive accessibility report.<br>_Handing an auditor one consolidated report instead of scattered scan results_ | `{"urls": []}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `accessibility_report_generate` | Generate comprehensive accessibility report.<br>_Handing an auditor one consolidated report instead of scattered scan results_ | `{"urls": []}` | ✅ ddev · ✅ lando · 🧪 unit |
 
 ## exports
 

@@ -1,11 +1,23 @@
 """Headless/Decoupled tools for Drupal."""
 
 import os
+import re
 from typing import Any
 
 from fastmcp import FastMCP
 
 from ._utils import ensure_dict as _ensure_dict
+
+
+def _identifier(entity_type: str) -> str:
+    """A valid TS/JS identifier for an entity type: ``node--article`` -> ``DrupalNodeArticle``.
+
+    ``entity_type.capitalize()`` produced ``Node--article`` -- dashes are
+    not legal in an identifier, so every generated interface and getter was
+    unparsable, and JSON:API types are always bundle-qualified like that.
+    """
+    parts = [p for p in re.split(r"[^0-9A-Za-z]+", str(entity_type)) if p]
+    return "Drupal" + "".join(part[:1].upper() + part[1:] for part in parts)
 
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
@@ -114,16 +126,45 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         type_name: str,
         fields: dict[str, Any],
     ) -> dict[str, Any]:
-        """Extend GraphQL schema with custom fields (requires schema customization module)."""
+        """Extend GraphQL schema with custom fields.
+
+        Verifies the site actually has a ``graphql.schema.customization``
+        configuration object before touching it. The previous call passed a
+        whole JSON document as drush ``config:set``'s *key* argument --
+        config:set takes ``<config> <key> <value>`` -- so every invocation
+        failed at drush, and no module on most sites provides that config
+        object in the first place.
+        """
         if not drush:
             return {"error": "Drush not available"}
         try:
-            config = {
-                "extend_type": type_name,
-                "fields": fields,
-            }
             import json
-            result = await drush.run("config:set", ["graphql.schema.customization", json.dumps(config)])
+            probe = await drush.run("config:get", ["graphql.schema.customization"])
+            if probe.get("returncode"):
+                return {
+                    "error": (
+                        "This site has no `graphql.schema.customization` "
+                        "configuration object, and drush config:set needs an "
+                        "existing object plus a key and a value. Extend the "
+                        "GraphQL schema in code (a composable schema server "
+                        "or a schema-alteration hook) instead. No action "
+                        "was taken."
+                    )
+                }
+            result = await drush.run(
+                "config:set", ["graphql.schema.customization", "extend_type", type_name]
+            )
+            if result.get("returncode"):
+                return _ensure_dict({"result": result})
+            result = await drush.run(
+                "config:set",
+                [
+                    "graphql.schema.customization",
+                    "fields",
+                    json.dumps(fields),
+                    "--input-format=json",
+                ],
+            )
             return _ensure_dict({"result": result})
         except Exception as e:
             return {"error": str(e)}
@@ -134,36 +175,36 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         output_dir: str = "./nextjs-helpers",
     ) -> dict[str, Any]:
         """Generate Next.js helper functions for Drupal entities."""
-        if not drush:
-            return {"error": "Drush not available"}
+        # Pure generation from the given type names: no drush and no
+        # JSON:API access. The drush guard reported "Drush not available"
+        # for a tool that never touched drush, and the `if jsonapi:`
+        # condition blanked the output entirely without a JSON:API client.
         try:
             helpers = {}
-            if jsonapi:
-                for entity_type in entity_types:
-                    # This used to call get_resource("jsonapi") here, which
-                    # asks for /jsonapi/jsonapi -- a path that does not exist.
-                    # The 404 escaped the loop and failed the whole tool, for a
-                    # value the generator never used.
-                    helpers[entity_type] = {
-                        "type": f"Drupal{entity_type.capitalize()}",
-                        "api_url": f"/jsonapi/{entity_type}",
-                    }
-            
+            for entity_type in entity_types:
+                helpers[entity_type] = {
+                    "type": _identifier(entity_type),
+                    # JSON:API type strings are not URL paths:
+                    # node--article lives at /jsonapi/node/article.
+                    "api_url": f"/jsonapi/{str(entity_type).replace('--', '/', 1)}",
+                }
+
             os.makedirs(output_dir, exist_ok=True)
             with open(os.path.join(output_dir, "drupal-types.ts"), "w") as f:
                 f.write("// Generated Drupal types\n")
                 for _k, v in helpers.items():
                     f.write(f"export interface {v['type']} {{\n  id: string;\n  type: string;\n  attributes: any;\n}}\n\n")
-            
+
             with open(os.path.join(output_dir, "drupal-api.ts"), "w") as f:
                 f.write("// Generated Drupal API helpers\n")
                 f.write("const BASE_URL = process.env.DRUPAL_URL || 'http://localhost';\n\n")
-                for k, v in helpers.items():
-                    f.write(f"export async function get{k.capitalize()}(id: string) {{\n")
+                for _k, v in helpers.items():
+                    getter = v["type"].removeprefix("Drupal")
+                    f.write(f"export async function get{getter}(id: string) {{\n")
                     f.write(f"  const res = await fetch(`${{BASE_URL}}{v['api_url']}/${{id}}`);\n")
                     f.write("  return res.json();\n")
                     f.write("}\n\n")
-            
+
             return _ensure_dict({"generated": list(helpers.keys()), "output_dir": output_dir})
         except Exception as e:
             return {"error": str(e)}
@@ -174,15 +215,20 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         output_dir: str = "./gatsby-helpers",
     ) -> dict[str, Any]:
         """Generate Gatsby source plugin config and helpers."""
-        if not drush:
-            return {"error": "Drush not available"}
+        # A pure generator: neither drush nor JSON:API access is required,
+        # and the configured site URL is what the plugin should point at --
+        # the hardcoded localhost was wrong for every site the server was
+        # actually configured against.
         try:
+            base_url = "http://localhost"
+            if jsonapi:
+                base_url = str(getattr(jsonapi, "_base_url", "") or base_url)
             gatsby_config = {
                 "plugins": [
                     {
                         "resolve": "gatsby-source-drupal",
                         "options": {
-                            "baseUrl": "http://localhost",
+                            "baseUrl": base_url,
                             "apiBase": "jsonapi",
                             "entityTypes": entity_types,
                         }

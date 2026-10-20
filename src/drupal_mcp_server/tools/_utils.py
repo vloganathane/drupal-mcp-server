@@ -421,6 +421,19 @@ def drush_result(result: dict[str, Any], **extra: Any) -> dict[str, Any]:
     return payload
 
 
+def php_single_quote(value: str) -> str:
+    """Quote a value as a PHP single-quoted literal.
+
+    The performance, accessibility, and file-audit tools used to interpolate
+    raw values into ``'...'`` PHP, so a quote in a URL or path ended the
+    literal and whatever followed became code. They also wrote shell-era
+    ``\\$`` escapes, but drush receives arguments through exec with no shell
+    to eat the backslash -- PHP itself saw ``\\$db``.
+    """
+    escaped = str(value).replace("\\", "\\\\").replace("'", "\\'")
+    return f"'{escaped}'"
+
+
 def ensure_dict(result: dict[str, Any] | list[Any] | None) -> dict[str, Any]:
     """Ensure result is a dict, not a list.
 

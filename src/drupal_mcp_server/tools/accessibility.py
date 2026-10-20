@@ -1,12 +1,25 @@
 """Accessibility (WCAG) tools for Drupal."""
 
 import json
+import os
 from datetime import UTC, datetime
 from typing import Any
 
 from fastmcp import FastMCP
 
+from ..config import get_settings
+from ._utils import drush_result as _drush_result
 from ._utils import ensure_dict as _ensure_dict
+from ._utils import php_single_quote as _php_quote
+
+
+def _autoload_path() -> str:
+    """The site's composer autoload, or a cwd-relative fallback."""
+    try:
+        root = get_settings().DRUPAL_ROOT
+    except Exception:
+        root = None
+    return os.path.join(str(root), "vendor", "autoload.php") if root else "vendor/autoload.php"
 
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
@@ -28,13 +41,19 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             parsed = urlparse(url)
             if parsed.scheme not in ('http', 'https') or not parsed.netloc:
                 return {"error": f"Invalid URL: {url}"}
-            cmd = ["exec", [
-                f"\\$scan = require_once 'vendor/autoload.php'; "
-                f"\\$axe = new \\\\Deque\\\\Axe\\\\Axe(); "
-                f"\\$results = \\$axe->analyze('{url}'); "
-                f"print_r(json_encode(\\$results));"
-            ]]
-            result = await drush.run(*cmd)
+            # php:eval, not the nonexistent drush `exec`. The autoload path
+            # is absolute when DRUPAL_ROOT is configured: a relative
+            # require_once resolved against wherever the MCP server was
+            # started, not the site.
+            code = (
+                f"$scan = require_once {_php_quote(_autoload_path())}; "
+                "$axe = new \\Deque\\Axe\\Axe(); "
+                f"$results = $axe->analyze({_php_quote(url)}); "
+                "print_r(json_encode($results));"
+            )
+            result = await drush.run("php:eval", [code])
+            if result.get("returncode"):
+                return _drush_result(result)
             return _ensure_dict({"result": result})
         except Exception as e:
             return {"error": str(e)}
@@ -239,13 +258,22 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
                 parsed = urlparse(url)
                 if parsed.scheme not in ('http', 'https') or not parsed.netloc:
                     return {"error": f"Invalid URL: {url}"}
-                # Run axe scan
-                cmd = ["exec", [
-                    f"\\$axe = new \\\\Deque\\\\Axe\\\\Axe(); "
-                    f"\\$results = \\$axe->analyze('{url}'); "
-                    f"print_r(json_encode(\\$results));"
-                ]]
-                result = await drush.run(*cmd)
+                # php:eval, not the nonexistent `exec`: drush evaluates the
+                # code itself and hands the argument straight to PHP, so the
+                # class name takes single backslashes and the URL is quoted
+                # as a PHP literal rather than spliced into one.
+                code = (
+                    "$axe = new \\Deque\\Axe\\Axe(); "
+                    f"$results = $axe->analyze({_php_quote(url)}); "
+                    "print_r(json_encode($results));"
+                )
+                result = await drush.run("php:eval", [code])
+                if result.get("returncode"):
+                    reason = str(result.get("stderr") or "").strip() or "no error output"
+                    return {
+                        "error": f"axe scan failed for {url}: {reason[:600]}",
+                        "url": url,
+                    }
                 report["pages"].append({
                     "url": url,
                     "axe_results": result,

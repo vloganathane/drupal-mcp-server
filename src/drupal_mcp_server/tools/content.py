@@ -536,6 +536,15 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         """
         if not jsonapi:
             return {"error": "JSON:API not available"}
+        if not isinstance(count, int) or isinstance(count, bool) or count < 1 or count > 100:
+            # Unvalidated, count=-3 silently created nothing and count=10**9
+            # looped until the client gave up; the response never said which.
+            return {
+                "error": (
+                    f"count must be an integer between 1 and 100 (got {count!r}); "
+                    "call again to generate more. Nothing was created."
+                )
+            }
         try:
             generated, errors = [], []
             def random_string(length: int = 8) -> str:

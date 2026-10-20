@@ -5,6 +5,7 @@ from typing import Any
 from fastmcp import FastMCP
 
 from ._utils import absent_entity as _absent_entity
+from ._utils import drush_result as _drush_result
 from ._utils import ensure_dict as _ensure_dict
 
 
@@ -182,12 +183,16 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not drush:
             return {"error": "Drush not available"}
         try:
-            cmd = ["exec", [
-                "\\$parsers = \\Drupal::service('plugin.manager.feeds.parser')->getDefinitions(); "
-                "print_r(json_encode(array_keys(\\$parsers)));"
-            ]]
-            result = await drush.run(*cmd)
-            return _ensure_dict({"parsers": result})
+            # php:eval, not the nonexistent drush `exec`; no shell means no
+            # shell-era \$ escapes.
+            code = (
+                "$parsers = \\Drupal::service('plugin.manager.feeds.parser')->getDefinitions(); "
+                "print_r(json_encode(array_keys($parsers)));"
+            )
+            result = await drush.run("php:eval", [code])
+            if result.get("returncode"):
+                return _drush_result(result)
+            return {"parsers": result}
         except Exception as e:
             return {"error": str(e)}
 
@@ -198,12 +203,14 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not drush:
             return {"error": "Drush not available"}
         try:
-            cmd = ["exec", [
-                "\\$fetchers = \\Drupal::service('plugin.manager.feeds.fetcher')->getDefinitions(); "
-                "print_r(json_encode(array_keys(\\$fetchers)));"
-            ]]
-            result = await drush.run(*cmd)
-            return _ensure_dict({"fetchers": result})
+            code = (
+                "$fetchers = \\Drupal::service('plugin.manager.feeds.fetcher')->getDefinitions(); "
+                "print_r(json_encode(array_keys($fetchers)));"
+            )
+            result = await drush.run("php:eval", [code])
+            if result.get("returncode"):
+                return _drush_result(result)
+            return {"fetchers": result}
         except Exception as e:
             return {"error": str(e)}
 
@@ -214,11 +221,13 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not drush:
             return {"error": "Drush not available"}
         try:
-            cmd = ["exec", [
-                "\\$processors = \\Drupal::service('plugin.manager.feeds.processor')->getDefinitions(); "
-                "print_r(json_encode(array_keys(\\$processors)));"
-            ]]
-            result = await drush.run(*cmd)
-            return _ensure_dict({"processors": result})
+            code = (
+                "$processors = \\Drupal::service('plugin.manager.feeds.processor')->getDefinitions(); "
+                "print_r(json_encode(array_keys($processors)));"
+            )
+            result = await drush.run("php:eval", [code])
+            if result.get("returncode"):
+                return _drush_result(result)
+            return {"processors": result}
         except Exception as e:
             return {"error": str(e)}

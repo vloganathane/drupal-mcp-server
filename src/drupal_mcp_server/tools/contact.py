@@ -4,7 +4,9 @@ from typing import Any
 
 from fastmcp import FastMCP
 
+from ._utils import drush_result as _drush_result
 from ._utils import ensure_dict as _ensure_dict
+from ._utils import php_single_quote as _php_quote
 
 
 def register_tools(mcp: FastMCP, **deps: Any) -> None:
@@ -178,12 +180,18 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             import re
             if not re.match(r'^[a-zA-Z0-9_-]+$', str(message_id)):
                 return {"error": f"Invalid message ID: {message_id}"}
-            cmd = ["exec", [
-                f"\\$message = \\Drupal::entityTypeManager()->getStorage('contact_message')->load('{message_id}'); "
-                f"\\$spam = \\Drupal::service('contact.spam')->check(\\$message); "
-                f"print_r(json_encode(['spam' => \\$spam]));"
-            ]]
-            result = await drush.run(*cmd)
+            # php:eval, not the nonexistent drush `exec`.
+            code = (
+                f"$message = \\Drupal::entityTypeManager()->getStorage('contact_message')"
+                f"->load({_php_quote(message_id)}); "
+                "$spam = \\Drupal::service('contact.spam')->check($message); "
+                "print_r(json_encode(['spam' => $spam]));"
+            )
+            result = await drush.run("php:eval", [code])
+            if result.get("returncode"):
+                # A failed eval used to land under a wrapped {"result": ...}
+                # with no top-level error, reading as success.
+                return _drush_result(result)
             return _ensure_dict({"result": result})
         except Exception as e:
             return {"error": str(e)}

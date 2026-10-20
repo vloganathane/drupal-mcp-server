@@ -29,10 +29,13 @@ class DrushClient:
         # twice by a retry.
         self._timeout = int(getattr(settings, "DRUSH_TIMEOUT", 120))
 
-    def _command(self, command: str, args: list[str], with_format: bool = True) -> list[str]:
+    def _command(
+        self, command: str, args: list[str], with_format: bool = True, alias: str | None = None
+    ) -> list[str]:
         argv = list(self._drush)
-        if self._alias:
-            argv.append(self._alias)
+        active = self._alias if alias is None else str(alias)
+        if active:
+            argv.append(active)
         argv.append(command)
         # Many tools already pass --format=json themselves; adding it twice is
         # sloppy, and commands like `drush cron` reject the option outright.
@@ -76,7 +79,9 @@ class DrushClient:
                 tokens.append(str(part))
         return tokens
 
-    async def run(self, *parts: Any, cwd: str | None = None) -> dict[str, Any]:
+    async def run(
+        self, *parts: Any, cwd: str | None = None, alias: str | None = None
+    ) -> dict[str, Any]:
         """Run a drush command line.
 
         Accepts the command plus any number of argument tokens, in any
@@ -86,6 +91,11 @@ class DrushClient:
             run("status", ["--format=json"])
             run("config:set", "twig.config", "debug", "true")
             run(*("user:role:add", "authenticated", "1"))
+
+        ``alias`` overrides DRUSH_ALIAS for this one call: sync_config and
+        diff_config name a source and a target environment, and without it
+        both halves ran against the site the server was started on --
+        the environment parameters were echoed back but never applied.
         """
         if not parts:
             return {
@@ -96,12 +106,14 @@ class DrushClient:
             }
         command, rest = str(parts[0]), parts[1:]
         argv = self._flatten(rest)
-        cmd = self._command(command, argv)
+        cmd = self._command(command, argv, alias=alias)
         result = await self._exec(cmd, cwd)
         # `drush cron` and friends have no --format option. Retry once without
         # it rather than failing a command that would otherwise succeed.
         if result["returncode"] != 0 and "--format" in result.get("stderr", ""):
-            retried = await self._exec(self._command(command, argv, with_format=False), cwd)
+            retried = await self._exec(
+                self._command(command, argv, with_format=False, alias=alias), cwd
+            )
             # Report the run that actually executed. Returning the original
             # made every failure read as "The --format option does not exist",
             # which buries the real reason.

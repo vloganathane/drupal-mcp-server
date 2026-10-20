@@ -72,37 +72,73 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
             return {"error": "Drush not available"}
         args = ["--source=" + import_path]
         if skip_hash_check:
-            args.append("--skip-hash-check")
+            # drush 13's config:import offers only --diff, --source, and
+            # --partial (verified against ConfigImportCommands.php): this
+            # flag has never existed there, so passing it fails at drush
+            # with an option error. Refuse instead of failing mid-import.
+            return {
+                "error": (
+                    "drush config:import accepts only --diff, --source, and "
+                    "--partial; it has no --skip-hash-check option, so this "
+                    "request cannot be honored. Nothing was imported."
+                )
+            }
         result = await drush.run("config-import", args)
         return _drush_result(result, import_path=import_path)
 
     @mcp.tool()
     async def sync_config(source_env: str, target_env: str, dry_run: bool = False) -> dict[str, Any]:
-        """Sync configuration between environments via Drush."""
+        """Sync configuration between environments via Drush.
+
+        ``source_env`` and ``target_env`` are drush aliases (``staging`` or
+        ``@staging``): the export runs against the source alias and the
+        import against the target. Until now both parameters were echoed
+        back untouched and every call operated on the site the server was
+        started on.
+        """
         if not drush:
             return {"error": "Drush not available"}
+        if not source_env or not target_env:
+            return {
+                "error": (
+                    "source_env and target_env are required: the drush "
+                    "aliases to export from and import into (with or "
+                    "without the leading @)."
+                )
+            }
+        src = source_env if source_env.startswith("@") else f"@{source_env}"
+        tgt = target_env if target_env.startswith("@") else f"@{target_env}"
         try:
             # Export config from source environment
             export_result = await drush.run(
-                "config-export", ["--destination=/tmp/config_sync_source"]
+                "config-export", ["--destination=/tmp/config_sync_source"], alias=src
             )
             if export_result.get("returncode") != 0:
                 return {"error": f"Source export failed: {export_result.get('stderr', '')}"}
 
             if dry_run:
-                # Show what would change
-                diff_result = await drush.run(
-                    "config-import", ["--source=/tmp/config_sync_source", "--preview=1"]
-                )
+                # drush config:import has no non-interactive preview: the
+                # previous `--preview=1` option does not exist (drush 13
+                # offers --diff/--source/--partial), and --diff prompts
+                # before importing. config:status reports exactly what an
+                # import would act on, without running it.
+                status = await drush.run("config:status", ["--format=json"], alias=tgt)
                 return {
                     "source_env": source_env,
                     "target_env": target_env,
                     "dry_run": True,
-                    "changes_preview": _output(diff_result)[:2000],
+                    "changes_preview": _output(status)[:2000],
+                    "note": (
+                        "Preview shows the target's pending import (drush "
+                        "config:status on the target alias); the source "
+                        "export is at /tmp/config_sync_source."
+                    ),
                 }
 
             # Import config to target environment
-            import_result = await drush.run("config-import", ["--source=/tmp/config_sync_source"])
+            import_result = await drush.run(
+                "config-import", ["--source=/tmp/config_sync_source"], alias=tgt
+            )
             return {
                 "source_env": source_env,
                 "target_env": target_env,
@@ -119,13 +155,21 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         if not drush:
             return {"error": "Drush not available"}
         try:
-            # Export config from env1
-            export1 = await drush.run("config-export", ["--destination=/tmp/config_diff_env1"])
+            # Export config from env1 -- against env1's alias. Both exports
+            # used to run against the active site, so the "diff" compared a
+            # directory with itself and always came back empty.
+            env1_alias = env1 if env1.startswith("@") else f"@{env1}"
+            env2_alias = env2 if env2.startswith("@") else f"@{env2}"
+            export1 = await drush.run(
+                "config-export", ["--destination=/tmp/config_diff_env1"], alias=env1_alias
+            )
             if export1.get("returncode") != 0:
                 return {"error": f"Env1 export failed: {export1.get('stderr', '')}"}
 
             # Export config from env2
-            export2 = await drush.run("config-export", ["--destination=/tmp/config_diff_env2"])
+            export2 = await drush.run(
+                "config-export", ["--destination=/tmp/config_diff_env2"], alias=env2_alias
+            )
             if export2.get("returncode") != 0:
                 return {"error": f"Env2 export failed: {export2.get('stderr', '')}"}
 

@@ -15,6 +15,8 @@ from fastmcp import FastMCP
 from ..config import get_settings
 from ..validation import validate_identifier
 from ._utils import ensure_dict as _ensure_dict
+from ._utils import php_single_quote as _php_quote
+from ._utils import run_composer as _run_composer
 
 
 def _find_tool_path(tool_name: str) -> str | None:
@@ -589,17 +591,15 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
     @mcp.tool()
     async def dependency_scan() -> dict[str, Any]:
         """Scan dependencies for vulnerabilities using Composer audit and other tools."""
-        if not drush:
-            return {"error": "Drush not available"}
+        # No drush client needed: drush has no `composer` command (the
+        # run_composer docstring records the same lesson), so every call
+        # died with `Command "composer" is not defined` while the wrapped
+        # result still answered "OK" to the sweep. Composer is its own
+        # executable -- run_composer finds it, or the container's copy.
         try:
-            # Composer audit
-            result = await drush.run("composer", ["audit", "--format=json"])
-            composer_result = _ensure_dict(result)
-            
-            # Also check for roave/security-advisories
-            security_advisories = await drush.run("composer", ["show", "roave/security-advisories", "--format=json"])
-            security_result = _ensure_dict(security_advisories)
-            
+            composer_result = await _run_composer(["audit", "--format=json"])
+            security_result = await _run_composer(["show", "roave/security-advisories"])
+
             return {
                 "composer_audit": composer_result,
                 "security_advisories": security_result,
@@ -753,9 +753,23 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
         try:
             # Validate path to prevent injection
             allowed_prefixes = ('public://', 'private://', 'temporary://')
-            if not any(path.startswith(p) for p in allowed_prefixes):
+            prefix = next((p for p in allowed_prefixes if path.startswith(p)), None)
+            if prefix is None:
                 return {"error": f"Invalid path. Must start with one of: {allowed_prefixes}"}
-            result = await drush.run("ev", [f"echo is_dir('{path}') ? 'exists' : 'not found';"])
+            # The prefix allowlist alone left the suffix injectable: the
+            # whole path was spliced into a PHP single-quoted literal, so
+            # `public://x'); system('id'); //` passed the prefix check and
+            # became code. Only a conservative charset survives the splice.
+            suffix = path[len(prefix):]
+            if not re.fullmatch(r"[A-Za-z0-9_./\-]*", suffix):
+                return {
+                    "error": (
+                        "path may only contain letters, digits, and _ . / - "
+                        f"after the stream prefix; got {path!r}"
+                    )
+                }
+            code = f"echo is_dir({_php_quote(path)}) ? 'exists' : 'not found';"
+            result = await drush.run("ev", [code])
             return _ensure_dict(result)
         except Exception as e:
             return {"error": str(e)}
