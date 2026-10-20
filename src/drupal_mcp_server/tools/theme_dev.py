@@ -309,10 +309,27 @@ function {machine_name}_preprocess_page(&$variables) {{
             return {"error": "Drush not available"}
         
         theme_path = path or f"themes/custom/{machine_name}"
+        if not os.path.exists(theme_path):
+            # The sibling writers all guard this; without the check the tool
+            # makedirs'd a stray half-theme for a name that does not exist.
+            return {"error": f"Theme not found: {theme_path}"}
         templates_dir = os.path.join(theme_path, "templates")
-        os.makedirs(templates_dir, exist_ok=True)
-        
         template_file = os.path.join(templates_dir, template_name)
+        # os.path.join discards templates_dir when template_name is absolute,
+        # and `..` climbs out of it: either would write anywhere the server
+        # process can. Nested names like views/views-view-table.html.twig are
+        # legitimate (and common), so the subdirectory is created below.
+        if os.path.isabs(template_name) or not os.path.abspath(
+            os.path.normpath(template_file)
+        ).startswith(os.path.abspath(templates_dir) + os.sep):
+            return {
+                "error": (
+                    "template_name must stay inside the theme's templates/ "
+                    f"directory: {template_name}"
+                )
+            }
+        template_file = os.path.normpath(template_file)
+        os.makedirs(os.path.dirname(template_file), exist_ok=True)
         
         if template_content is None:
             # Generate default based on template name
@@ -434,6 +451,10 @@ function {machine_name}_preprocess_{hook}(&$variables) {{
             return {"error": "Drush not available"}
         
         theme_path = path or f"themes/custom/{machine_name}"
+        if not os.path.exists(theme_path):
+            # Without this the open() below raised FileNotFoundError uncaught
+            # for a theme that does not exist: a traceback, not an answer.
+            return {"error": f"Theme not found: {theme_path}"}
         bp_file = os.path.join(theme_path, f"{machine_name}.breakpoints.yml")
         
         if multipliers is None:
@@ -504,31 +525,42 @@ function {machine_name}_preprocess_{hook}(&$variables) {{
             return {"error": "Drush not available"}
         
         theme_path = path or f"themes/custom/{machine_name}"
+        if not os.path.exists(theme_path):
+            # Without the check this wrote a src/Form tree, routing.yml and
+            # services.yml into a theme that does not exist.
+            return {"error": f"Theme not found: {theme_path}"}
         
         # Create theme settings form
         form_dir = os.path.join(theme_path, "src", "Form")
         os.makedirs(form_dir, exist_ok=True)
         
+        # The class must load on core 10 and 11. Ground truth, core 11.4
+        # (see ConfigFormBaseTrait): getEditableConfigNames() is declared
+        # `abstract protected` -- non-static -- on both majors. D11's
+        # ConfigFormBase constructor gained a required
+        # TypedConfigManagerInterface and dropped create(), so a constructor
+        # override either breaks the container (one argument registered) or
+        # leaves the typed property uninitialized and config() throws on the
+        # first build. No constructor plus a create() that passes both
+        # services is the shape that works on both; D10's one-argument
+        # constructor ignores the extra argument.
         form_class = f"""<?php
 
 namespace Drupal\\{machine_name}\\Form;
 
 use Drupal\\Core\\Form\\ConfigFormBase;
 use Drupal\\Core\\Form\\FormStateInterface;
+use Symfony\\Component\\DependencyInjection\\ContainerInterface;
 
 class ThemeSettingsForm extends ConfigFormBase {{
+
   /**
    * {{@inheritdoc}}
    */
-  protected $configFactory;
-
-  public function __construct(ConfigFactoryInterface $config_factory) {{
-    $this->configFactory = $config_factory;
-  }}
-
   public static function create(ContainerInterface $container) {{
     return new static(
-      $container->get('config.factory')
+      $container->get('config.factory'),
+      $container->get('config.typed')
     );
   }}
 
@@ -634,7 +666,10 @@ class ThemeSettingsForm extends ConfigFormBase {{
         
         services_yml.setdefault("services", {})[f"{machine_name}.theme_settings_form"] = {
             "class": f"Drupal\\{machine_name}\\Form\\ThemeSettingsForm",
-            "arguments": ["@config.factory"],
+            # D11's ConfigFormBase constructor requires the typed config
+            # manager as well; with only @config.factory the container
+            # cannot build this service at all.
+            "arguments": ["@config.factory", "@config.typed"],
         }
         
         with open(services_file, "w") as f:
@@ -658,7 +693,8 @@ class ThemeSettingsForm extends ConfigFormBase {{
         if not drush:
             return {"error": "Drush not available"}
         
-        # This would typically be done via Drush config-set
+        # The four system.performance keys that control aggregation and
+        # gzip; each is a real config object on every Drupal site.
         commands = []
         if optimize_css:
             commands.append(("config:set", "system.performance css.preprocess 1"))
@@ -669,13 +705,20 @@ class ThemeSettingsForm extends ConfigFormBase {{
             commands.append(("config:set", "system.performance js.gzip 1"))
         
         results = []
+        failures = []
         for cmd, args in commands:
-            if drush:
-                result = await drush.run(cmd, args.split())
-                results.append({"command": f"{cmd} {args}", "result": result})
+            result = await drush.run(cmd, args.split())
+            results.append({"command": f"{cmd} {args}", "result": result})
+            # A failed config:set left the site exactly where it was; the
+            # tool used to report success:True whatever drush answered.
+            if result.get("returncode") not in (None, 0):
+                reason = str(result.get("stderr") or "").strip() or (
+                    f"exited {result.get('returncode')}"
+                )
+                failures.append(f"{cmd} {args}: {reason}")
         
-        return {
-            "success": True,
+        payload: dict[str, Any] = {
+            "success": not failures,
             "optimizations": {
                 "css": optimize_css,
                 "js": optimize_js,
@@ -683,6 +726,9 @@ class ThemeSettingsForm extends ConfigFormBase {{
             },
             "results": results,
         }
+        if failures:
+            payload["error"] = "; ".join(failures)
+        return payload
 
     @mcp.tool()
     async def theme_debug_enable(
@@ -690,22 +736,24 @@ class ThemeSettingsForm extends ConfigFormBase {{
         path: str | None = None,
     ) -> dict[str, Any]:
         """Enable theme debugging (Twig debug, etc.)."""
-        if not drush:
-            return {"error": "Drush not available"}
-        
-        # Enable twig debug. These calls have side effects even though the
-        # return values are unused, so they must not be dropped.
-        if drush:
-            _result = await drush.run("config:set", "twig.config debug true")
-            _result2 = await drush.run("config:set", "twig.config auto_reload true")
-            _result3 = await drush.run("config:set", "twig.config cache false")
-        
+        # Twig debug is a container parameter (core/services.yml
+        # `twig.config`), not a config object. What this tool used to run --
+        # three `config:set twig.config …` calls, one of them a single
+        # malformed argument string, against a config object that does not
+        # exist, with the results discarded -- moved nothing on any site it
+        # ever ran against, while the payload claimed twig_debug:True. The
+        # real switch is a settings.php line; answering honestly is the only
+        # thing a tool may do here.
         return {
-            "success": True,
-            "debug_enabled": True,
-            "twig_debug": True,
-            "auto_reload": True,
-            "cache": False,
+            "error": (
+                "Twig debug cannot be enabled over Drush: it is a container "
+                "parameter (core/services.yml `twig.config`), not a config "
+                "object. In the site's settings.php add: "
+                "$settings['container_yamls'][] = DRUPAL_ROOT . "
+                "'/sites/development.services.yml;' and in "
+                "development.services.yml: parameters: twig.config: "
+                "{debug: true, auto_reload: true, cache: false}."
+            ),
         }
 
     @mcp.tool()

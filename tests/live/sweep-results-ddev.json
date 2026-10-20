@@ -1399,8 +1399,8 @@
   },
   {
     "tool": "theme_debug_enable",
-    "verdict": "OK",
-    "detail": "",
+    "verdict": "REJECTED",
+    "detail": "Twig debug cannot be enabled over Drush: it is a container parameter (core/services.yml `twig.config`), not a config object. In the site's settings.php add: $settings['container_yamls'][] = DRUPAL_ROO",
     "elapsed": 2.7
   },
   {

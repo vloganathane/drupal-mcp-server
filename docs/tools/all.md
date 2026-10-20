@@ -635,16 +635,16 @@ Theme Dev — 11 tools.
 | Tool | Description & use case | Example | Status |
 |------|------------------------|---------|--------|
 | `theme_create` | Create a new Drupal theme with full scaffolding.<br>_Kicking off a new custom theme without hand-writing the info.yml, .theme, and templates_ | `{"name": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
-| `theme_library_create` | Create or update a theme library.<br>_Adding or versioning a CSS/JS library so the theme can finally attach new assets_ | `{"machine_name": "value", "library_name": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `theme_region_create` | Add a region to theme.<br>_A layout needs one more sidebar without hand-editing the region list in info.yml_ | `{"machine_name": "value", "region_name": "value", "region_label": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `theme_template_override` | Create a template override in theme.<br>_Copying a core template into the theme so markup can be edited without patching core_ | `{"machine_name": "value", "template_name": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `theme_preprocess_function` | Add a preprocess function to theme.<br>_Exposing an extra variable to Twig without remembering the exact hook signature_ | `{"machine_name": "value", "hook": "value", "code": "value"}` | 🧩 ddev · 🧩 lando · ❔ no offline tests |
-| `theme_breakpoint_create` | Add a breakpoint to theme.<br>_Defining breakpoints that match the designer's specs for responsive images_ | `{"machine_name": "value", "breakpoint_id": "value", "label": "value", "media_query": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `theme_base_change` | Change the base theme.<br>_Moving off a starter theme once the design system no longer needs it_ | `{"machine_name": "value", "new_base_theme": "value"}` | 🧩 ddev · 🧩 lando · ❔ no offline tests |
-| `theme_settings_form` | Generate theme settings form.<br>_Giving site builders a settings form for logo, color, or layout toggles in the UI_ | `{"machine_name": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `theme_asset_optimize` | Configure theme asset optimization.<br>_Trimming CSS/JS aggregation settings while chasing a slow first paint_ | `{"machine_name": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `theme_debug_enable` | Enable theme debugging (Twig debug, etc.).<br>_Chasing which Twig template actually rendered a block when the output looks wrong_ | `{"machine_name": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `theme_lint_twig` | Lint Twig templates in theme.<br>_Catching a syntax slip before a cache rebuild white-screens the page_ | `{"machine_name": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `theme_library_create` | Create or update a theme library.<br>_Adding or versioning a CSS/JS library so the theme can finally attach new assets_ | `{"machine_name": "value", "library_name": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `theme_region_create` | Add a region to theme.<br>_A layout needs one more sidebar without hand-editing the region list in info.yml_ | `{"machine_name": "value", "region_name": "value", "region_label": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `theme_template_override` | Create a template override in theme.<br>_Copying a core template into the theme so markup can be edited without patching core_ | `{"machine_name": "value", "template_name": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `theme_preprocess_function` | Add a preprocess function to theme.<br>_Exposing an extra variable to Twig without remembering the exact hook signature_ | `{"machine_name": "value", "hook": "value", "code": "value"}` | 🧩 ddev · 🧩 lando · 🧪 unit |
+| `theme_breakpoint_create` | Add a breakpoint to theme.<br>_Defining breakpoints that match the designer's specs for responsive images_ | `{"machine_name": "value", "breakpoint_id": "value", "label": "value", "media_query": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `theme_base_change` | Change the base theme.<br>_Moving off a starter theme once the design system no longer needs it_ | `{"machine_name": "value", "new_base_theme": "value"}` | 🧩 ddev · 🧩 lando · 🧪 unit |
+| `theme_settings_form` | Generate theme settings form.<br>_Giving site builders a settings form for logo, color, or layout toggles in the UI_ | `{"machine_name": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `theme_asset_optimize` | Configure theme asset optimization.<br>_Trimming CSS/JS aggregation settings while chasing a slow first paint_ | `{"machine_name": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `theme_debug_enable` | Enable theme debugging (Twig debug, etc.).<br>_Chasing which Twig template actually rendered a block when the output looks wrong_ | `{"machine_name": "value"}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
+| `theme_lint_twig` | Lint Twig templates in theme.<br>_Catching a syntax slip before a cache rebuild white-screens the page_ | `{"machine_name": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
 
 ## theme_analysis
 
