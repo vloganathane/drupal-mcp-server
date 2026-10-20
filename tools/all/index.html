@@ -4587,7 +4587,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>generate_module_migration</code></td>
 <td>Generate migration module for a custom module with source plugin, process plugins, and migration template.<br><em>Scaffolding a custom migration module for a legacy source without hand-writing plugin boilerplate</em></td>
 <td><code>{"module_name": "value", "source_version": "value", "target_version": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>run_migration_test</code></td>
@@ -4901,49 +4901,49 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>module_plugin_create</code></td>
 <td>Create a plugin (block, field, views, etc.) with proper scaffolding.<br><em>Needing a block, Views plugin, or field widget with the right base class and annotations wired</em></td>
 <td><code>{"machine_name": "value", "plugin_type": "value", "plugin_id": "value", "label": "value"}</code></td>
-<td>⚠️ ddev · ⚠️ lando · ❔ no offline tests</td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>module_form_create</code></td>
 <td>Create a form class (ConfigForm, ConfirmForm, FormBase, etc.) with proper scaffolding.<br><em>Adding a settings or confirmation form and wanting its route and service registration handled too</em></td>
 <td><code>{"machine_name": "value", "form_name": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>module_controller_create</code></td>
 <td>Create a controller class with routing.<br><em>Standing up a new page backed by a controller class with matching routing entries</em></td>
 <td><code>{"machine_name": "value", "controller_name": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>module_event_subscriber_create</code></td>
 <td>Create an event subscriber service with getSubscribedEvents method.<br><em>Replacing a deprecated hook or Rules reaction with a subscriber correctly tagged in the container</em></td>
 <td><code>{"machine_name": "value", "subscriber_name": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>module_hook_implement</code></td>
 <td>Implement a hook in an existing module.<br><em>Dropping a standard hook implementation into an existing module instead of typing boilerplate</em></td>
 <td><code>{"machine_name": "value", "hook": "value"}</code></td>
-<td>🧩 ddev · 🧩 lando · ❔ no offline tests</td>
+<td>🧩 ddev · 🧩 lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>module_info_generate</code></td>
 <td>Generate .info.yml from existing module code (reverse engineering).<br><em>Adopting a module missing its .info.yml and inferring one from the code that already exists</em></td>
 <td><code>{"machine_name": "value"}</code></td>
-<td>🧩 ddev · 🧩 lando · ❔ no offline tests</td>
+<td>🧩 ddev · 🧩 lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>module_permission_create</code></td>
 <td>Create or update permissions.yml with custom permissions.<br><em>Adding permission strings so roles can be granted access without editing YAML by hand</em></td>
 <td><code>{"machine_name": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>module_config_schema_create</code></td>
 <td>Create or update config schema YAML for module settings.<br><em>Before config export or upgrade, giving module settings a typed schema Drupal will validate</em></td>
 <td><code>{"machine_name": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>module_test_create</code></td>
@@ -4955,7 +4955,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>module_dependencies_analyze</code></td>
 <td>Analyze module code and suggest missing dependencies.<br><em>Before shipping, catching dependencies used in code but missing from the info.yml</em></td>
 <td><code>{"machine_name": "value"}</code></td>
-<td>🧩 ddev · 🧩 lando · ❔ no offline tests</td>
+<td>🧩 ddev · 🧩 lando · 🧪 unit</td>
 </tr>
 </tbody>
 </table>
@@ -4975,7 +4975,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>theme_create</code></td>
 <td>Create a new Drupal theme with full scaffolding.<br><em>Kicking off a new custom theme without hand-writing the info.yml, .theme, and templates</em></td>
 <td><code>{"name": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>theme_library_create</code></td>
@@ -5437,13 +5437,13 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>test_scaffold_behat</code></td>
 <td>Scaffold a Behat feature file.<br><em>Turning a user story into an executable feature file in one step</em></td>
 <td><code>{"module": "mymodule", "feature_name": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>test_scaffold_nightwatch</code></td>
 <td>Scaffold a Nightwatch test.<br><em>Adding browser coverage for a new admin workflow the team just shipped</em></td>
 <td><code>{"module": "mymodule", "test_name": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>test_coverage_report</code></td>
