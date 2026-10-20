@@ -2,9 +2,11 @@
 
 import asyncio
 import os
+import re
 import shutil
 from typing import Any
 
+import yaml
 from fastmcp import FastMCP
 
 from ._utils import drush_result as _drush_result
@@ -26,16 +28,28 @@ def register_tools(mcp: FastMCP, **deps: Any) -> None:
     @mcp.tool()
     async def generate_migration_yaml(migration_type: str, source: dict[str, Any], destination: dict[str, Any]) -> dict[str, Any]:
         """Generate migration YAML configuration."""
-        yaml_content = f"""id: {migration_type}
-label: {migration_type}
-source:
-  plugin: {source.get("plugin", "d7_node")}
-  key: default
-destination:
-  plugin: entity:node
-migration_dependencies: {{}}
-"""
-        return {"yaml": yaml_content, "type": migration_type}
+        # The id is config Drupal's migrate storage must load: interpolated
+        # unvalidated it was neither (spaces are not machine names), and a
+        # value carrying a newline injected keys into this very document.
+        if not re.fullmatch(r"[a-z0-9_]+", migration_type):
+            return {
+                "error": (
+                    f"Invalid migration id {migration_type!r}: use lowercase "
+                    "letters, digits and underscores"
+                )
+            }
+        # The caller's source and destination blocks are the point of the
+        # tool: destination was accepted and ignored (the plugin was
+        # hardcoded to entity:node), and hand-rolled f-string YAML broke on
+        # any value containing ": ".
+        config: dict[str, Any] = {
+            "id": migration_type,
+            "label": migration_type,
+            "source": {"plugin": "d7_node", "key": "default", **source},
+            "destination": {"plugin": "entity:node", **destination},
+            "migration_dependencies": {},
+        }
+        return {"yaml": yaml.dump(config, sort_keys=False), "type": migration_type}
 
     @mcp.tool()
     async def generate_module_migration(
@@ -245,27 +259,58 @@ function {module_name}_migrate_api() {{
     @mcp.tool()
     async def sync_media_files(source_path: str, destination_path: str) -> dict[str, Any]:
         """Sync media files between paths."""
+        if not os.path.isdir(source_path):
+            # A silent "synced: 0" made a typo'd path look like a source
+            # directory that simply held no files.
+            return {
+                "error": f"Source path not found or not a directory: {source_path}",
+                "source": source_path,
+                "destination": destination_path,
+            }
 
+        os.makedirs(destination_path, exist_ok=True)
         synced = 0
-        if os.path.exists(source_path):
-            os.makedirs(destination_path, exist_ok=True)
-            for f in os.listdir(source_path):
-                src = os.path.join(source_path, f)
-                dst = os.path.join(destination_path, f)
-                if os.path.isfile(src):
-                    await asyncio.to_thread(shutil.copy2, src, dst)
-                    synced += 1
-        return {"synced_files": synced, "source": source_path, "destination": destination_path}
+        skipped = 0
+        errors: list[dict[str, Any]] = []
+        for f in os.listdir(source_path):
+            src = os.path.join(source_path, f)
+            dst = os.path.join(destination_path, f)
+            if not os.path.isfile(src):
+                continue
+            if os.path.abspath(src) == os.path.abspath(dst):
+                # Syncing a directory onto itself: copy2 raises
+                # SameFileError, which used to abort the run mid-list.
+                skipped += 1
+                continue
+            try:
+                await asyncio.to_thread(shutil.copy2, src, dst)
+                synced += 1
+            except Exception as exc:  # noqa: BLE001
+                # One unreadable file must not abandon the rest.
+                errors.append({"file": f, "error": str(exc)})
+        payload: dict[str, Any] = {
+            "synced_files": synced,
+            "source": source_path,
+            "destination": destination_path,
+        }
+        if skipped:
+            payload["skipped_files"] = skipped
+        if errors:
+            payload["errors"] = errors
+        return payload
 
     @mcp.tool()
     async def migrate_taxonomy(
         vocabularies: list[dict[str, Any]],
-        source_jsonapi: str | None = None,
         include_terms: bool = True,
     ) -> dict[str, Any]:
-        """Migrate taxonomy vocabularies and their terms."""
-        if not jsonapi and not source_jsonapi:
-            return {"error": "JSON:API client not available"}
+        """Migrate taxonomy vocabularies and their terms to this site.
+
+        Each vocabulary carries ``vid``/``id``, ``name``, ``description``
+        and optional ``terms``. A term's ``tid``/``id`` is used only to
+        find an existing term: JSON:API treats it as read-only and
+        rejects it as a settable attribute.
+        """
         if not jsonapi:
             return {"error": "JSON:API client not available"}
         try:
@@ -280,29 +325,38 @@ function {module_name}_migrate_api() {{
                         errors.append({"vocabulary": vocab, "error": "Missing vid/id"})
                         continue
 
-                    # Check if vocabulary exists in destination
-                    check = await jsonapi.get_by_id("taxonomy_vocabulary", vid)
-                    if check.get("error"):
-                        # Create vocabulary
-                        vocab_data = {
-                            "type": "taxonomy_vocabulary--taxonomy_vocabulary",
-                            "vid": vid,
-                            "name": vocab.get("name", vid),
-                            "description": vocab.get("description", ""),
-                            "langcode": vocab.get("langcode", "en"),
-                        }
-                        result = await jsonapi.create_resource("taxonomy_vocabulary", vocab_data)
-                        if result.get("error"):
-                            errors.append({"vocabulary": vid, "error": result["error"]})
-                        else:
-                            vocab_migrated += 1
+                    vocab_data = {
+                        "type": "taxonomy_vocabulary--taxonomy_vocabulary",
+                        "vid": vid,
+                        "name": vocab.get("name", vid),
+                        "description": vocab.get("description", ""),
+                        "langcode": vocab.get("langcode", "en"),
+                    }
+                    # get_by_id answers with the resource or raises
+                    # LookupError for a missing id — it never returns an
+                    # error dict, so branching on check["error"] left the
+                    # create paths dead: an absent vocabulary was reported
+                    # as an error instead of being created, on every call.
+                    try:
+                        await jsonapi.get_by_id("taxonomy_vocabulary", vid)
+                    except LookupError:
+                        result = await jsonapi.create_resource(
+                            "taxonomy_vocabulary", vocab_data
+                        )
+                    except Exception as err:  # noqa: BLE001
+                        errors.append({"vocabulary": vid, "error": str(err)})
+                        continue
                     else:
-                        # Update existing vocabulary
-                        result = await jsonapi.update_resource("taxonomy_vocabulary", vid, vocab)
-                        if result.get("error"):
-                            errors.append({"vocabulary": vid, "error": result["error"]})
-                        else:
-                            vocab_migrated += 1
+                        # The cleaned payload, not the caller's dict: the
+                        # raw dict carries its `terms` list, which is not a
+                        # vocabulary attribute and 400s the update.
+                        result = await jsonapi.update_resource(
+                            "taxonomy_vocabulary", vid, vocab_data
+                        )
+                    if isinstance(result, dict) and result.get("error"):
+                        errors.append({"vocabulary": vid, "error": result["error"]})
+                    else:
+                        vocab_migrated += 1
 
                     # Migrate terms if requested
                     if include_terms and "terms" in vocab:
@@ -314,23 +368,34 @@ function {module_name}_migrate_api() {{
                                     errors.append({"vocabulary": vid, "term": term, "error": "Missing tid/id"})
                                     continue
 
-                                # Check if term exists
-                                term_check = await jsonapi.get_by_id(f"taxonomy_term--{vid}", tid)
                                 term_data = {
                                     "type": f"taxonomy_term--{vid}",
-                                    "tid": tid,
                                     "name": term.get("name", ""),
                                     "description": term.get("description", ""),
                                     "langcode": term.get("langcode", "en"),
                                     "parent": term.get("parent", []),
                                     "weight": term.get("weight", 0),
                                 }
-                                if term_check.get("error"):
-                                    result = await jsonapi.create_resource(f"taxonomy_term--{vid}", term_data)
+                                # Same contract as the vocabulary: the
+                                # lookup raises for a missing term, so the
+                                # existence test decides create vs update —
+                                # and `tid` stays out of the payload, where
+                                # JSON:API rejects it as read-only.
+                                try:
+                                    await jsonapi.get_by_id(f"taxonomy_term--{vid}", tid)
+                                except LookupError:
+                                    result = await jsonapi.create_resource(
+                                        f"taxonomy_term--{vid}", term_data
+                                    )
+                                except Exception as term_err:  # noqa: BLE001
+                                    errors.append({"vocabulary": vid, "term": tid, "error": str(term_err)})
+                                    continue
                                 else:
-                                    result = await jsonapi.update_resource(f"taxonomy_term--{vid}", tid, term_data)
+                                    result = await jsonapi.update_resource(
+                                        f"taxonomy_term--{vid}", tid, term_data
+                                    )
 
-                                if result.get("error"):
+                                if isinstance(result, dict) and result.get("error"):
                                     errors.append({"vocabulary": vid, "term": tid, "error": result["error"]})
                                 else:
                                     term_migrated += 1

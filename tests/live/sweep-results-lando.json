@@ -85,8 +85,8 @@
   },
   {
     "tool": "sync_media_files",
-    "verdict": "OK",
-    "detail": "",
+    "verdict": "BLOCKED",
+    "detail": "Source path not found or not a directory: /tmp/sweep-file.txt",
     "elapsed": 0.0
   },
   {
