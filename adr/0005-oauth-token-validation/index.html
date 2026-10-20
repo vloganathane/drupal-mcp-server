@@ -1425,6 +1425,11 @@
 <h1 id="adr-0005-where-mcp-oauth-tokens-are-validated">ADR 0005: Where MCP OAuth Tokens Are Validated<a class="headerlink" href="#adr-0005-where-mcp-oauth-tokens-are-validated" title="Permanent link">&para;</a></h1>
 <h2 id="status">Status<a class="headerlink" href="#status" title="Permanent link">&para;</a></h2>
 <p>Accepted</p>
+<p>Amended 2026-10-20: the recommended networked mode below is now
+implemented as the opt-in <code>DRUPAL_OAUTH_DELEGATE</code>
+(<code>auth/delegation.py</code>) — proxy delegation for issuance, with local
+JWKS validation or RFC 7662 introspection for presented tokens. The
+default posture is unchanged: in-process, no Drupal reachable.</p>
 <h2 id="date">Date<a class="headerlink" href="#date" title="Permanent link">&para;</a></h2>
 <p>2026-10-19</p>
 <h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
@@ -1469,10 +1474,11 @@ the credential split honestly:</p>
   middleware, not Drupal.</li>
 <li><code>DRUPAL_OAUTH_CLIENT_SECRET</code> / <code>DRUPAL_OAUTH_TOKEN_URL</code> belong to the
   outbound client-credentials leg.</li>
-<li>No code path claims Drupal delegation until one of the options below
-  is implemented; the <code>_drupal_*</code> attributes, <code>ROLE_SCOPES</code> and the
-  <code>_oauth_provider</code> routes are recorded as follow-up — remove or wire,
-  never wire without an auth decision.</li>
+<li>No code path claims Drupal delegation unless the operator opts in
+  via <code>DRUPAL_OAUTH_DELEGATE</code>, which serves the proxy pattern below;
+  the <code>_drupal_*</code> attributes, <code>ROLE_SCOPES</code> and the <code>_oauth_provider</code>
+  routes are recorded as follow-up — remove or wire, never wire
+  without an auth decision.</li>
 <li>Dynamic client registration is enabled (<code>ClientRegistrationOptions</code>)
   so spec-conformant clients can complete discovery → registration →
   authorize → token over the wire. A live probe on 2026-10-19 had shown
@@ -1481,7 +1487,8 @@ the credential split honestly:</p>
   speaks OAuth, not who the user is.</li>
 </ul>
 <p>When a multi-user networked deployment needs Drupal-side identity, pick
-one of:</p>
+one of (all three are now implemented; <code>DRUPAL_OAUTH_DELEGATE</code> selects
+delegation, <code>DRUPAL_OAUTH_INTROSPECTION_URL</code> switches validation):</p>
 <ul>
 <li><strong>Introspection</strong> — validate presented tokens at Drupal's
   <code>/oauth/token/introspect</code> (simple_oauth). Only works for tokens Drupal

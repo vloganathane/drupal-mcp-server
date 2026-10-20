@@ -520,6 +520,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#delegating-oauth-to-drupal-multi-user" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Delegating OAuth to Drupal (multi-user)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1482,6 +1493,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#delegating-oauth-to-drupal-multi-user" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Delegating OAuth to Drupal (multi-user)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1766,28 +1788,57 @@ opt-in:</p>
   shared address of every client behind it), else by client IP.
   <code>0</code> — the default — disables it.</li>
 </ul>
+<h3 id="delegating-oauth-to-drupal-multi-user">Delegating OAuth to Drupal (multi-user)<a class="headerlink" href="#delegating-oauth-to-drupal-multi-user" title="Permanent link">&para;</a></h3>
+<p>The in-process authorization server proves a caller speaks OAuth, not
+who the user is. A multi-user networked deployment that needs
+Drupal-side identity opts into proxy delegation instead
+(<a href="../adr/0005-oauth-token-validation/">ADR 0005</a>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nv">DRUPAL_OAUTH_DELEGATE</span><span class="o">=</span><span class="m">1</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nv">DRUPAL_OAUTH_CLIENT_ID</span><span class="o">=</span>&lt;client<span class="w"> </span>registered<span class="w"> </span><span class="k">in</span><span class="w"> </span>Drupal<span class="err">'</span>s<span class="w"> </span>simple_oauth&gt;
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nv">DRUPAL_OAUTH_CLIENT_SECRET</span><span class="o">=</span>&lt;its<span class="w"> </span>secret&gt;
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="nv">DRUPAL_OAUTH_TOKEN_URL</span><span class="o">=</span>https://site.example/oauth/token
+</code></pre></div>
+<p>MCP clients keep the standard flow against this server — discovery,
+dynamic registration, PKCE — while authorize/token requests are
+forwarded to Drupal's simple_oauth server, and every presented token is
+validated per request: locally via JWKS (<code>…/oauth/jwks</code>, derived from
+the token URL by convention) so validation costs no network hop, or by
+RFC 7662 introspection when <code>DRUPAL_OAUTH_INTROSPECTION_URL</code> is set
+(a hop per cold token, cached). Optional knobs:
+<code>DRUPAL_OAUTH_AUTH_ENDPOINT</code> / <code>DRUPAL_OAUTH_JWKS_URI</code> override the
+derived endpoints, <code>DRUPAL_OAUTH_AUDIENCE</code> pins the audience claim,
+<code>DRUPAL_OAUTH_REQUIRED_SCOPES</code> sets a scope minimum (empty accepts any
+valid token — tool authorization is whatever Drupal put in it), and
+<code>MCP_BASE_URL</code> gives the public URL for redirects when it differs from
+<code>http://{MCP_HOST}:{MCP_PORT}</code>. Missing upstream credentials refuse to
+start with the reason, as the unauthenticated-socket guard does.</p>
+<p>The delegated flow is pinned offline against generated keys and a stub
+upstream (signature, expiry, audience, scope and revocation failures
+all answer None); the live simple_oauth round trip is not yet
+exercised — recorded as a live gap, like the outbound
+client-credentials leg.</p>
 <h2 id="ai-providers">AI Providers<a class="headerlink" href="#ai-providers" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nv">DEFAULT_AI_PROVIDER</span><span class="o">=</span>ollama
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nv">AI_ENABLED</span><span class="o">=</span><span class="nb">true</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nv">AI_TIMEOUT</span><span class="o">=</span><span class="m">60</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="nv">AI_FALLBACK_TO_CORE</span><span class="o">=</span><span class="nb">true</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nv">DEFAULT_AI_PROVIDER</span><span class="o">=</span>ollama
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nv">AI_ENABLED</span><span class="o">=</span><span class="nb">true</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="nv">AI_TIMEOUT</span><span class="o">=</span><span class="m">60</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="nv">AI_FALLBACK_TO_CORE</span><span class="o">=</span><span class="nb">true</span>
 </code></pre></div>
 <h3 id="ollama-local">Ollama (Local)<a class="headerlink" href="#ollama-local" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nv">OLLAMA_BASE_URL</span><span class="o">=</span>http://localhost:11434
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nv">OLLAMA_MODEL</span><span class="o">=</span>llama3.2:3b
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nv">OLLAMA_BASE_URL</span><span class="o">=</span>http://localhost:11434
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nv">OLLAMA_MODEL</span><span class="o">=</span>llama3.2:3b
 </code></pre></div>
 <h3 id="openai">OpenAI<a class="headerlink" href="#openai" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nv">OPENAI_API_KEY</span><span class="o">=</span>sk-...
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nv">OPENAI_MODEL</span><span class="o">=</span>gpt-4o-mini
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nv">OPENAI_API_KEY</span><span class="o">=</span>sk-...
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nv">OPENAI_MODEL</span><span class="o">=</span>gpt-4o-mini
 </code></pre></div>
 <h3 id="anthropic">Anthropic<a class="headerlink" href="#anthropic" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nv">ANTHROPIC_API_KEY</span><span class="o">=</span>sk-ant-...
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nv">ANTHROPIC_MODEL</span><span class="o">=</span>claude-3-5-haiku-20241022
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nv">ANTHROPIC_API_KEY</span><span class="o">=</span>sk-ant-...
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nv">ANTHROPIC_MODEL</span><span class="o">=</span>claude-3-5-haiku-20241022
 </code></pre></div>
 <h3 id="nvidia-nim">NVIDIA NIM<a class="headerlink" href="#nvidia-nim" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nv">NVIDIA_NIM_API_KEY</span><span class="o">=</span>nvapi-...
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nv">NVIDIA_NIM_BASE_URL</span><span class="o">=</span>https://integrate.api.nvidia.com/v1
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="nv">NVIDIA_NIM_MODEL</span><span class="o">=</span>nvidia/nemotron-3-ultra
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nv">NVIDIA_NIM_API_KEY</span><span class="o">=</span>nvapi-...
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nv">NVIDIA_NIM_BASE_URL</span><span class="o">=</span>https://integrate.api.nvidia.com/v1
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="nv">NVIDIA_NIM_MODEL</span><span class="o">=</span>nvidia/nemotron-3-ultra
 </code></pre></div>
 <h2 id="drush">Drush<a class="headerlink" href="#drush" title="Permanent link">&para;</a></h2>
 <table>
@@ -1819,32 +1870,32 @@ opt-in:</p>
 <p>Container-based setups are supported by putting the wrapper in <code>DRUSH_PATH</code>
 and starting the MCP server from the project directory, so the wrapper can
 find its project:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># DDEV</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nv">DRUSH_PATH</span><span class="o">=</span><span class="s2">"ddev drush"</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="c1"># Lando</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="nv">DRUSH_PATH</span><span class="o">=</span><span class="s2">"lando drush"</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># DDEV</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="nv">DRUSH_PATH</span><span class="o">=</span><span class="s2">"ddev drush"</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="c1"># Lando</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="nv">DRUSH_PATH</span><span class="o">=</span><span class="s2">"lando drush"</span>
 </code></pre></div>
 <h2 id="ddev">DDEV<a class="headerlink" href="#ddev" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nv">DDEV_BINARY</span><span class="o">=</span>ddev
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nv">DDEV_BINARY</span><span class="o">=</span>ddev
 </code></pre></div>
 <h2 id="full-example-env">Full Example <code>.env</code><a class="headerlink" href="#full-example-env" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Drupal Connection</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="nv">DRUPAL_BASE_URL</span><span class="o">=</span>https://your-site.com
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="nv">DRUPAL_USERNAME</span><span class="o">=</span>admin
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="nv">DRUPAL_PASSWORD</span><span class="o">=</span>secret
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>
-<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="c1"># MCP Server</span>
-<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="nv">MCP_TRANSPORT</span><span class="o">=</span>stdio
-<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="nv">MCP_LOG_LEVEL</span><span class="o">=</span>INFO
-<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>
-<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="c1"># AI Provider (Ollama)</span>
-<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="nv">DEFAULT_AI_PROVIDER</span><span class="o">=</span>ollama
-<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="nv">OLLAMA_BASE_URL</span><span class="o">=</span>http://localhost:11434
-<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="nv">OLLAMA_MODEL</span><span class="o">=</span>llama3.2:3b
-<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>
-<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="c1"># Drush</span>
-<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="nv">DRUSH_PATH</span><span class="o">=</span>drush
-<a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="nv">DRUSH_ALIAS</span><span class="o">=</span>@self
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Drupal Connection</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="nv">DRUPAL_BASE_URL</span><span class="o">=</span>https://your-site.com
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="nv">DRUPAL_USERNAME</span><span class="o">=</span>admin
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="nv">DRUPAL_PASSWORD</span><span class="o">=</span>secret
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="c1"># MCP Server</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="nv">MCP_TRANSPORT</span><span class="o">=</span>stdio
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="nv">MCP_LOG_LEVEL</span><span class="o">=</span>INFO
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="c1"># AI Provider (Ollama)</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="nv">DEFAULT_AI_PROVIDER</span><span class="o">=</span>ollama
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="nv">OLLAMA_BASE_URL</span><span class="o">=</span>http://localhost:11434
+<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="nv">OLLAMA_MODEL</span><span class="o">=</span>llama3.2:3b
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>
+<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="c1"># Drush</span>
+<a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a><span class="nv">DRUSH_PATH</span><span class="o">=</span>drush
+<a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a><span class="nv">DRUSH_ALIAS</span><span class="o">=</span>@self
 </code></pre></div>
 
 
