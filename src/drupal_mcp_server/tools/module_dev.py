@@ -213,10 +213,10 @@ class {machine_name.capitalize()}Controller extends ControllerBase {{
                 f"{machine_name}.module",
                 f"{machine_name}.services.yml" if generate_services else None,
                 f"{machine_name}.permissions.yml" if generate_permissions else None,
-                f"{machine_name}.schema.yml" if generate_config_schema else None,
+                f"config/schema/{machine_name}.schema.yml" if generate_config_schema else None,
                 f"{machine_name}.routing.yml" if generate_routing else None,
                 "src/Service/ExampleService.php" if generate_services else None,
-                "src/Controller/{machine_name.capitalize()}Controller.php" if generate_routing else None,
+                f"src/Controller/{machine_name.capitalize()}Controller.php" if generate_routing else None,
             ],
         }
 
@@ -265,14 +265,21 @@ class {machine_name.capitalize()}Controller extends ControllerBase {{
         service_dir = os.path.join(module_path, "src", "Service")
         os.makedirs(service_dir, exist_ok=True)
         
-        # Generate constructor with arguments
+        # Generate properties and constructor with arguments. Service ids
+        # carry dots (@entity_type.manager) which a PHP variable name may
+        # not, so dots become underscores on both sides of the assignment;
+        # and the assignments belong inside the constructor only -- a
+        # statement at class scope is a PHP ParseError.
         constructor_params = ""
         constructor_body = ""
+        properties = ""
         if arguments:
-            for _i, arg in enumerate(arguments):
-                param_name = f"${arg.replace('@', '')}"
+            for arg in arguments:
+                var = arg.replace("@", "").replace(".", "_")
+                param_name = f"${var}"
                 constructor_params += f"{param_name}, "
-                constructor_body += f"        $this->{arg.replace('@', '')} = {param_name};\n"
+                constructor_body += f"    $this->{var} = {param_name};\n"
+                properties += f"  protected {param_name};\n"
             constructor_params = constructor_params.rstrip(", ")
         
         service_class = f"""<?php
@@ -280,8 +287,7 @@ class {machine_name.capitalize()}Controller extends ControllerBase {{
 namespace Drupal\\{machine_name}\\Service;
 
 class {class_name} {{
-{constructor_body}
-  public function __construct({constructor_params}) {{
+{properties}  public function __construct({constructor_params}) {{
 {constructor_body}  }}
 }}
 
@@ -1353,7 +1359,7 @@ function {machine_name}_config_import_create($config_name, $config_storage) {{
         base_class_name = base_class.split("\\")[-1]
         test_class = f"""<?php
 
-namespace Drupal\\Tests\\{machine_name}\\{test_type}s;
+namespace Drupal\\Tests\\{machine_name}\\{test_type.replace('Test', '')};
 
 use {base_class};
 
@@ -1369,20 +1375,20 @@ class {class_name} extends {base_class_name} {{
             test_class += f"""  /**
    * {{@inheritdoc}}
    */
-  protected static \\$modules = ['{machine_name}'];
+  protected static $modules = ['{machine_name}'];
 """
         elif test_type == "FunctionalTest":
             test_class += """  /**
    * {@inheritdoc}
    */
-  protected \\$defaultTheme = 'stark';
+  protected $defaultTheme = 'stark';
 """
         
         for method in test_methods:
             test_class += f"""
   public function test{method.replace('_', ' ').title().replace(' ', '')}() {{
     // TODO: Implement test
-    \\$this->assertTrue(TRUE);
+    $this->assertTrue(TRUE);
   }}
 """
         

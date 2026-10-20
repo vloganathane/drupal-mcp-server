@@ -125,7 +125,7 @@ class {class_name} extends {base_class} {{
    */
   public function test{method.capitalize()}() {{
     // TODO: Implement test
-    \\$this->assertTrue(TRUE);
+    $this->assertTrue(TRUE);
   }}
 """
             test_code += "}\n"
