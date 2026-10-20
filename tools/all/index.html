@@ -4981,61 +4981,61 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>theme_library_create</code></td>
 <td>Create or update a theme library.<br><em>Adding or versioning a CSS/JS library so the theme can finally attach new assets</em></td>
 <td><code>{"machine_name": "value", "library_name": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>theme_region_create</code></td>
 <td>Add a region to theme.<br><em>A layout needs one more sidebar without hand-editing the region list in info.yml</em></td>
 <td><code>{"machine_name": "value", "region_name": "value", "region_label": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>theme_template_override</code></td>
 <td>Create a template override in theme.<br><em>Copying a core template into the theme so markup can be edited without patching core</em></td>
 <td><code>{"machine_name": "value", "template_name": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>theme_preprocess_function</code></td>
 <td>Add a preprocess function to theme.<br><em>Exposing an extra variable to Twig without remembering the exact hook signature</em></td>
 <td><code>{"machine_name": "value", "hook": "value", "code": "value"}</code></td>
-<td>🧩 ddev · 🧩 lando · ❔ no offline tests</td>
+<td>🧩 ddev · 🧩 lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>theme_breakpoint_create</code></td>
 <td>Add a breakpoint to theme.<br><em>Defining breakpoints that match the designer's specs for responsive images</em></td>
 <td><code>{"machine_name": "value", "breakpoint_id": "value", "label": "value", "media_query": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>theme_base_change</code></td>
 <td>Change the base theme.<br><em>Moving off a starter theme once the design system no longer needs it</em></td>
 <td><code>{"machine_name": "value", "new_base_theme": "value"}</code></td>
-<td>🧩 ddev · 🧩 lando · ❔ no offline tests</td>
+<td>🧩 ddev · 🧩 lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>theme_settings_form</code></td>
 <td>Generate theme settings form.<br><em>Giving site builders a settings form for logo, color, or layout toggles in the UI</em></td>
 <td><code>{"machine_name": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>theme_asset_optimize</code></td>
 <td>Configure theme asset optimization.<br><em>Trimming CSS/JS aggregation settings while chasing a slow first paint</em></td>
 <td><code>{"machine_name": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>theme_debug_enable</code></td>
 <td>Enable theme debugging (Twig debug, etc.).<br><em>Chasing which Twig template actually rendered a block when the output looks wrong</em></td>
 <td><code>{"machine_name": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>⚠️ ddev · ⚠️ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>theme_lint_twig</code></td>
 <td>Lint Twig templates in theme.<br><em>Catching a syntax slip before a cache rebuild white-screens the page</em></td>
 <td><code>{"machine_name": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 </tbody>
 </table>
