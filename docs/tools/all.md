@@ -73,7 +73,7 @@ Content — 14 tools.
 | Tool | Description & use case | Example | Status |
 |------|------------------------|---------|--------|
 | [`create_node`](index.md#create_node) | Create a single node of the specified bundle with given fields.<br>_Publish an article from an agent-driven content workflow_ | `{"bundle": "article", "fields": {"title": "Hello"}}` | ✅ ddev · 🧩 lando · 🧪 unit |
-| `get_node` | Get a single node by ID with optional relationship includes.<br>_Fetch one node with its referenced entities in a single request_ | `{"nid": "123"}` | ✅ ddev · ⚠️ lando · ❔ no offline tests |
+| `get_node` | Get a single node by ID with optional relationship includes.<br>_Fetch one node with its referenced entities in a single request_ | `{"nid": "123"}` | ✅ ddev · ⚠️ lando · 🧪 unit |
 | `update_node` | Update a single node by ID with given fields.<br>_Apply an editor's field changes to an existing page without rewriting the whole bundle_ | `{"nid": "123", "fields": {"title": "Hello"}}` | ✅ ddev · ⚠️ lando · 🧪 unit |
 | `delete_node` | Delete a single node by ID.<br>_Remove a draft or duplicate node as part of site cleanup after content review_ | `{"nid": "123"}` | ✅ ddev · ⚠️ lando · 🧪 unit |
 | [`query_nodes`](index.md#query_nodes) | Query nodes with filters, sorts, includes, and pagination.<br>_Build a listing page by filtering, sorting, and paginating nodes in one request_ | `{}` | ✅ ddev · 🧩 lando · 🧪 unit |
@@ -93,18 +93,18 @@ Users — 12 tools.
 
 | Tool | Description & use case | Example | Status |
 |------|------------------------|---------|--------|
-| [`create_user`](index.md#create_user) | Create a user account.<br>_Onboard a new team member with an account and roles in one step_ | `{"mail": "value", "name": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| [`create_user`](index.md#create_user) | Create a user account.<br>_Onboard a new team member with an account and roles in one step_ | `{"mail": "value", "name": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `get_user` | Get a user by ID with optional relationship includes.<br>_Inspect a specific account including its relationships when handling a support request_ | `{"uid": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `get_user_by_email` | Get a user by email address.<br>_Look up an account when only the person's email address is known_ | `{"mail": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `update_user` | Update a user account.<br>_Correct account details like email or display name during user administration_ | `{"uid": "value", "fields": {"title": "Hello"}}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
-| `delete_user` | Delete a user account.<br>_Remove a spam or test account as part of periodic user maintenance_ | `{"uid": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `delete_user` | Delete a user account.<br>_Remove a spam or test account as part of periodic user maintenance_ | `{"uid": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `list_users` | List users with filters and pagination.<br>_Page through or filter the site's accounts for an access review or audit report_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `assign_role` | Assign a role to a user.<br>_Grant an editor elevated permissions after a promotion or project kickoff_ | `{"uid": "value", "role": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
-| `remove_role` | Remove a role from a user.<br>_Revoke elevated access when someone leaves a project or changes responsibilities_ | `{"uid": "value", "role": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
+| `assign_role` | Assign a role to a user.<br>_Grant an editor elevated permissions after a promotion or project kickoff_ | `{"uid": "value", "role": "value"}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
+| `remove_role` | Remove a role from a user.<br>_Revoke elevated access when someone leaves a project or changes responsibilities_ | `{"uid": "value", "role": "value"}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
 | `list_roles` | List all available roles.<br>_Discover which roles exist before assigning one to a user_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `get_user_roles` | Get roles assigned to a user.<br>_Verify a user's current permissions before troubleshooting an access problem_ | `{"uid": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
-| `block_user` | Block a user account.<br>_Suspend an account immediately after reported spam while preserving its content_ | `{"uid": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `unblock_user` | Unblock a user account.<br>_Restore access for a legitimately suspended user after their issue is resolved_ | `{"uid": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `block_user` | Block a user account.<br>_Suspend an account immediately after reported spam while preserving its content_ | `{"uid": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `unblock_user` | Unblock a user account.<br>_Restore access for a legitimately suspended user after their issue is resolved_ | `{"uid": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
 
 ## taxonomy
 
@@ -116,7 +116,7 @@ Taxonomy — 10 tools.
 | `get_vocabulary` | Get a taxonomy vocabulary by ID.<br>_Check a vocabulary's name and description before adding terms to it_ | `{"vid": "1"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `update_vocabulary` | Update a taxonomy vocabulary.<br>_Rename or re-describe a taxonomy as part of an information architecture cleanup_ | `{"vid": "1", "fields": {"title": "Hello"}}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
 | `delete_vocabulary` | Delete a taxonomy vocabulary.<br>_Remove an obsolete classification scheme during a site restructuring_ | `{"vid": "1"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
-| `list_vocabularies` | List all taxonomy vocabularies.<br>_Survey the site's classification schemes before tagging or migration work_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `list_vocabularies` | List all taxonomy vocabularies.<br>_Survey the site's classification schemes before tagging or migration work_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `create_term` | Create a taxonomy term in a vocabulary.<br>_Add a new topic to an existing vocabulary as part of ongoing content categorization_ | `{"vid": "1", "name": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `get_term` | Get a taxonomy term by ID.<br>_Verify a term's ID or parent before assigning it to content_ | `{"vid": "1", "tid": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `update_term` | Update a taxonomy term.<br>_Rename or re-parent a term when the taxonomy structure evolves_ | `{"vid": "1", "tid": "value", "fields": {"title": "Hello"}}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
@@ -191,11 +191,11 @@ Config — 8 tools.
 | Tool | Description & use case | Example | Status |
 |------|------------------------|---------|--------|
 | `config_get` | Get a single configuration object by name.<br>_Looking up a config object's live values before deciding what to change_ | `{"name": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
-| `config_set` | Set a single configuration value.<br>_Tweaking a single setting, like the site name, without running a full config import_ | `{"name": "value", "value": {}}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `export_config` | Export Drupal configuration to files.<br>_Snapshotting active configuration into files before starting a deployment_ | `{}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
-| `import_config` | Import Drupal configuration from files.<br>_Applying configuration committed to the repo after deploying new code_ | `{}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
+| `config_set` | Set a single configuration value.<br>_Tweaking a single setting, like the site name, without running a full config import_ | `{"name": "value", "value": {}}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `export_config` | Export Drupal configuration to files.<br>_Snapshotting active configuration into files before starting a deployment_ | `{}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
+| `import_config` | Import Drupal configuration from files.<br>_Applying configuration committed to the repo after deploying new code_ | `{}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
 | `sync_config` | Sync configuration between environments via Drush.<br>_Previewing then pushing config changes from one environment to another after review_ | `{"source_env": "value", "target_env": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `diff_config` | Show differences in configuration between environments.<br>_Explaining why two environments behave differently before touching either one_ | `{"config_name": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `diff_config` | Show differences in configuration between environments.<br>_Explaining why two environments behave differently before touching either one_ | `{"config_name": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `split_config` | Split configuration into separate directories for atomic deployment.<br>_Extracting only the config objects a feature needs so deploys can ship independently_ | `{"config_names": []}` | 🧩 ddev · 🧩 lando · ❔ no offline tests |
 | [`config_status`](index.md#config_status) | Compare active configuration with the exported sync directory.<br>_Checking pending configuration changes before deciding whether an import is safe_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 
@@ -280,7 +280,7 @@ Pathauto — 8 tools.
 | `pathauto_pattern_create` | Create a new pathauto pattern.<br>_Add a new URL pattern so new content of a bundle gets consistent aliases_ | `{"id": "1", "label": "value", "entity_type": "node", "bundle": "article", "pattern": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
 | `pathauto_pattern_update` | Update a pathauto pattern.<br>_Change a pattern's token string or weight when the URL scheme is revised_ | `{"pattern_id": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
 | `pathauto_pattern_delete` | Delete a pathauto pattern.<br>_Retire an obsolete pattern as part of cleaning up URL generation rules_ | `{"pattern_id": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
-| `pathauto_generate` | Generate pathauto aliases.<br>_Backfill aliases for content created before a pattern existed or was fixed_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `pathauto_generate` | Generate pathauto aliases.<br>_Backfill aliases for content created before a pattern existed or was fixed_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `pathauto_token_list` | List available pathauto tokens.<br>_Find valid tokens to use when writing or debugging a pathauto pattern_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `redirect_pattern_list` | List redirect patterns.<br>_Review existing redirect patterns before adding or pruning redirects_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 
@@ -320,19 +320,19 @@ Search API — 13 tools.
 
 | Tool | Description & use case | Example | Status |
 |------|------------------------|---------|--------|
-| `search_api_server_list` | List all Search API servers.<br>_Checking which search backends exist before wiring up a new index_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `search_api_server_get` | Get a single Search API server by ID.<br>_Inspecting a server's backend settings when searches return unexpected results_ | `{"server_id": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
-| `search_api_server_create` | Create a new Search API server.<br>_Standing up a search backend on a site that has none configured yet_ | `{"id": "1", "label": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
-| `search_api_index_list` | List Search API indexes.<br>_Finding the right index to query or reindex before touching search config_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `search_api_index_get` | Get a single Search API index by ID.<br>_Reviewing an index's datasource and processors to debug missing results_ | `{"index_id": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
-| `search_api_index_create` | Create a new Search API index.<br>_Adding search to a new content type by wiring an index to an existing server_ | `{"id": "1", "label": "value", "server_id": "value", "datasource": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
-| `search_api_index_update` | Update a Search API index.<br>_Tuning processors or renaming an index after a content model change_ | `{"index_id": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
-| `search_api_index_reindex` | Trigger reindexing of a Search API index.<br>_Content changed outside Drupal and search results are stale_ | `{"index_id": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `search_api_index_clear` | Clear a Search API index.<br>_Rebuilding a corrupted or outdated index from scratch during maintenance_ | `{"index_id": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `search_api_server_enable` | Enable a Search API server.<br>_Turning search back on after maintenance on the backend is finished_ | `{"server_id": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `search_api_server_disable` | Disable a Search API server.<br>_Taking search offline temporarily while the backend is being migrated_ | `{"server_id": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `search_api_facet_list` | List Search API facets.<br>_Checking which facets exist and their facet\_source\_id before wiring up a block_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `search_api_facet_create` | Create a Search API facet.<br>_Letting visitors narrow search results by a category or tag field_ | `{"id": "1", "label": "value", "index_id": "value", "field": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
+| `search_api_server_list` | List all Search API servers.<br>_Checking which search backends exist before wiring up a new index_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `search_api_server_get` | Get a single Search API server by ID.<br>_Inspecting a server's backend settings when searches return unexpected results_ | `{"server_id": "value"}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
+| `search_api_server_create` | Create a new Search API server.<br>_Standing up a search backend on a site that has none configured yet_ | `{"id": "1", "label": "value"}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
+| `search_api_index_list` | List Search API indexes.<br>_Finding the right index to query or reindex before touching search config_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `search_api_index_get` | Get a single Search API index by ID.<br>_Reviewing an index's datasource and processors to debug missing results_ | `{"index_id": "value"}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
+| `search_api_index_create` | Create a new Search API index.<br>_Adding search to a new content type by wiring an index to an existing server_ | `{"id": "1", "label": "value", "server_id": "value", "datasource": "value"}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
+| `search_api_index_update` | Update a Search API index.<br>_Tuning processors or renaming an index after a content model change_ | `{"index_id": "value"}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
+| `search_api_index_reindex` | Trigger reindexing of a Search API index.<br>_Content changed outside Drupal and search results are stale_ | `{"index_id": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `search_api_index_clear` | Clear a Search API index.<br>_Rebuilding a corrupted or outdated index from scratch during maintenance_ | `{"index_id": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `search_api_server_enable` | Enable a Search API server.<br>_Turning search back on after maintenance on the backend is finished_ | `{"server_id": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `search_api_server_disable` | Disable a Search API server.<br>_Taking search offline temporarily while the backend is being migrated_ | `{"server_id": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `search_api_facet_list` | List Search API facets.<br>_Checking which facets exist and their facet\_source\_id before wiring up a block_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `search_api_facet_create` | Create a Search API facet.<br>_Letting visitors narrow search results by a category or tag field_ | `{"id": "1", "label": "value", "index_id": "value", "field": "value"}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
 
 ## feeds
 
@@ -362,8 +362,8 @@ Multilingual — 18 tools.
 | `language_list` | List all languages.<br>_Checking which languages a site already has before enabling translations_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `language_get` | Get a single language by langcode.<br>_Verifying a language's direction and weight before translating content into it_ | `{"langcode": "en"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `language_add` | Add a new language.<br>_A new locale is launching and the site needs its language registered_ | `{"langcode": "en", "name": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `language_enable` | Enable a language.<br>_Turning a previously disabled language back on for an upcoming launch_ | `{"langcode": "en"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `language_disable` | Disable a language.<br>_Pausing a language when translators aren't ready yet but content exists_ | `{"langcode": "en"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `language_enable` | Enable a language.<br>_Turning a previously disabled language back on for an upcoming launch_ | `{"langcode": "en"}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `language_disable` | Disable a language.<br>_Pausing a language when translators aren't ready yet but content exists_ | `{"langcode": "en"}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `language_delete` | Delete a language.<br>_Removing a language that was added in error before any content uses it_ | `{"langcode": "en"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `content_translation_enable` | Enable content translation for entity type/bundle.<br>_Letting editors translate a content type after a client asks for it_ | `{"entity_type": "node"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `translation_status` | Get translation status for an entity.<br>_Checking which translations already exist before assigning work to a translator_ | `{"entity_type": "node", "entity_id": "value"}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
@@ -481,7 +481,7 @@ Database — 4 tools.
 |------|------------------------|---------|--------|
 | `db_query` | Execute a single read-only SELECT query on the Drupal database.<br>_Answering a question straight from the database when no Views export or JSON:API resource exposes it_ | `{"query": "keyword"}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
 | `db_tables` | List all database tables.<br>_Before querying an unfamiliar site, see which tables exist and how they are named_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
-| `db_table_info` | Get table schema information.<br>_Needing column names and types of one table before writing a WHERE clause or a report_ | `{"table": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
+| `db_table_info` | Get table schema information.<br>_Needing column names and types of one table before writing a WHERE clause or a report_ | `{"table": "value"}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
 | `db_count` | Count rows in a table.<br>_A quick row count, optionally filtered, to sanity-check content volumes or migration results_ | `{"table": "value"}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
 
 ## devops
@@ -499,16 +499,16 @@ Devops — 20 tools.
 | `lando_stop` | Stop the Lando project under ``project_name`` (a directory).<br>_Shutting down a Lando site's containers to free ports between sessions or before a reset_ | `{}` | ⏭️ ddev · ⏭️ lando · 🧪 unit |
 | `lando_exec` | Run ``command`` in the container of the Lando project under ``project_name`` (a directory).<br>_Running a one-off command inside the Lando container, such as a build step or file fix_ | `{"command": "status"}` | ⏭️ ddev · ⏭️ lando · 🧪 unit |
 | `lando_setup` | Generate .lando.yml for a local Drupal environment.<br>_Generating a starter .lando.yml for a Drupal project that has no Lando config yet_ | `{}` | ✅ ddev · ⚠️ lando · 🧪 unit |
-| `acquia_deploy` | Deploy to Acquia Cloud via acquia-cli or Drush acquia integration.<br>_Shipping a tested branch to an Acquia environment, with database updates and cache rebuild included_ | `{"environment": "value"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
-| `backup_database` | Create database backup via Drush.<br>_Taking a database dump first, before running updates, imports or other risky changes_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `cache_rebuild` | Clear and rebuild all Drupal caches via Drush.<br>_After enabling a module or editing code, make the change take effect immediately instead of waiting_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `acquia_deploy` | Deploy to Acquia Cloud via acquia-cli or Drush acquia integration.<br>_Shipping a tested branch to an Acquia environment, with database updates and cache rebuild included_ | `{"environment": "value"}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
+| `backup_database` | Create database backup via Drush.<br>_Taking a database dump first, before running updates, imports or other risky changes_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `cache_rebuild` | Clear and rebuild all Drupal caches via Drush.<br>_After enabling a module or editing code, make the change take effect immediately instead of waiting_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `composer_install` | Run composer install.<br>_A fresh clone or CI step where vendor is missing and the lock file must be installed_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `composer_require` | Require one or more packages via composer.<br>_Adding one or several contributed modules to the project straight through composer_ | `{"package": "value"}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
-| `composer_update` | Run composer update.<br>_When ready to adopt newer dependency versions, run the update in the project directory_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `composer_update` | Run composer update.<br>_When ready to adopt newer dependency versions, run the update in the project directory_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `drush_cron` | Run cron.<br>_Triggering cron now so queues and aggregations run without waiting for the schedule_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `drush_watchdog` | Show recent log entries from watchdog.<br>_Debugging a reported error by pulling recent log entries filtered by type or severity_ | `{}` | ✅ ddev · 🧩 lando · ❔ no offline tests |
 | `cache_clear` | Clear specific cache bins.<br>_Isolating stale output by clearing only the suspect cache bin rather than everything_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
-| `drush_updb` | Run database updates.<br>_After the pending update list is checked, apply schema updates once a database backup exists_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `drush_updb` | Run database updates.<br>_After the pending update list is checked, apply schema updates once a database backup exists_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `drush_php_eval` | Execute arbitrary PHP code via Drush.<br>_A quick one-line Drupal API call, like resetting a state key, without writing a module_ | `{"code": "value"}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
 
 ## scheduler
@@ -517,7 +517,7 @@ Scheduler — 7 tools.
 
 | Tool | Description & use case | Example | Status |
 |------|------------------------|---------|--------|
-| `cron_run` | Run cron.<br>_Running scheduled work immediately when the site's own cron has not fired on its own_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `cron_run` | Run cron.<br>_Running scheduled work immediately when the site's own cron has not fired on its own_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `cron_list` | List the jobs Drupal runs on cron, and when cron last ran.<br>_When something did not process, see which modules implement hook\_cron and when cron last ran_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `queue_list` | List all queues.<br>_Checking which queues exist and how backed up they are before a bulk import run_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `queue_run` | Run a specific queue.<br>_After a bulk operation, drain a specific queue so its pending items get processed now_ | `{"queue_name": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
@@ -532,10 +532,10 @@ Performance — 7 tools.
 | Tool | Description & use case | Example | Status |
 |------|------------------------|---------|--------|
 | `performance_query_log` | Get slow query log.<br>_Hunting a slow page by finding which queries the site logged as slow in watchdog_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `performance_cache_stats` | Get cache performance statistics.<br>_Seeing whether cache bins are being churned instead of serving hits under traffic_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `performance_cache_stats` | Get cache performance statistics.<br>_Seeing whether cache bins are being churned instead of serving hits under traffic_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `performance_redis_info` | Get Redis server info.<br>_Diagnosing cache backend health when Redis is backing the site's cache bins_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `performance_bigpipe_status` | Check BigPipe status and configuration.<br>_Confirming whether BigPipe is enabled before investigating why page delivery looks plain_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `performance_bigpipe_enable` | Enable or disable BigPipe.<br>_Toggling BigPipe during a performance test, a reversible config change to revert afterwards_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `performance_bigpipe_enable` | Enable or disable BigPipe.<br>_Toggling BigPipe during a performance test, a reversible config change to revert afterwards_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `performance_memcached_stats` | Get Memcached statistics.<br>_Spotting evictions or memory limits in Memcached that explain repeated cache misses_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `performance_page_load_analyze` | Analyze page load performance.<br>_Getting a rough before and after number when comparing a page's response times_ | `{"url": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 
@@ -569,12 +569,12 @@ Analysis — 9 tools.
 
 | Tool | Description & use case | Example | Status |
 |------|------------------------|---------|--------|
-| `analyze_d7_site` | Analyze a Drupal 7 site for D10 upgrade readiness.<br>_Scoping a Drupal 7 retirement before committing to a timeline_ | `{"site_url": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `analyze_d7_site` | Analyze a Drupal 7 site for D10 upgrade readiness.<br>_Scoping a Drupal 7 retirement before committing to a timeline_ | `{"site_url": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `analyze_d9_site` | Analyze a Drupal 9+ site for deprecated code and APIs.<br>_Before starting a D10 upgrade, knowing which removed APIs custom code still depends on_ | `{"site_url": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `inventory_content_types` | List all content types on a Drupal site.<br>_Mapping the content model of an unfamiliar site before planning field or migration work_ | `{"site_url": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `inventory_modules` | List all modules on a Drupal site.<br>_Checking which contrib and custom modules a site runs before estimating upgrade effort_ | `{"site_url": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `inventory_modules` | List all modules on a Drupal site.<br>_Checking which contrib and custom modules a site runs before estimating upgrade effort_ | `{"site_url": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `map_modules_d7_to_d10` | Map Drupal 7 modules to D10 equivalents using AI + known mappings.<br>_Turning a legacy module list into replacement decisions when known mappings do not cover everything_ | `{"module_list": []}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `find_deprecated_code` | Scan custom modules for deprecated Drupal APIs.<br>_Triaging a custom codebase by pointing at the specific files still calling removed APIs_ | `{"site_path": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `find_deprecated_code` | Scan custom modules for deprecated Drupal APIs.<br>_Triaging a custom codebase by pointing at the specific files still calling removed APIs_ | `{"site_path": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
 | [`find_entity_references`](index.md#find_entity_references) | Find which bundles use reference fields targeting an entity type.<br>_Before retiring a vocabulary or content type, seeing which bundles reference it_ | `{"entity_type": "node"}` | ✅ ddev · ✅ lando · 🧪 unit |
 | [`search_entities`](index.md#search_entities) | Case-insensitive substring search across entity titles and names.<br>_Given a title or username from a support ticket, locating the entity without knowing its id_ | `{"query": "keyword"}` | ✅ ddev · ✅ lando · 🧪 unit |
 | [`find_entity_by_path`](index.md#find_entity_by_path) | Resolve a URL path or alias ("/about", "/node/123") to its entity.<br>_Tracing a URL from analytics back to the node, term, or user that actually serves it_ | `{"path": "/about"}` | ✅ ddev · ✅ lando · 🧪 unit |
@@ -672,7 +672,7 @@ Code Audit — 7 tools.
 | `code_sniffer` | Run PHP_CodeSniffer with Drupal coding standards.<br>_Checking a patch against Drupal coding standards before submitting it_ | `{"path": "/about"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
 | `deprecation_scan` | Scan for deprecated Drupal API usage.<br>_Scoping how much work a core upgrade will take across the whole custom codebase_ | `{"path": "/about"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
 | `security_audit` | Run security-focused static analysis.<br>_Getting a strict static analysis pass over hand-written code prior to an external review_ | `{"path": "/about"}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
-| `composer_audit` | Run Composer security audit on dependencies.<br>_Before deploying, checking whether installed dependencies carry known advisories_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `composer_audit` | Run Composer security audit on dependencies.<br>_Before deploying, checking whether installed dependencies carry known advisories_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `code_quality_report` | Run multiple code quality tools and generate combined report.<br>_Wanting one combined lint and analysis summary instead of running three tools separately_ | `{"path": "/about"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 
 ## security_audit
@@ -685,9 +685,9 @@ Security Audit — 10 tools.
 | `dependency_scan` | Scan dependencies for vulnerabilities using Composer audit and other tools.<br>_Checking composer packages against vulnerability advisories before tagging a release_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `config_security_check` | Check Drupal configuration for security issues.<br>_Auditing exported config for risky settings before pushing it to production_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `permission_audit` | Audit user permissions and roles.<br>_After a role change, confirming no regular user quietly gained an admin-only permission_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
-| `sql_injection_scan` | Scan for SQL injection vulnerabilities in custom code.<br>_Reviewing custom database queries for unsanitized input before the code goes live_ | `{"path": "/about"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
+| `sql_injection_scan` | Scan for SQL injection vulnerabilities in custom code.<br>_Reviewing custom database queries for unsanitized input before the code goes live_ | `{"path": "/about"}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
 | `xss_scan` | Scan for XSS vulnerabilities in custom code.<br>_Checking custom output for unescaped user-supplied input ahead of a security review_ | `{"path": "/about"}` | ⚠️ ddev · ⚠️ lando · ❔ no offline tests |
-| `csp_audit` | Content Security Policy audit.<br>_The browser console shows CSP violations and you need to know which directive to relax_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `csp_audit` | Content Security Policy audit.<br>_The browser console shows CSP violations and you need to know which directive to relax_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `file_permissions_audit` | Audit file permissions for security issues.<br>_Hardening a public files directory where an uploaded executable would be a problem_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | [`code_security_scan`](index.md#code_security_scan) | Scan custom code for vulnerability patterns — no tools to install.<br>_A quick vulnerability-pattern sweep of custom modules with no vendor tools installed_ | `{}` | 🧩 ddev · 🧩 lando · 🧪 unit |
 | [`route_access_audit`](index.md#route_access_audit) | Classify every route's access control from *.routing.yml files.<br>_Finding routes with no access check before the site is exposed publicly_ | `{}` | 🧩 ddev · 🧩 lando · 🧪 unit |
@@ -707,7 +707,7 @@ Headless — 10 tools.
 | `nextjs_helpers_generate` | Generate Next.js helper functions for Drupal entities.<br>_Scaffolding typed fetch helpers for a Next.js site consuming Drupal content_ | `{"entity_types": []}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `gatsby_helpers_generate` | Generate Gatsby source plugin config and helpers.<br>_Wiring a Gatsby site to Drupal data without writing the source plugin config by hand_ | `{"entity_types": []}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `jsonapi_resources_list` | List all available JSON:API resources.<br>_Discovering which endpoints exist before writing a single API request_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `jsonapi_resource_types` | Get all resource types available in JSON:API.<br>_Checking available types and bundles before filtering a JSON:API collection query_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `jsonapi_resource_types` | Get all resource types available in JSON:API.<br>_Checking available types and bundles before filtering a JSON:API collection query_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 
 ## drupal_org
 
@@ -734,7 +734,7 @@ Testing — 9 tools.
 
 | Tool | Description & use case | Example | Status |
 |------|------------------------|---------|--------|
-| `test_run_phpunit` | Run PHPUnit tests.<br>_Verifying a change to custom logic did not break existing unit behavior before committing_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
+| `test_run_phpunit` | Run PHPUnit tests.<br>_Verifying a change to custom logic did not break existing unit behavior before committing_ | `{}` | ✅ ddev · ✅ lando · 🧪 unit |
 | `test_run_kernel` | Run Kernel tests.<br>_Exercising hooks and entity storage against a real Drupal kernel after a change_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `test_run_behat` | Run Behat tests.<br>_Checking a user-facing workflow end to end before calling a feature done_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
 | `test_run_nightwatch` | Run Nightwatch tests.<br>_Validating browser-side JS and admin UI behavior ahead of a release_ | `{}` | ✅ ddev · ✅ lando · ❔ no offline tests |
@@ -750,8 +750,8 @@ Accessibility — 5 tools.
 
 | Tool | Description & use case | Example | Status |
 |------|------------------------|---------|--------|
-| `accessibility_axe_scan` | Run axe-core accessibility scan on a URL.<br>_Running an automated accessibility check on a key page before an audit or launch_ | `{"url": "value"}` | ✅ ddev · ✅ lando · ❔ no offline tests |
-| `accessibility_wcag_check` | Check WCAG compliance for entity content.<br>_Before publishing, checking a content type's rendered output against WCAG criteria_ | `{"entity_type": "node", "entity_id": "value"}` | ✅ ddev · ⚠️ lando · ❔ no offline tests |
+| `accessibility_axe_scan` | Run axe-core accessibility scan on a URL.<br>_Running an automated accessibility check on a key page before an audit or launch_ | `{"url": "value"}` | ✅ ddev · ✅ lando · 🧪 unit |
+| `accessibility_wcag_check` | Check WCAG compliance for entity content.<br>_Before publishing, checking a content type's rendered output against WCAG criteria_ | `{"entity_type": "node", "entity_id": "value"}` | ✅ ddev · ⚠️ lando · 🧪 unit |
 | `accessibility_color_contrast` | Check color contrast ratio.<br>_Choosing a brand color pairing that still passes AA contrast on text_ | `{"foreground": "value", "background": "value"}` | ⚠️ ddev · ⚠️ lando · 🧪 unit |
 | `accessibility_aria_validate` | Validate ARIA attributes on entity.<br>_A custom template's accordion misbehaves and the ARIA markup may be at fault_ | `{"entity_type": "node", "entity_id": "value"}` | ✅ ddev · ⚠️ lando · 🧪 unit |
 | `accessibility_report_generate` | Generate comprehensive accessibility report.<br>_Handing an auditor one consolidated report instead of scattered scan results_ | `{"urls": []}` | ✅ ddev · ✅ lando · ❔ no offline tests |

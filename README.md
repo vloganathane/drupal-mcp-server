@@ -166,7 +166,10 @@ so the server refuses to bind one unless `DRUPAL_OAUTH_CLIENT_ID` is set —
 MCP-side tokens are then issued and checked in-process; set
 `MCP_ALLOW_INSECURE_HTTP=1` to serve unauthenticated on the default
 loopback `MCP_HOST` (`127.0.0.1`) if you accept the risk. See
-[Configuration](configuration.md#serving-over-http).
+[Configuration](configuration.md#serving-over-http). Once bound,
+`MCP_READ_ONLY=1` hides every tool that writes (185 of 414 remain — no
+drush, composer, shell, or file output) and `MCP_RATE_LIMIT` caps
+requests per client with `429` + `Retry-After`.
 
 ## Tools (414 total)
 

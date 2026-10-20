@@ -60,6 +60,8 @@ Sent as `Authorization: Bearer <token>`, and used only when neither
 | `MCP_HOST` | `127.0.0.1` | HTTP bind host — loopback by default, see below |
 | `MCP_PORT` | `8000` | HTTP bind port |
 | `MCP_ALLOW_INSECURE_HTTP` | `false` | Permit an HTTP transport without OAuth (see below) |
+| `MCP_READ_ONLY` | `false` | Expose only read-only tools — writes, file output and command execution are hidden (see below) |
+| `MCP_RATE_LIMIT` | `0` | HTTP requests per minute per client, `0` disables (see below) |
 | `MCP_SERVER_NAME` | `drupal-mcp-server` | Server name in MCP protocol |
 | `MCP_LOG_LEVEL` | `INFO` | `DEBUG`, `INFO`, `WARNING`, `ERROR` |
 
@@ -85,6 +87,31 @@ Any client that can reach the port can register itself (RFC 7591) and
 walk the PKCE flow to a token: the flow proves the caller speaks MCP's
 OAuth dialect, not who the user is — which is why the loopback default
 is doing real work. See [ADR 0005](adr/0005-oauth-token-validation.md).
+
+Two further controls narrow what an authenticated socket can do, both
+opt-in:
+
+- **`MCP_READ_ONLY=1`** exposes only tools whose names read as queries
+  (`list_`/`get_`/`find_`/`search_` prefixes, `_list`/`_get`/`_audit`/
+  `_scan`/... suffixes, plus a vetted extras list) — 185 of the 414
+  tools. Everything that writes to the site, writes files, or executes
+  drush/composer/shell commands is **not registered at all**, so
+  `tools/list` cannot advertise it and a call by the name fails as an
+  unknown tool. The classifier is deliberately fail-closed: a future
+  tool stays hidden until its name reads as a query, because a wrong
+  allow is a write while a wrong deny is an operator flipping the flag.
+  A single exception, `search_api_*`, is pinned the other way — the
+  `search_` prefix heads a mutation family (create/reindex/clear/
+  enable), so those eight names are denied explicitly while the
+  family's readers pass on their own suffixes.
+- **`MCP_RATE_LIMIT=120`** puts a token bucket of 120 requests/minute
+  on every HTTP route — MCP endpoints, custom routes, and the OAuth
+  token endpoint alike — answering `429` with `Retry-After` past the
+  budget, and reporting `X-RateLimit-Limit`/`X-RateLimit-Remaining` on
+  the way through. The bucket is keyed by bearer token when the request
+  carries one (a credential being guessed burns its own budget, not the
+  shared address of every client behind it), else by client IP.
+  `0` — the default — disables it.
 
 ## AI Providers
 

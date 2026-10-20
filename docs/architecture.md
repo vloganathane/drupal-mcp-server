@@ -186,6 +186,8 @@ All tools return errors in a standardized format:
 | `MCP_TRANSPORT` | No | `stdio` | Transport type |
 | `MCP_HOST` | No | `127.0.0.1` | HTTP bind host |
 | `MCP_PORT` | No | `8000` | HTTP bind port |
+| `MCP_READ_ONLY` | No | `false` | Expose only read-only tools (writes and exec hidden) |
+| `MCP_RATE_LIMIT` | No | `0` | HTTP requests/minute per client (`0` disables) |
 | `DEFAULT_AI_PROVIDER` | No | `ollama` | AI provider |
 | `AI_ENABLED` | No | `true` | Enable AI tools |
 | `AI_TIMEOUT` | No | `60` | AI request timeout |

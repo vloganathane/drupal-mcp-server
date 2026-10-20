@@ -8,10 +8,12 @@ import uuid
 from typing import Any
 
 from fastmcp import FastMCP
+from starlette.middleware import Middleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from drupal_mcp_server import __version__
+from drupal_mcp_server.access import RateLimitMiddleware, ReadOnlyRegistrar
 from drupal_mcp_server.auth import AuthManager
 from drupal_mcp_server.auth.mcp_oauth import DrupalOAuthProvider
 from drupal_mcp_server.clients import DrushClient, GraphQLClient, JSONAPIClient
@@ -64,6 +66,20 @@ from drupal_mcp_server.tools import config as config_tools
 
 logger = logging.getLogger(__name__)
 
+# Tool modules, in registration order. Order is load-bearing for the live
+# sweep: tools share local fixture paths (the sweep's /tmp/sweep-file.txt,
+# for example), so reordering modules changes which tool creates a path
+# before another answers about it.
+TOOLS = [
+    analysis, migration, content, config_tools, devops, ai, taxonomy, users,
+    database, views, paragraphs, menus, fields, revisions, redirects,
+    scheduler, code_audit, codebase, security_audit, status, drupal_org,
+    moderation, module_dev, theme_dev, layout_builder, search_api,
+    multilingual, media_enhanced, pathauto, metatag, commerce, webform,
+    headless, testing, accessibility, performance, contact, comments, feeds,
+    exports, theme_analysis,
+]
+
 
 def _input_schema_of(tool: Any) -> dict[str, Any]:
     """Read a tool's input schema across the names the SDKs have used.
@@ -79,6 +95,19 @@ def _input_schema_of(tool: Any) -> dict[str, Any]:
         if isinstance(value, dict) and value:
             return value
     return {}
+
+
+def _registrar_for(mcp: FastMCP, settings: Any) -> Any:
+    """The object tool modules register against.
+
+    In read-only mode the registrar drops every writing tool at
+    decoration time: a dropped tool never enters the registry, so
+    ``tools/list`` cannot advertise it and a call by name is an unknown
+    tool rather than a refused call (which would confirm the name).
+    """
+    if getattr(settings, "MCP_READ_ONLY", False):
+        return ReadOnlyRegistrar(mcp)
+    return mcp
 
 
 def create_server(auth_manager: AuthManager | None = None) -> FastMCP:
@@ -103,11 +132,18 @@ def create_server(auth_manager: AuthManager | None = None) -> FastMCP:
         version=__version__,
         instructions="Drupal MCP Server - JSON:API, GraphQL, Drush, AI-powered migration.",
     )
-    for module in [analysis, migration, content, config_tools, devops, ai, taxonomy, users, database, views, paragraphs, menus, fields, revisions, redirects, scheduler, code_audit, codebase, security_audit, status, drupal_org, moderation, module_dev, theme_dev, layout_builder, search_api, multilingual, media_enhanced, pathauto, metatag, commerce, webform, headless, testing, accessibility, performance, contact, comments, feeds, exports, theme_analysis]:
+    registrar = _registrar_for(mcp, settings)
+    for module in TOOLS:
         module.register_tools(
-            mcp, jsonapi_client=jsonapi_client, graphql_client=graphql_client,
+            registrar, jsonapi_client=jsonapi_client, graphql_client=graphql_client,
             drush_client=drush_client, ai_service=ai_service, site_manager=site_manager,
             migration_service=migration_service, codebase_service=codebase_service,
+        )
+    if isinstance(registrar, ReadOnlyRegistrar):
+        logger.info(
+            "read-only mode (MCP_READ_ONLY): %d tools exposed, %d writing tools hidden",
+            len(registrar.registered),
+            len(registrar.dropped),
         )
     
     # Add dynamic tool discovery endpoint
@@ -227,6 +263,20 @@ def _require_network_auth(settings: Any, transport: str) -> None:
     )
 
 
+def _http_middleware(settings: Any) -> list[Middleware]:
+    """Per-client request budget for the HTTP transports, when configured.
+
+    Applies to every route the app serves — MCP endpoints, custom routes
+    and the OAuth token endpoint alike — because it sits at the ASGI
+    edge of FastMCP's HTTP app. ``mcp.run()`` forwards it through
+    ``run_http_async`` to the app builder.
+    """
+    rate = int(getattr(settings, "MCP_RATE_LIMIT", 0) or 0)
+    if rate <= 0:
+        return []
+    return [Middleware(RateLimitMiddleware, requests_per_minute=rate)]
+
+
 def run_server() -> None:
     settings = get_settings()
 
@@ -255,11 +305,18 @@ def run_server() -> None:
         oauth_provider = auth_manager.get_mcp_oauth_provider(settings)
         if oauth_provider:
             mcp.auth = oauth_provider
+        middleware = _http_middleware(settings)
+        if middleware:
+            logger.info(
+                "rate limiting (MCP_RATE_LIMIT): %d requests/minute per client",
+                settings.MCP_RATE_LIMIT,
+            )
         mcp.run(
             transport=transport,  # type: ignore[arg-type]
             host=settings.MCP_HOST,
             port=settings.MCP_PORT,
             path=f"/{transport}" if transport != "http" else "/mcp",
+            middleware=middleware,
         )
     else:
         # Stdio transport (default)

@@ -119,6 +119,26 @@ class Settings(BaseSettings):
             "unauthenticated unless this is set."
         ),
     )
+    MCP_READ_ONLY: bool = Field(
+        default=False,
+        description=(
+            "Expose only read-only tools: names that read as queries "
+            "(list_/get_/find_/search_ prefixes, _list/_get/_audit/_scan/... "
+            "suffixes, plus a vetted extras list). Everything that writes to "
+            "the site, writes files, or executes drush/composer/shell "
+            "commands is hidden, including any future tool whose name does "
+            "not read as a query (fail-closed)."
+        ),
+    )
+    MCP_RATE_LIMIT: int = Field(
+        default=0,
+        description=(
+            "HTTP requests per minute per client (token bucket, keyed by "
+            "bearer token when the request carries one, else client IP). "
+            "0 disables. Covers every route of the HTTP transports, "
+            "including the OAuth token endpoint."
+        ),
+    )
     MCP_LOG_LEVEL: str = Field(default="INFO", description="Logging level")
 
 
