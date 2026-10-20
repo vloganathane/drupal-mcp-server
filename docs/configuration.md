@@ -113,6 +113,41 @@ opt-in:
   shared address of every client behind it), else by client IP.
   `0` — the default — disables it.
 
+### Delegating OAuth to Drupal (multi-user)
+
+The in-process authorization server proves a caller speaks OAuth, not
+who the user is. A multi-user networked deployment that needs
+Drupal-side identity opts into proxy delegation instead
+([ADR 0005](adr/0005-oauth-token-validation.md)):
+
+```bash
+DRUPAL_OAUTH_DELEGATE=1
+DRUPAL_OAUTH_CLIENT_ID=<client registered in Drupal's simple_oauth>
+DRUPAL_OAUTH_CLIENT_SECRET=<its secret>
+DRUPAL_OAUTH_TOKEN_URL=https://site.example/oauth/token
+```
+
+MCP clients keep the standard flow against this server — discovery,
+dynamic registration, PKCE — while authorize/token requests are
+forwarded to Drupal's simple_oauth server, and every presented token is
+validated per request: locally via JWKS (`…/oauth/jwks`, derived from
+the token URL by convention) so validation costs no network hop, or by
+RFC 7662 introspection when `DRUPAL_OAUTH_INTROSPECTION_URL` is set
+(a hop per cold token, cached). Optional knobs:
+`DRUPAL_OAUTH_AUTH_ENDPOINT` / `DRUPAL_OAUTH_JWKS_URI` override the
+derived endpoints, `DRUPAL_OAUTH_AUDIENCE` pins the audience claim,
+`DRUPAL_OAUTH_REQUIRED_SCOPES` sets a scope minimum (empty accepts any
+valid token — tool authorization is whatever Drupal put in it), and
+`MCP_BASE_URL` gives the public URL for redirects when it differs from
+`http://{MCP_HOST}:{MCP_PORT}`. Missing upstream credentials refuse to
+start with the reason, as the unauthenticated-socket guard does.
+
+The delegated flow is pinned offline against generated keys and a stub
+upstream (signature, expiry, audience, scope and revocation failures
+all answer None); the live simple_oauth round trip is not yet
+exercised — recorded as a live gap, like the outbound
+client-credentials leg.
+
 ## AI Providers
 
 ```bash

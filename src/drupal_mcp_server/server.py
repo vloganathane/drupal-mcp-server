@@ -277,6 +277,26 @@ def _http_middleware(settings: Any) -> list[Middleware]:
     return [Middleware(RateLimitMiddleware, requests_per_minute=rate)]
 
 
+def _oauth_provider_for(settings: Any, auth_manager: Any) -> Any:
+    """Pick the MCP OAuth posture: proxy delegation or in-process (ADR 0005).
+
+    Delegation is the opt-in networked mode: issuance forwarded to
+    Drupal's simple_oauth server, presented tokens validated per
+    request. The default remains the in-process authorization server,
+    which works with no Drupal reachable.
+    """
+    if getattr(settings, "DRUPAL_OAUTH_DELEGATE", False):
+        from drupal_mcp_server.auth.delegation import delegate_provider
+
+        provider = delegate_provider(settings)
+        logger.info(
+            "OAuth delegation (ADR 0005): authorize/token forwarded to %s",
+            settings.DRUPAL_OAUTH_TOKEN_URL,
+        )
+        return provider
+    return auth_manager.get_mcp_oauth_provider(settings)
+
+
 def run_server() -> None:
     settings = get_settings()
 
@@ -302,7 +322,7 @@ def run_server() -> None:
         # keywords straight to run_http_async() and raised
         # "unexpected keyword argument 'auth'" before binding a socket - so
         # every HTTP transport died at startup and only stdio ever worked.
-        oauth_provider = auth_manager.get_mcp_oauth_provider(settings)
+        oauth_provider = _oauth_provider_for(settings, auth_manager)
         if oauth_provider:
             mcp.auth = oauth_provider
         middleware = _http_middleware(settings)

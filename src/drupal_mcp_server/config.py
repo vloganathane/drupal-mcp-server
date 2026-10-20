@@ -25,6 +25,49 @@ class Settings(BaseSettings):
     DRUPAL_OAUTH_CLIENT_ID: str | None = Field(default=None, description="OAuth client ID")
     DRUPAL_OAUTH_CLIENT_SECRET: str | None = Field(default=None, description="OAuth client secret")
     DRUPAL_OAUTH_TOKEN_URL: str | None = Field(default=None, description="OAuth token endpoint URL")
+    DRUPAL_OAUTH_DELEGATE: bool = Field(
+        default=False,
+        description=(
+            "Serve MCP OAuth by proxy delegation (ADR 0005): authorize/token "
+            "requests are forwarded to Drupal's simple_oauth server and "
+            "presented tokens are validated per request (locally via JWKS, "
+            "or by introspection). Needs CLIENT_ID, CLIENT_SECRET and "
+            "TOKEN_URL of an OAuth client registered in Drupal."
+        ),
+    )
+    DRUPAL_OAUTH_AUTH_ENDPOINT: str | None = Field(
+        default=None,
+        description=(
+            "Upstream authorize endpoint for delegation; defaults to "
+            "TOKEN_URL with /token replaced by /authorize"
+        ),
+    )
+    DRUPAL_OAUTH_JWKS_URI: str | None = Field(
+        default=None,
+        description=(
+            "JWKS endpoint for local JWT validation in delegation mode; "
+            "defaults to TOKEN_URL with /token replaced by /jwks"
+        ),
+    )
+    DRUPAL_OAUTH_INTROSPECTION_URL: str | None = Field(
+        default=None,
+        description=(
+            "RFC 7662 introspection endpoint; when set, delegated tokens "
+            "are validated by introspection instead of locally via JWKS"
+        ),
+    )
+    DRUPAL_OAUTH_AUDIENCE: str | None = Field(
+        default=None,
+        description="Required audience claim for delegated tokens",
+    )
+    DRUPAL_OAUTH_REQUIRED_SCOPES: str = Field(
+        default="",
+        description=(
+            "Comma-separated minimum scopes for delegated tokens; empty "
+            "accepts any token that validates (tool authorization is "
+            "whatever Drupal put in it)"
+        ),
+    )
     DRUPAL_API_TOKEN: str | None = Field(
         default=None,
         description="Pre-obtained bearer token, sent as Authorization: Bearer",
@@ -111,6 +154,13 @@ class Settings(BaseSettings):
         ),
     )
     MCP_PORT: int = Field(default=8000, description="MCP HTTP port")
+    MCP_BASE_URL: str | None = Field(
+        default=None,
+        description=(
+            "Public base URL of this server for OAuth redirects in "
+            "delegation mode; defaults to http://{MCP_HOST}:{MCP_PORT}"
+        ),
+    )
     MCP_ALLOW_INSECURE_HTTP: bool = Field(
         default=False,
         description=(

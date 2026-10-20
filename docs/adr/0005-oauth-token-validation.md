@@ -3,6 +3,12 @@
 ## Status
 Accepted
 
+Amended 2026-10-20: the recommended networked mode below is now
+implemented as the opt-in `DRUPAL_OAUTH_DELEGATE`
+(`auth/delegation.py`) — proxy delegation for issuance, with local
+JWKS validation or RFC 7662 introspection for presented tokens. The
+default posture is unchanged: in-process, no Drupal reachable.
+
 ## Date
 2026-10-19
 
@@ -50,10 +56,11 @@ the credential split honestly:
   middleware, not Drupal.
 - `DRUPAL_OAUTH_CLIENT_SECRET` / `DRUPAL_OAUTH_TOKEN_URL` belong to the
   outbound client-credentials leg.
-- No code path claims Drupal delegation until one of the options below
-  is implemented; the `_drupal_*` attributes, `ROLE_SCOPES` and the
-  `_oauth_provider` routes are recorded as follow-up — remove or wire,
-  never wire without an auth decision.
+- No code path claims Drupal delegation unless the operator opts in
+  via `DRUPAL_OAUTH_DELEGATE`, which serves the proxy pattern below;
+  the `_drupal_*` attributes, `ROLE_SCOPES` and the `_oauth_provider`
+  routes are recorded as follow-up — remove or wire, never wire
+  without an auth decision.
 - Dynamic client registration is enabled (`ClientRegistrationOptions`)
   so spec-conformant clients can complete discovery → registration →
   authorize → token over the wire. A live probe on 2026-10-19 had shown
@@ -62,7 +69,8 @@ the credential split honestly:
   speaks OAuth, not who the user is.
 
 When a multi-user networked deployment needs Drupal-side identity, pick
-one of:
+one of (all three are now implemented; `DRUPAL_OAUTH_DELEGATE` selects
+delegation, `DRUPAL_OAUTH_INTROSPECTION_URL` switches validation):
 
 - **Introspection** — validate presented tokens at Drupal's
   `/oauth/token/introspect` (simple_oauth). Only works for tokens Drupal
