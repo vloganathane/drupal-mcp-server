@@ -1129,6 +1129,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#036-2026-10-20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.3.6] - 2026-10-20
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.3.6] - 2026-10-20">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#035-2026-10-20" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1191,7 +1219,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#added" class="md-nav__link">
+  <a href="#added_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         Added
@@ -1263,7 +1291,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#added_1" class="md-nav__link">
+  <a href="#added_2" class="md-nav__link">
     <span class="md-ellipsis">
       
         Added
@@ -1380,7 +1408,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#added_2" class="md-nav__link">
+  <a href="#added_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         Added
@@ -1419,7 +1447,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#added_3" class="md-nav__link">
+  <a href="#added_4" class="md-nav__link">
     <span class="md-ellipsis">
       
         Added
@@ -1480,7 +1508,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#added_4" class="md-nav__link">
+  <a href="#added_5" class="md-nav__link">
     <span class="md-ellipsis">
       
         Added
@@ -1605,6 +1633,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#036-2026-10-20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.3.6] - 2026-10-20
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.3.6] - 2026-10-20">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#035-2026-10-20" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1667,7 +1723,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#added" class="md-nav__link">
+  <a href="#added_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         Added
@@ -1739,7 +1795,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#added_1" class="md-nav__link">
+  <a href="#added_2" class="md-nav__link">
     <span class="md-ellipsis">
       
         Added
@@ -1856,7 +1912,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#added_2" class="md-nav__link">
+  <a href="#added_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         Added
@@ -1895,7 +1951,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#added_3" class="md-nav__link">
+  <a href="#added_4" class="md-nav__link">
     <span class="md-ellipsis">
       
         Added
@@ -1956,7 +2012,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#added_4" class="md-nav__link">
+  <a href="#added_5" class="md-nav__link">
     <span class="md-ellipsis">
       
         Added
@@ -1993,6 +2049,30 @@
 <p>The format is based on <a href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a>,
 and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
+<h2 id="036-2026-10-20">[0.3.6] - 2026-10-20<a class="headerlink" href="#036-2026-10-20" title="Permanent link">&para;</a></h2>
+<h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>MCP_READ_ONLY=1</code> exposes only read-only tools: a registrar drops
+  every writing tool at decoration time, so it never enters the
+  registry — <code>tools/list</code> cannot advertise it and a call by name fails
+  as an unknown tool, not a refused call. The classifier is a naming
+  contract (query prefixes/suffixes plus a vetted extras list),
+  fail-closed so a future tool stays hidden until its name reads as a
+  query, pinned by a census test at 185 of 414 tools. One deliberate
+  exception: the <code>search_</code> prefix heads the <code>search_api_*</code> mutation
+  family, so those eight names (create/reindex/clear/enable/disable)
+  are denied explicitly while the family's readers pass on their own
+  suffixes.</li>
+<li><code>MCP_RATE_LIMIT=N</code> puts a token bucket of N requests/minute per
+  client on every HTTP route — MCP endpoints, custom routes, and the
+  OAuth token endpoint alike — answering <code>429</code> with <code>Retry-After</code> past
+  the budget and reporting <code>X-RateLimit-Limit</code>/<code>X-RateLimit-Remaining</code>
+  on the way through. Keyed by bearer token when the request carries
+  one (a credential being guessed burns its own budget, not the shared
+  address of every client behind it), else by client IP. <code>0</code> — the
+  default — disables it. The default surface is unchanged: 414 tools
+  without either flag.</li>
+</ul>
 <h2 id="035-2026-10-20">[0.3.5] - 2026-10-20<a class="headerlink" href="#035-2026-10-20" title="Permanent link">&para;</a></h2>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2094,7 +2174,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
   unit badge.</li>
 </ul>
 <h2 id="034-2026-10-20">[0.3.4] - 2026-10-20<a class="headerlink" href="#034-2026-10-20" title="Permanent link">&para;</a></h2>
-<h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
+<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Dynamic client registration (<code>POST /register</code>, advertised as
   <code>registration_endpoint</code>): an MCP client can now complete the whole
@@ -2151,7 +2231,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <li><code>MCP_HOST</code> now defaults to <code>127.0.0.1</code> instead of <code>0.0.0.0</code>:
   serving to the network should be a decision, not a default.</li>
 </ul>
-<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
+<h3 id="added_2">Added<a class="headerlink" href="#added_2" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>DRUPAL_HTTP_RETRIES</code> (default 2): idempotent GET requests retry
   transient failures — timeouts, connection resets, and 502/503/504 —
@@ -2232,7 +2312,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
   works on every uv version.</li>
 </ul>
 <h2 id="030-2026-10-17">[0.3.0] - 2026-10-17<a class="headerlink" href="#030-2026-10-17" title="Permanent link">&para;</a></h2>
-<h3 id="added_2">Added<a class="headerlink" href="#added_2" title="Permanent link">&para;</a></h3>
+<h3 id="added_3">Added<a class="headerlink" href="#added_3" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Wave 5 of the drupal-scout-mcp port — 2 local security tools
   (414 total, 41 modules): <code>code_security_scan</code> runs scout's
@@ -2331,7 +2411,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <li>Add input validation for URLs, queue names, and file paths</li>
 <li>Add authentication check to /mcp/tools/list endpoint</li>
 </ul>
-<h3 id="added_3">Added<a class="headerlink" href="#added_3" title="Permanent link">&para;</a></h3>
+<h3 id="added_4">Added<a class="headerlink" href="#added_4" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Add <code>drupal-mcp install</code>, a self-installer that registers the server with
   local MCP clients (Claude Code, Claude Desktop, Cursor, Codex CLI,
@@ -2629,7 +2709,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <li>Remove duplicate _find_tool_path definition in security_audit.py</li>
 </ul>
 <h2 id="010-2026-10-13">[0.1.0] - 2026-10-13<a class="headerlink" href="#010-2026-10-13" title="Permanent link">&para;</a></h2>
-<h3 id="added_4">Added<a class="headerlink" href="#added_4" title="Permanent link">&para;</a></h3>
+<h3 id="added_5">Added<a class="headerlink" href="#added_5" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Initial release with 35+ MCP tools across all major Drupal categories</li>
 <li>FastMCP server with stdio and HTTP transports</li>
