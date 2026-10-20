@@ -7,6 +7,107 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.5] - 2026-10-20
+
+### Fixed
+
+- Every scaffold writer now emits files Drupal can actually load. The
+  live sweep only proves a tool *answers*; offline tests over each
+  writer found and pinned the defects it never could:
+  - `module_create` named its controller with a literal
+    `{machine_name.capitalize()}` (missing f) and reported the config
+    schema at the module root though it writes `config/schema/`;
+  - `module_service_create` pasted `$this->x = $x` at class scope — a
+    PHP ParseError whenever arguments were passed — and kept dots from
+    service ids in variable names (`$entity_type.manager`);
+  - `test_scaffold_phpunit` and `module_test_create` wrote shell-style
+    `\$this` escapes into raw PHP and pluralized the namespace
+    (`KernelTests`/`UnitTests`), so the namespace never matched the
+    directory the test landed in and PSR-4 discovery never loaded it;
+  - `module_plugin_create` never closed the plugin docblock, gave
+    formatters the widget's `formElement` instead of the abstract
+    `viewElements` (fatal on load), skipped imports its signatures
+    name, and joined the PHP namespace fragment into the OS path — one
+    directory literally named `Plugin\Block` on POSIX, so no plugin
+    file was ever in the PSR-4 tree;
+  - the form, controller and event-subscriber writers reported file
+    paths with no module root; `EntityForm` scaffolding is now refused
+    with the reason (entity forms route via `_entity_form` and need a
+    type this tool does not take), instead of shipping a form base
+    class that cannot route;
+  - `module_event_subscriber_create` subscribed methods it never
+    generated — one handler stub per subscribed event now ships;
+  - `module_hook_implement` offered `hook_config_import_create`, a hook
+    Drupal has never invoked; replaced with `hook_config_presave`;
+  - `module_info_generate` and `module_dependencies_analyze`
+    "detected" dependencies that are not modules (form, entity,
+    container, config) via dead string checks — both now infer real
+    module names from `Drupal\<module>\` class usage;
+  - `theme_create` dumped library *definitions* into info.yml's
+    `libraries` key, which takes a list of names to attach: with
+    `libraries` passed the theme's info.yml was uninstallable;
+  - `generate_module_migration` wrote a class its filename disagreed
+    with on case (PSR-4 never autoloads it on a case-sensitive
+    filesystem), never imported the `MigrateSourcePlugin` annotation it
+    documents, and dropped migrations/, info.yml and .module inside
+    `src/Plugin/` while reporting them at the module root.
+- `theme_settings_form` generated a class that cannot load on any core:
+  `ConfigFactoryInterface` and `ContainerInterface` used unimported,
+  and a constructor override that dropped D11's required
+  `TypedConfigManagerInterface` while its services.yml entry passed
+  only `@config.factory` — the container could not build the form.
+- `theme_debug_enable` ran three `config:set twig.config …` calls (one
+  malformed argument string, against a config object that does not
+  exist, results discarded) and reported `twig_debug: True` regardless —
+  on every site it ever ran against, nothing changed. It now refuses
+  honestly with the settings.php recipe and runs nothing.
+- `theme_template_override` silently created a half-theme for a theme
+  that does not exist, raised an uncaught FileNotFoundError for nested
+  names like `views/views-view-table.html.twig`, and let an absolute
+  `template_name` write anywhere; `theme_breakpoint_create` had no
+  theme-exists guard at all.
+- `theme_asset_optimize` reported `success: True` regardless of what
+  drush answered.
+- `migrate_taxonomy`'s create paths were dead code: the client raises
+  (`LookupError`) for a missing resource instead of returning an error
+  dict, so a vocabulary or term absent from the target site was
+  reported as an error and never created, on every call. Vocabulary
+  updates also forwarded the caller's `terms` list as an attribute (a
+  400 on any real update), term payloads sent the read-only `tid`, and
+  the inert `source_jsonapi` parameter was accepted, checked twice and
+  never used — it is gone.
+- `generate_migration_yaml` accepted `destination` and ignored it (the
+  plugin was hardcoded to `entity:node`), hand-rolled its YAML so any
+  value containing `": "` produced an unparseable document, and
+  interpolated an unvalidated migration id into config Drupal's
+  migrate storage must load.
+- `sync_media_files` returned a silent `synced: 0` for a source path
+  that does not exist, raised SameFileError when a directory was
+  synced onto itself, and abandoned the whole run on the first
+  unreadable file.
+
+### Testing
+
+- 91 offline tests across four batches (now 675): every scaffold
+  writer and every migration tool is pinned — guards, generated
+  YAML/PHP content, PSR-4 namespace↔directory agreement, verbatim
+  delegation of the plan-service wrappers, and that every path a
+  report claims exists on disk. Red run first, each failure fixed in
+  the same commit.
+- The two intentional sweep-verdict changes are pre-recorded in both
+  baselines: `theme_debug_enable` OK→REJECTED (the honest refusal) and
+  `sync_media_files` OK→BLOCKED (a fresh runner has no synthesized
+  source directory; it now says so). The other 26 tools in those two
+  modules hold their verdicts, predicted offline with the harness's
+  own synthesize/classify.
+
+### Documentation
+
+- The tool-docs status column labels offline coverage honestly
+  (`🧪 unit` vs `❔ no offline tests`); all 414 tools' rows
+  regenerated — module, theme and migration writers now carry the
+  unit badge.
+
 ## [0.3.4] - 2026-10-20
 
 ### Added
