@@ -2577,7 +2577,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>generate_test_content</code></td>
 <td>Generate sample nodes for a bundle to populate a development site.<br><em>Populate a development site with sample nodes to test layouts and views</em></td>
 <td><code>{"bundle": "article"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 </tbody>
 </table>
@@ -3035,7 +3035,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>sync_config</code></td>
 <td>Sync configuration between environments via Drush.<br><em>Previewing then pushing config changes from one environment to another after review</em></td>
 <td><code>{"source_env": "value", "target_env": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>diff_config</code></td>
@@ -3047,7 +3047,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>split_config</code></td>
 <td>Split configuration into separate directories for atomic deployment.<br><em>Extracting only the config objects a feature needs so deploys can ship independently</em></td>
 <td><code>{"config_names": []}</code></td>
-<td>🧩 ddev · 🧩 lando · ❔ no offline tests</td>
+<td>🧩 ddev · 🧩 lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><a href="../#config_status"><code>config_status</code></a></td>
@@ -3713,19 +3713,19 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>feeds_parser_list</code></td>
 <td>List available feed parsers.<br><em>Getting the exact parser plugin IDs when configuring a new feed</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>feeds_fetcher_list</code></td>
 <td>List available feed fetchers.<br><em>Confirming which fetcher plugins are installed before creating a feed</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>feeds_processor_list</code></td>
 <td>List available feed processors.<br><em>Finding what a feed can write to before creating the import</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 </tbody>
 </table>
@@ -4117,7 +4117,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>contact_spam_check</code></td>
 <td>Check if a contact message is spam.<br><em>Deciding whether a suspicious message should be kept or purged from the inbox</em></td>
 <td><code>{"message_id": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 </tbody>
 </table>
@@ -4425,13 +4425,13 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>drush_cron</code></td>
 <td>Run cron.<br><em>Triggering cron now so queues and aggregations run without waiting for the schedule</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>drush_watchdog</code></td>
 <td>Show recent log entries from watchdog.<br><em>Debugging a reported error by pulling recent log entries filtered by type or severity</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · 🧩 lando · ❔ no offline tests</td>
+<td>✅ ddev · 🧩 lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>cache_clear</code></td>
@@ -4523,9 +4523,9 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <tbody>
 <tr>
 <td><code>performance_query_log</code></td>
-<td>Get slow query log.<br><em>Hunting a slow page by finding which queries the site logged as slow in watchdog</em></td>
+<td>Get the recent db_query watchdog entries (requires devel logging).<br><em>Hunting a slow page by finding which queries the site logged as slow in watchdog</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>performance_cache_stats</code></td>
@@ -4537,13 +4537,13 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>performance_redis_info</code></td>
 <td>Get Redis server info.<br><em>Diagnosing cache backend health when Redis is backing the site's cache bins</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>performance_bigpipe_status</code></td>
 <td>Check BigPipe status and configuration.<br><em>Confirming whether BigPipe is enabled before investigating why page delivery looks plain</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>performance_bigpipe_enable</code></td>
@@ -4555,13 +4555,13 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>performance_memcached_stats</code></td>
 <td>Get Memcached statistics.<br><em>Spotting evictions or memory limits in Memcached that explain repeated cache misses</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>performance_page_load_analyze</code></td>
 <td>Analyze page load performance.<br><em>Getting a rough before and after number when comparing a page's response times</em></td>
 <td><code>{"url": "value"}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 </tbody>
 </table>
@@ -5179,7 +5179,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>dependency_scan</code></td>
 <td>Scan dependencies for vulnerabilities using Composer audit and other tools.<br><em>Checking composer packages against vulnerability advisories before tagging a release</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>config_security_check</code></td>
@@ -5215,7 +5215,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>file_permissions_audit</code></td>
 <td>Audit file permissions for security issues.<br><em>Hardening a public files directory where an uploaded executable would be a problem</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><a href="../#code_security_scan"><code>code_security_scan</code></a></td>
@@ -5275,21 +5275,21 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 </tr>
 <tr>
 <td><code>graphql_schema_extend</code></td>
-<td>Extend GraphQL schema with custom fields (requires schema customization module).<br><em>A component needs a computed field that Drupal's default schema does not expose</em></td>
+<td>Extend GraphQL schema with custom fields.<br><em>A component needs a computed field that Drupal's default schema does not expose</em></td>
 <td><code>{"type_name": "value", "fields": {"title": "Hello"}}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>nextjs_helpers_generate</code></td>
 <td>Generate Next.js helper functions for Drupal entities.<br><em>Scaffolding typed fetch helpers for a Next.js site consuming Drupal content</em></td>
 <td><code>{"entity_types": []}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>gatsby_helpers_generate</code></td>
 <td>Generate Gatsby source plugin config and helpers.<br><em>Wiring a Gatsby site to Drupal data without writing the source plugin config by hand</em></td>
 <td><code>{"entity_types": []}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>jsonapi_resources_list</code></td>
@@ -5405,27 +5405,27 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <tbody>
 <tr>
 <td><code>test_run_phpunit</code></td>
-<td>Run PHPUnit tests.<br><em>Verifying a change to custom logic did not break existing unit behavior before committing</em></td>
+<td>Run the site's PHPUnit tests (vendor/bin/phpunit).<br><em>Verifying a change to custom logic did not break existing unit behavior before committing</em></td>
 <td><code>{}</code></td>
 <td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>test_run_kernel</code></td>
-<td>Run Kernel tests.<br><em>Exercising hooks and entity storage against a real Drupal kernel after a change</em></td>
+<td>Run the site's Kernel-test suite (vendor/bin/phpunit).<br><em>Exercising hooks and entity storage against a real Drupal kernel after a change</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>test_run_behat</code></td>
-<td>Run Behat tests.<br><em>Checking a user-facing workflow end to end before calling a feature done</em></td>
+<td>Run the site's Behat features (vendor/bin/behat).<br><em>Checking a user-facing workflow end to end before calling a feature done</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>test_run_nightwatch</code></td>
-<td>Run Nightwatch tests.<br><em>Validating browser-side JS and admin UI behavior ahead of a release</em></td>
+<td>Run Nightwatch tests (node_modules/.bin/nightwatch).<br><em>Validating browser-side JS and admin UI behavior ahead of a release</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>test_scaffold_phpunit</code></td>
@@ -5447,15 +5447,15 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 </tr>
 <tr>
 <td><code>test_coverage_report</code></td>
-<td>Generate test coverage report.<br><em>Seeing which parts of a custom module still have zero test coverage</em></td>
+<td>Generate a test coverage report (vendor/bin/phpunit).<br><em>Seeing which parts of a custom module still have zero test coverage</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 <tr>
 <td><code>test_list_suites</code></td>
-<td>List available test suites.<br><em>Not sure which runner applies, so checking what test suites this site exposes</em></td>
+<td>List the site's PHPUnit test suites.<br><em>Not sure which runner applies, so checking what test suites this site exposes</em></td>
 <td><code>{}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 </tbody>
 </table>
@@ -5499,7 +5499,7 @@ To change a use case or status note, edit docs/tools/_tool_overrides.yaml. -->
 <td><code>accessibility_report_generate</code></td>
 <td>Generate comprehensive accessibility report.<br><em>Handing an auditor one consolidated report instead of scattered scan results</em></td>
 <td><code>{"urls": []}</code></td>
-<td>✅ ddev · ✅ lando · ❔ no offline tests</td>
+<td>✅ ddev · ✅ lando · 🧪 unit</td>
 </tr>
 </tbody>
 </table>
