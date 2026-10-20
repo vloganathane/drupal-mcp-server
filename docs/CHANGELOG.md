@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.7] - 2026-10-20
+
+### Added
+
+- Drupal-side identity for networked deployments: `DRUPAL_OAUTH_DELEGATE=1`
+  serves ADR 0005's proxy delegation. MCP clients keep the standard
+  flow against this server (discovery, dynamic registration, PKCE)
+  while authorize/token requests are forwarded to Drupal's simple_oauth
+  server, and every presented token is validated per request — locally
+  via JWKS (no per-request hop, endpoint derived from
+  `DRUPAL_OAUTH_TOKEN_URL` by the `/oauth/token` convention) or by
+  RFC 7662 introspection when `DRUPAL_OAUTH_INTROSPECTION_URL` is set
+  (hop per cold token, cached). A token URL that does not follow the
+  convention, or missing upstream credentials, refuses to start with
+  the override settings named. Optional: `DRUPAL_OAUTH_AUTH_ENDPOINT`,
+  `DRUPAL_OAUTH_JWKS_URI`, `DRUPAL_OAUTH_AUDIENCE`,
+  `DRUPAL_OAUTH_REQUIRED_SCOPES` (empty accepts any valid token) and
+  `MCP_BASE_URL` for public redirects. The default posture is
+  unchanged: the in-process authorization server, which needs no
+  Drupal reachable. Pinned offline against generated keys and a stub
+  upstream; the live simple_oauth round trip is not yet exercised
+  (recorded gap, like the outbound client-credentials leg).
+
 ## [0.3.6] - 2026-10-20
 
 ### Added

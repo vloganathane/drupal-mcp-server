@@ -1,6 +1,6 @@
 [project]
 name = "drupal-mcp-server"
-version = "0.3.6"
+version = "0.3.7"
 description = "MCP server for Drupal operations - JSON:API, GraphQL, Drush, AI-powered migration"
 readme = "README.md"
 license = {text = "MIT"}
