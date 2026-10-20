@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.6] - 2026-10-20
+
+### Added
+
+- `MCP_READ_ONLY=1` exposes only read-only tools: a registrar drops
+  every writing tool at decoration time, so it never enters the
+  registry — `tools/list` cannot advertise it and a call by name fails
+  as an unknown tool, not a refused call. The classifier is a naming
+  contract (query prefixes/suffixes plus a vetted extras list),
+  fail-closed so a future tool stays hidden until its name reads as a
+  query, pinned by a census test at 185 of 414 tools. One deliberate
+  exception: the `search_` prefix heads the `search_api_*` mutation
+  family, so those eight names (create/reindex/clear/enable/disable)
+  are denied explicitly while the family's readers pass on their own
+  suffixes.
+- `MCP_RATE_LIMIT=N` puts a token bucket of N requests/minute per
+  client on every HTTP route — MCP endpoints, custom routes, and the
+  OAuth token endpoint alike — answering `429` with `Retry-After` past
+  the budget and reporting `X-RateLimit-Limit`/`X-RateLimit-Remaining`
+  on the way through. Keyed by bearer token when the request carries
+  one (a credential being guessed burns its own budget, not the shared
+  address of every client behind it), else by client IP. `0` — the
+  default — disables it. The default surface is unchanged: 414 tools
+  without either flag.
+
 ## [0.3.5] - 2026-10-20
 
 ### Fixed
