@@ -242,7 +242,7 @@ def status_cell(tool: Tool) -> str:
     for env, verdict in tool.live.items():
         badge = VERDICT_BADGES.get(verdict, "❔")
         badges.append(f"{badge} {env}")
-    badges.append("🧪 unit" if tool.unit_tested else "❔ not live-verified")
+    badges.append("🧪 unit" if tool.unit_tested else "❔ no offline tests")
     text = " · ".join(badges)
     if tool.status_note:
         text += f" — _{escape_md(tool.status_note)}_"
@@ -303,7 +303,8 @@ def render(tools: list[Tool]) -> str:
                "environment the sweep runs against |")
     out.append("| 💀 | Dead — a product bug (currently none) |")
     out.append("| 🧪 unit | Has offline unit-test coverage |")
-    out.append("| ❔ not live-verified | No live-sweep verdict recorded yet |")
+    out.append("| ❔ no offline tests | No coverage in `tests/unit` — the weekly "
+               "live sweep is its only check |")
     out.append("")
     out.append(
         "The live sweeps run against a provisioned local site "
