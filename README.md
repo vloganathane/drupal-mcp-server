@@ -25,7 +25,7 @@ A real run — version check, the nine supported clients, live detection of the 
 - **AI-powered** — Content analysis, field mapping, and migration planning with your choice of LLM
 - **Multi-transport** — Stdio for desktop apps, HTTP/SSE for remote deployments
 - **Secure** — Input validation, OAuth 2.1, no shell injection
-- **Comprehensive** — 37 tool modules covering every major Drupal subsystem
+- **Comprehensive** — 41 tool modules covering every major Drupal subsystem
 
 ## Features
 
