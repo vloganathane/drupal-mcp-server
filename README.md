@@ -9,6 +9,16 @@
 
 A Model Context Protocol (MCP) server for Drupal operations. Provides **414 tools across 41 modules** for site analysis, migration, content management, configuration, commerce, headless, DevOps, security, and more.
 
+<img src="https://raw.githubusercontent.com/vloganathane/drupal-mcp-server/main/promo/thumbnail.png" alt="414 tools. One MCP server. — pip install drupal-mcp-server" width="100%">
+
+## Demo
+
+A real run — version check, the nine supported clients, live detection of the agents on this machine, and a zero-install start straight from PyPI:
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/vloganathane/drupal-mcp-server/main/promo/demo.gif" alt="Terminal demo: drupal-mcp --version, install --list, install --print, and uvx --from drupal-mcp-server drupal-mcp --version" width="860">
+</p>
+
 ## Why Use This?
 
 - **Unified interface** — Access JSON:API, GraphQL, Drush, and AI through one MCP server
