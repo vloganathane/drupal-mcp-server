@@ -1126,6 +1126,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="[Unreleased]">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1308,7 +1325,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#security" class="md-nav__link">
+  <a href="#security_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         Security
@@ -1464,7 +1481,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#security_1" class="md-nav__link">
+  <a href="#security_2" class="md-nav__link">
     <span class="md-ellipsis">
       
         Security
@@ -1658,6 +1675,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="[Unreleased]">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1840,7 +1874,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#security" class="md-nav__link">
+  <a href="#security_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         Security
@@ -1996,7 +2030,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#security_1" class="md-nav__link">
+  <a href="#security_2" class="md-nav__link">
     <span class="md-ellipsis">
       
         Security
@@ -2105,6 +2139,16 @@
 <p>The format is based on <a href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a>,
 and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
+<h3 id="security">Security<a class="headerlink" href="#security" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Pin <code>certifi&gt;=2026.10.19</code> for the eMudhra / emSign CA incident
+  (GHSA-6q48-6c7w-9gw2): this server's outbound TLS — Drupal sites,
+  OAuth token and JWKS endpoints — verifies against certifi's bundle
+  via httpx, and a pre-incident bundle still trusts the roots the
+  eight compromised intermediates chain through. Fresh installs
+  already resolve the patched bundle; the floor makes
+  <code>pip install -U drupal-mcp-server</code> fix existing environments too.</li>
+</ul>
 <h2 id="037-2026-10-20">[0.3.7] - 2026-10-20<a class="headerlink" href="#037-2026-10-20" title="Permanent link">&para;</a></h2>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2298,7 +2342,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
   model-not-dict loaders.</li>
 </ul>
 <h2 id="033-2026-10-19">[0.3.3] - 2026-10-19<a class="headerlink" href="#033-2026-10-19" title="Permanent link">&para;</a></h2>
-<h3 id="security">Security<a class="headerlink" href="#security" title="Permanent link">&para;</a></h3>
+<h3 id="security_1">Security<a class="headerlink" href="#security_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Refuse to start an <code>http</code>, <code>sse</code> or <code>streamable-http</code> transport
   unless an OAuth client (<code>DRUPAL_OAUTH_CLIENT_ID</code>) is set. The tool
@@ -2481,7 +2525,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
   documents (<code>composer outdated</code>) are not truncated</li>
 </ul>
 <h2 id="020-2026-10-16">[0.2.0] - 2026-10-16<a class="headerlink" href="#020-2026-10-16" title="Permanent link">&para;</a></h2>
-<h3 id="security_1">Security<a class="headerlink" href="#security_1" title="Permanent link">&para;</a></h3>
+<h3 id="security_2">Security<a class="headerlink" href="#security_2" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Fix command injection vulnerabilities in code audit and security audit tools</li>
 <li>Fix SQL injection in database query tools</li>
