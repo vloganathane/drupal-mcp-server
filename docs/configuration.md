@@ -142,11 +142,17 @@ valid token — tool authorization is whatever Drupal put in it), and
 `http://{MCP_HOST}:{MCP_PORT}`. Missing upstream credentials refuse to
 start with the reason, as the unauthenticated-socket guard does.
 
-The delegated flow is pinned offline against generated keys and a stub
-upstream (signature, expiry, audience, scope and revocation failures
-all answer None); the live simple_oauth round trip is not yet
-exercised — recorded as a live gap, like the outbound
-client-credentials leg.
+The delegated flow is pinned at two layers: offline against generated
+keys and a stub upstream (signature, expiry, audience, scope and
+revocation failures all answer None), and over real sockets — the
+console script started in delegate posture walks discovery, dynamic
+registration, the consent screen, both code exchanges and a
+JWKS-validated bearer call against a spec-conformant stub standing in
+for simple_oauth's authorize/token/JWKS endpoints
+(`tests/integration/test_oauth_delegation_roundtrip.py`), the same
+walk also catching the outbound client-credentials probe. What remains
+a live gap is Drupal's simple_oauth module itself: no site runs in
+this environment, so its own conformance stays unexercised.
 
 ## AI Providers
 

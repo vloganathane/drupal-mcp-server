@@ -9,6 +9,15 @@ implemented as the opt-in `DRUPAL_OAUTH_DELEGATE`
 JWKS validation or RFC 7662 introspection for presented tokens. The
 default posture is unchanged: in-process, no Drupal reachable.
 
+Amended 2026-10-21: delegate mode is walked end to end over real
+sockets (`tests/integration/test_oauth_delegation_roundtrip.py`) —
+the console script in delegate posture, a client through discovery,
+DCR, the consent screen, both code exchanges, and a JWKS-validated
+bearer call against a spec-conformant stub upstream; the outbound
+client-credentials probe lands on the same stub. Drupal's own
+simple_oauth module stays unexercised here (no site in this
+environment), so its conformance remains the live gap.
+
 ## Date
 2026-10-19
 
@@ -97,6 +106,9 @@ for the default posture — stdio, or loopback HTTP behind the guard.
   behaviour; the credential split is explicit.
 - Enforcement is pinned by tests at three layers, including the
   production scope requirement over a real socket.
+- The delegated posture is pinned over real sockets against a stub
+  upstream: the proxy machinery is proven, and the honest boundary
+  (Drupal's simple_oauth module itself, unexercised here) is recorded.
 
 ### Negative
 - MCP tokens cannot be revoked from Drupal, and roles never influence
