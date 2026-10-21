@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- Pin `certifi>=2026.10.19` for the eMudhra / emSign CA incident
+  (GHSA-6q48-6c7w-9gw2): this server's outbound TLS — Drupal sites,
+  OAuth token and JWKS endpoints — verifies against certifi's bundle
+  via httpx, and a pre-incident bundle still trusts the roots the
+  eight compromised intermediates chain through. Fresh installs
+  already resolve the patched bundle; the floor makes
+  `pip install -U drupal-mcp-server` fix existing environments too.
+
 ## [0.3.7] - 2026-10-20
 
 ### Added

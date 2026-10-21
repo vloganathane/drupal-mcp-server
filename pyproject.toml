@@ -19,6 +19,10 @@ classifiers = [
 dependencies = [
     "fastmcp>=2.0.0",
     "httpx>=0.27.0",
+    # The CA bundle httpx verifies against: floor pinned past the
+    # eMudhra/emSign root compromise (GHSA-6q48-6c7w-9gw2) so that
+    # upgrading this package pulls the patched trust store.
+    "certifi>=2026.10.19",
     "pydantic>=2.8.0",
     "pydantic-settings>=2.3.0",
     "python-dotenv>=1.0.0",
