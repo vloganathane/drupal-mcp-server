@@ -1430,6 +1430,14 @@ implemented as the opt-in <code>DRUPAL_OAUTH_DELEGATE</code>
 (<code>auth/delegation.py</code>) — proxy delegation for issuance, with local
 JWKS validation or RFC 7662 introspection for presented tokens. The
 default posture is unchanged: in-process, no Drupal reachable.</p>
+<p>Amended 2026-10-21: delegate mode is walked end to end over real
+sockets (<code>tests/integration/test_oauth_delegation_roundtrip.py</code>) —
+the console script in delegate posture, a client through discovery,
+DCR, the consent screen, both code exchanges, and a JWKS-validated
+bearer call against a spec-conformant stub upstream; the outbound
+client-credentials probe lands on the same stub. Drupal's own
+simple_oauth module stays unexercised here (no site in this
+environment), so its conformance remains the live gap.</p>
 <h2 id="date">Date<a class="headerlink" href="#date" title="Permanent link">&para;</a></h2>
 <p>2026-10-19</p>
 <h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
@@ -1514,6 +1522,9 @@ for the default posture — stdio, or loopback HTTP behind the guard.</p>
   behaviour; the credential split is explicit.</li>
 <li>Enforcement is pinned by tests at three layers, including the
   production scope requirement over a real socket.</li>
+<li>The delegated posture is pinned over real sockets against a stub
+  upstream: the proxy machinery is proven, and the honest boundary
+  (Drupal's simple_oauth module itself, unexercised here) is recorded.</li>
 </ul>
 <h3 id="negative">Negative<a class="headerlink" href="#negative" title="Permanent link">&para;</a></h3>
 <ul>

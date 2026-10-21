@@ -1812,11 +1812,17 @@ valid token — tool authorization is whatever Drupal put in it), and
 <code>MCP_BASE_URL</code> gives the public URL for redirects when it differs from
 <code>http://{MCP_HOST}:{MCP_PORT}</code>. Missing upstream credentials refuse to
 start with the reason, as the unauthenticated-socket guard does.</p>
-<p>The delegated flow is pinned offline against generated keys and a stub
-upstream (signature, expiry, audience, scope and revocation failures
-all answer None); the live simple_oauth round trip is not yet
-exercised — recorded as a live gap, like the outbound
-client-credentials leg.</p>
+<p>The delegated flow is pinned at two layers: offline against generated
+keys and a stub upstream (signature, expiry, audience, scope and
+revocation failures all answer None), and over real sockets — the
+console script started in delegate posture walks discovery, dynamic
+registration, the consent screen, both code exchanges and a
+JWKS-validated bearer call against a spec-conformant stub standing in
+for simple_oauth's authorize/token/JWKS endpoints
+(<code>tests/integration/test_oauth_delegation_roundtrip.py</code>), the same
+walk also catching the outbound client-credentials probe. What remains
+a live gap is Drupal's simple_oauth module itself: no site runs in
+this environment, so its own conformance stays unexercised.</p>
 <h2 id="ai-providers">AI Providers<a class="headerlink" href="#ai-providers" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nv">DEFAULT_AI_PROVIDER</span><span class="o">=</span>ollama
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nv">AI_ENABLED</span><span class="o">=</span><span class="nb">true</span>
